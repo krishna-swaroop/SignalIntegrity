@@ -100,6 +100,7 @@ setup(
       'console_scripts': [
           'SignalIntegrity = SignalIntegrity.App.SignalIntegrityApp:main',
           'ERL = SignalIntegrity.Utilities.ERL.ERL:ERL_Main',
+          'PZ = SignalIntegrity.Utilities.PZ.PZ:PZ_Main']},
           'IXT = SignalIntegrity.Utilities.IXT.IXT:IXT_Main']},
     long_description=readmeFile,
     long_description_content_type="text/markdown",
