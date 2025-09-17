@@ -852,7 +852,8 @@ class DevicePowerMixedModeConverter(Device):
                                       PartPropertyHelp('device:Power-Mixed-Mode-Converter'),
                                       PartPropertyDefaultReferenceDesignator('MM?'),
                                       PartPropertyDescription('Power Mixed Mode Converter'),
-                                      PartPropertyPorts(4)],
+                                      PartPropertyPorts(4),
+                                      PartPropertyElementState()],
                                       PartPictureVariablePowerMixedModeConverter())
 
 class DeviceVoltageMixedModeConverter(Device):
@@ -863,7 +864,8 @@ class DeviceVoltageMixedModeConverter(Device):
                                       PartPropertyHelp('device:Voltage-Mixed-Mode-Converter'),
                                       PartPropertyDefaultReferenceDesignator('MM?'),
                                       PartPropertyDescription('Voltage Mixed Mode Converter'),
-                                      PartPropertyPorts(4)],
+                                      PartPropertyPorts(4),
+                                      PartPropertyElementState()],
                                       PartPictureVariableVoltageMixedModeConverter())
 
 class DeviceVoltageControlledVoltageSourceFourPort(Device):
