@@ -22,7 +22,10 @@ import sys
 import tkinter as tk
 from tkinter import  messagebox
 
+from PIL import Image
+
 import math
+import io
 
 from SignalIntegrity.App.Files import FileParts
 from SignalIntegrity.App.MenuSystemHelpers import Doer,StatusBar
@@ -77,6 +80,8 @@ class SParametersDialog(tk.Toplevel):
         self.ReadSParametersFromFileDoer = Doer(self.onReadSParametersFromFile).AddKeyBindElement(self,'<Control-o>').AddHelpElement('Control-Help:Open-S-parameter-File').AddToolTip('Open s-parameter file')
         self.WriteSParametersToFileDoer = Doer(self.onWriteSParametersToFile).AddKeyBindElement(self,'<Control-s>').AddHelpElement('Control-Help:Save-S-parameter-File').AddToolTip('Save s-parameters to file')
         self.Matplotlib2tikzDoer = Doer(self.onMatplotlib2TikZ).AddToolTip('Output plots to LaTeX files')
+        self.EmbedPictureDoer = Doer(self.onEmbedPicture).AddToolTip('Embed picture')
+        self.PastePictureDoer = Doer(self.onPastePicture).AddToolTip('Paste picture from clipboard into file')
         # ------
         self.CalculationPropertiesDoer = Doer(self.onCalculationProperties).AddHelpElement('Control-Help:Calculation-Properties').AddToolTip('Edit calculation properties')
         self.SParameterPropertiesDoer = Doer(self.onSParameterProperties).AddHelpElement('Control-Help:S-Parameter-Properties').AddToolTip('Edit s-parameter properties')
@@ -94,6 +99,7 @@ class SParametersDialog(tk.Toplevel):
         self.PreferencesDoer=Doer(self.onPreferences).AddHelpElement('Control-Help:S-Parameter-Viewer-Preferences').AddToolTip('Edit the preferences')
         # ------
         self.ShowHeaderDoer = Doer(self.onShowHeader).AddHelpElement('Control-Help:Show-Header').AddToolTip('Show Header Information')
+        self.ViewPictureDoer = Doer(self.onViewPicture).AddHelpElement('Control-Help:View-Picture').AddToolTip('View Picture')
         self.ShowGridsDoer = Doer(self.onShowGrids).AddHelpElement('Control-Help:Show-Grids').AddToolTip('Show grids in plots')
         self.VariableLineWidthDoer = Doer(self.onVariableLineWidth).AddHelpElement('Control-Help:Variable-Line-Width').AddToolTip('Variable line width in plots')
         self.ShowPassivityViolationsDoer = Doer(self.onShowPassivityViolations).AddHelpElement('Control-Help:Show-Passivity-Violations').AddToolTip('Show passivity violations in plots')
@@ -148,6 +154,9 @@ class SParametersDialog(tk.Toplevel):
         self.ReadSParametersFromFileDoer.AddMenuElement(FileMenu,label="Open File",accelerator='Ctrl+O',underline=0)
         FileMenu.add_separator()
         self.Matplotlib2tikzDoer.AddMenuElement(FileMenu,label='Output to LaTeX (TikZ)',underline=10)
+        FileMenu.add_separator()
+        self.EmbedPictureDoer.AddMenuElement(FileMenu,label='Embed image',underline=0)
+        self.PastePictureDoer.AddMenuElement(FileMenu,label='Paste image from clipboard',underline=0)
         # ------
         self.SelectionMenu=tk.Menu(self)
         TheMenu.add_cascade(label='Selection',menu=self.SelectionMenu,underline=0)
@@ -170,6 +179,7 @@ class SParametersDialog(tk.Toplevel):
         ViewMenu=tk.Menu(self)
         TheMenu.add_cascade(label='View',menu=ViewMenu,underline=0)
         self.ShowHeaderDoer.AddMenuElement(ViewMenu,label='Show Header Information',underline=5)
+        self.ViewPictureDoer.AddMenuElement(ViewMenu,label='View Picture',underline=3)
         self.ShowGridsDoer.AddCheckButtonMenuElement(ViewMenu,label='Show Grids',underline=5)
         self.VariableLineWidthDoer.AddCheckButtonMenuElement(ViewMenu,label='Variable Line Width',underline=9)
         self.ShowPassivityViolationsDoer.AddCheckButtonMenuElement(ViewMenu,label='Show Passivity Violations',underline=5)
@@ -228,6 +238,9 @@ class SParametersDialog(tk.Toplevel):
         self.WriteSParametersToFileDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'document-save-2.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
         self.SParameterPropertiesDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'tooloptions.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+        tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
+        self.ShowHeaderDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'info.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+        self.ViewPictureDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'photo.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
         self.HelpDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'help-contents-5.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         self.ControlHelpDoer.AddToolBarElement(ToolBarFrame,iconfile=SignalIntegrity.App.IconsDir+'help-3.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
@@ -353,8 +366,17 @@ class SParametersDialog(tk.Toplevel):
             filename=self.spList[0][1]
             title=self.spList[0][2]
             buttonLabels=self.spList[0][3]
+            self.ViewPictureDoer.Activate(False)
+            self.EmbedPictureDoer.Activate(False)
+            self.PastePictureDoer.Activate(False)
         else:
             self.spList=[[sp,filename,'S-Parameters' if title == None else title,buttonLabels]]
+            self.EmbedPictureDoer.Activate(True)
+            self.PastePictureDoer.Activate(True)
+            has_picture = False
+            if hasattr(sp, 'picture') and not sp.picture is None:
+                has_picture = True 
+            self.ViewPictureDoer.Activate(has_picture)
 
         self.fileparts=FileParts(filename)
         if title is None:
@@ -435,6 +457,24 @@ class SParametersDialog(tk.Toplevel):
                 if not self.headerDialog.winfo_exists():
                     self.headerDialog = HeaderDialog(self,self.filename,self.sp.header)
             self.headerDialog.lift(self)
+        except:
+            pass
+
+    def onViewPicture(self):
+        from SignalIntegrity.App.Picture import PictureDialog
+        pil_image = PictureDialog.uudecode_to_photoimage_from_text('\n'.join(self.sp.picture))
+        file_name = FileParts(self.spList[0][1])
+        title_name=file_name.FileNameTitle()+file_name.fileext
+
+        try:
+            if not hasattr(self, 'pictureDialog'):
+                self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            if self.pictureDialog == None:
+                self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            else:
+                if not self.pictureDialog.winfo_exists():
+                    self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            self.pictureDialog.lift(self)
         except:
             pass
 
@@ -1476,6 +1516,39 @@ class SParametersDialog(tk.Toplevel):
             si.test.PlotTikZ(filename,self.bottomRightFigure)
         except:
             messagebox.showerror('Export LaTeX','LaTeX could not be generated or written ')
+
+    def onEmbedPicture(self):
+        fp=FileParts(self.spList[0][1])
+        filename = AskOpenFileName(filetypes=[('pictures', ('*.png', '*.jpg','*.bmp'))],
+                                     initialdir=fp.AbsoluteFilePath(),
+                                     initialfile=None,
+                                     parent=self)
+        from SignalIntegrity.App.Picture import PictureDialog
+        try:
+            lines = PictureDialog.encode_image_file_to_base64_lines(filename)
+        except:
+            messagebox.showerror('picture', 'cannot open or encode picture')
+            return
+        self.sp.picture = lines
+        self.ViewPictureDoer.Activate(True)
+        self.onWriteSParametersToFile()
+
+    def onPastePicture(self):
+        try:
+            from SignalIntegrity.App.Picture import PictureDialog
+            import pyperclipimg
+            image_data = pyperclipimg.paste()
+            #image.show()
+            if isinstance(image_data,Image.Image):
+                byte_stream = io.BytesIO()
+                image_data.save(byte_stream,format='PNG')
+                image_bytes=byte_stream.getvalue()
+                lines=PictureDialog.encode_image_to_base64_lines(image_bytes)
+                self.sp.picture = lines
+                self.ViewPictureDoer.Activate(True)
+                self.onWriteSParametersToFile()
+        except:
+            tk.messagebox.showerror('picture', 'could not be pasted from clipboard')
 
     def onHelp(self):
         if Doer.helpKeys is None:

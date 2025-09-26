@@ -99,6 +99,8 @@ class SParameterFile(SParameters):
         numbersList=[]
         # pragma: silent exclude
         self.header=[]
+        self.picture=None
+        in_picture=False
         if 'text' in kwargs:
             spfile=kwargs['text']
         else:
@@ -114,7 +116,17 @@ class SParameterFile(SParameters):
             if readHeader:
                 if line[0] in ['!',' ','#','\n']:
                     if line[0] == '!':
-                        self.header.append(line[1:-1]+'\n')
+                        if line == '! picture start\n':
+                            self.picture=[]
+                            in_picture=True
+                            continue
+                        elif line == '! picture end\n':
+                            in_picture=False
+                            continue
+                        if in_picture:
+                            self.picture.append(line[1:-1]+'\n')
+                        else:
+                            self.header.append(line[1:-1]+'\n')
                 else:
                     readHeader = False
             # pragma: include

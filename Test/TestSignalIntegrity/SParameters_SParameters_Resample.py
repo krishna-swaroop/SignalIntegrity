@@ -11,5 +11,5 @@ class SParameters(SParameterManipulation):
                 res = FrequencyResponse(f,self.Response(o+1,i+1)).Resample(fl)
                 for n in range(len(fl)):
                     SR[n][o][i]=res[n]
-        return SParameters(fl,SR,self.m_Z0)
+        return SParameters(fl,SR,self.m_Z0,self.header,self.picture)
 ...

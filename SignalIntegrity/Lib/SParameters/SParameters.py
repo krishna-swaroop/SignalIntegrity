@@ -39,15 +39,27 @@ class SParameters(SParameterManipulation):
     """Class containing s-parameters"""
     maxTokensOnLine=4
     numDigits=6
-    def __init__(self,f,data,Z0=50.0):
+    def __init__(self,f,data,Z0=50.0,header=[],picture=None):
         """Constructor
         @param f list of frequencies
         @param data list of list of list matrices were each element is a list of list s-parameter matrix.
         @param Z0 (optional) real or complex reference impedance
+        @param header (optional) list of strings header information to be placed as comments in the file.
+        @param picture (optional, defaults to None) ascii encoded picture
         """
         # pragma: silent exclude
-        self.header=['File created by '+__project__+' v'+\
-                    __version__+': '+__description__, __url__]
+        self.picture=picture
+        add_header = False
+        try:
+            if not self.header is None:
+                if self.header == []:
+                    add_header = True
+        except:
+            add_header = True
+
+        if add_header:
+            self.header=['File created by '+__project__+' v'+\
+                        __version__+': '+__description__, __url__]
         # pragma: include
         self.m_sToken='S'; self.m_d=data; self.m_Z0=Z0
         self.m_f=FrequencyList(f)
@@ -108,6 +120,13 @@ class SParameters(SParameterManipulation):
             if lin.startswith(' '): lines.append('!'+lin+'\n')
             elif lin.startswith('!'): lines.append(lin+'\n')
             else: lines.append('! '+lin+'\n')
+        # pragma: silent exclude
+        if hasattr(self,'picture') and not self.picture is None:
+            lines.append('! picture start\n')
+            for lin in self.picture:
+                lines.append('!'+lin)
+            lines.append('! picture end\n')
+        # pragma: include
         lines.append('# '+fToken+' '+self.m_sToken+' '+cpxType+' R '+str(Z0)+'\n')
         for n in range(len(self.m_f)):
             line=[str(self.m_f[n]/freqMul)]
@@ -193,7 +212,7 @@ class SParameters(SParameterManipulation):
                 res = FrequencyResponse(f,self.Response(o+1,i+1)).Resample(fl)
                 for n in range(len(fl)):
                     SR[n][o][i]=res[n]
-        return SParameters(fl,SR,self.m_Z0)
+        return SParameters(fl,SR,self.m_Z0,self.header,self.picture)
     def SetReferenceImpedance(self,Z0):
         """Sets the reference impedance as specified
         @param Z0 real or complex reference impedance

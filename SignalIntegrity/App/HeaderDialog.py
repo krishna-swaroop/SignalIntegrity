@@ -33,11 +33,18 @@ class HeaderDialog(tk.Toplevel):
             width=0
             try:
                 spFileLines=Encryption().ReadEncryptedLines(fileparts.FullFilePathExtension())
+                in_picture = False
                 for line in spFileLines:
                     if line[0] in ['!',' ','#','\n']:
                         if line[0] == '!':
-                            lines=lines+line[1:-1]+'\n'
-                            width=max(len(line),width)
+                            line = line[1:-1]
+                            if line == ' picture start':
+                                in_picture = True
+                            if not in_picture:
+                                lines=lines+line+'\n'
+                                width=max(len(line),width)
+                            if line == ' picture end':
+                                in_picture = False
                     else:
                         break
             except:

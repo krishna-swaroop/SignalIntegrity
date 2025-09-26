@@ -29,13 +29,13 @@ class SParameterManipulation(object):
         if hasattr(self,'efl') and not self.efl is None:
             sp=self.Resample(self.efl)
             from SignalIntegrity.Lib.SParameters.SParameters import SParameters
-            SParameters.__init__(self,sp.m_f,sp.m_d,sp.m_Z0)
+            SParameters.__init__(self,sp.m_f,sp.m_d,sp.m_Z0,sp.header,sp.picture)
         return self
     def ResampleToUnevenlySpaced(self):
         if hasattr(self,'uefl') and not self.uefl is None:
             sp=self.Resample(self.uefl)
             from SignalIntegrity.Lib.SParameters.SParameters import SParameters
-            SParameters.__init__(self,sp.m_f,sp.m_d,sp.m_Z0)
+            SParameters.__init__(self,sp.m_f,sp.m_d,sp.m_Z0,sp.header,sp.picture)
         return self
     # locations where the largest singular value exceeds 1 are locations
     # where there are passivity violations

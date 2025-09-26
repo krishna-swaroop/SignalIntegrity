@@ -1,5 +1,5 @@
 class SParameters(SParameterManipulation):
-    def __init__(self,f,data,Z0=50.0):
+    def __init__(self,f,data,Z0=50.0,header=[],picture=None):
         self.m_sToken='S'; self.m_d=data; self.m_Z0=Z0
         self.m_f=FrequencyList(f)
         if not data is None:

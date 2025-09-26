@@ -63,6 +63,8 @@ class SParameterPropertiesDialog(PropertiesDialog):
             return x
 
     def onendFrequencyEntered(self,event):
+        if self.project['FrequencyResolution'] is None:
+            self.onfrequencyPointsEntered(event)
         self.project['EndFrequency']=self.NextHigher12458(self.project['EndFrequency'])
         self.project['FrequencyPoints']=int(self.NextHigher12458(self.project['EndFrequency']/self.project['FrequencyResolution']))
         self.project['FrequencyPoints']=max(1,self.project['FrequencyPoints'])
