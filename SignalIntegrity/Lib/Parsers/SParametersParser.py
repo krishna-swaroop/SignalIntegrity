@@ -111,6 +111,17 @@ class SParametersParser(SParameters):
                             raise IndexError
                     else:
                         raise IndexError
+                elif tokens[1] == 'taper':
+                    if len(tokens) > 2:
+                        max_frequency_of_interest = float(tokens[2])
+                        if len(tokens) == 4:
+                            taper_frequency = float(tokens[3])
+                        else:
+                            taper_frequency = None
+                        self.Taper(from_frequency=max_frequency_of_interest,
+                                   to_frequency=taper_frequency)
+                    else:
+                        raise IndexError
                 elif tokens[1][0]=='!':
                     self.header.append(line[len('post !'):])
                 else:

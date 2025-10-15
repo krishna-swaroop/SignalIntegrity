@@ -316,4 +316,30 @@ class SParameterManipulation(object):
                         self.m_d[n][toPort][fromPort]=frv[n]
         self.ResampleToUnevenlySpaced()
         return self
-
+    def Taper(self,from_frequency,to_frequency=None):
+        """Tapers the frequency response.  
+        The response is windowed as flat out to the from_frequency and tapered to zero using
+        a raised cosine between the from_frequency and the to_frequency.  
+        @param from_frequency float frequency to remain flat to
+        @param to_frequency float frequency to taper to zero at
+        @return self (with response tapered)
+        @remark if the from_frequency is above the last frequency, the s-parameters are unaffected.
+        @remark if the to_frequency is None, then the last frequency is used.
+        @remark if the to_frequency is below the from_frequency, the s-parameters are unaffected.
+        @remark if the to_frequency is above the last frequency, it is tapered to zero at the last frequency.
+        """
+        if to_frequency is None:
+            to_frequency = self.m_f[-1]
+        to_frequency = min(to_frequency,self.m_f[-1])
+        if to_frequency < from_frequency:
+            return self
+        if from_frequency > self.m_f[-1]:
+            return self
+        window = [1 if f <= from_frequency else 
+                  0 if f >= to_frequency else 0.5+0.5*math.cos((f-from_frequency)/(to_frequency-from_frequency)*math.pi)
+                  for f in self.m_f]
+        for to_port in range(self.m_P):
+            for from_port in range(self.m_P):
+                for n in range(len(self.m_f)):
+                    self.m_d[n][to_port][from_port] *= window[n]
+        return self
