@@ -335,7 +335,7 @@ class SParameterManipulation(object):
             return self
         if from_frequency > self.m_f[-1]:
             return self
-        window = [1 if f <= from_frequency else 
+        window = [1. if f <= from_frequency else 
                   0 if f >= to_frequency else 0.5+0.5*math.cos((f-from_frequency)/(to_frequency-from_frequency)*math.pi)
                   for f in self.m_f]
         for to_port in range(self.m_P):

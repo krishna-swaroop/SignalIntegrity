@@ -221,6 +221,72 @@ class TestSParametersParserTest(unittest.TestCase,si.test.SParameterCompareHelpe
                         'post offset -100e-12 500e-12',])
         sp=sspnp.SParameters()
         self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper(self):
+        fd=si.fd.EvenlySpacedFrequencyList(40e9,800)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 15e9 20e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper2(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 10e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper3(self):
+        fd=si.fd.EvenlySpacedFrequencyList(30e9,600)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 10e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper4(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 30e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper5(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 30e9 10e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    def testSParametersTaper6(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device D1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 D1 1',
+                        'port 2 D2 2',
+                        'connect D1 2 D2 1',
+                        'post taper 30e9 40e9',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
