@@ -22,9 +22,12 @@ import tkinter as tk
 from tkinter import font
 from tkinter import messagebox
 
+from PIL import Image
+
 import sys
 import copy
 import os
+import io
 
 # import matplotlib
 # matplotlib.use('TkAgg')
@@ -143,6 +146,7 @@ class SignalIntegrityApp(tk.Frame):
         self.ZoomInDoer = Doer(self.onZoomIn).AddHelpElement('Control-Help:Zoom-In').AddToolTip('Zoom in')
         self.ZoomOutDoer = Doer(self.onZoomOut).AddHelpElement('Control-Help:Zoom-Out').AddToolTip('Zoom out')
         self.PanDoer = Doer(self.onPan).AddHelpElement('Control-Help:Pan').AddToolTip('Pan the schematic')
+        self.ViewPictureDoer = Doer(self.onViewPicture).AddHelpElement('Control-Help:ViewPicture').AddToolTip('View picture')
         # ------
         self.CalculationPropertiesDoer = Doer(self.onCalculationProperties).AddHelpElement('Control-Help:Calculation-Properties').AddToolTip('Edit calculation properties')
         self.PostProcessingDoer = Doer(self.onPostProcessing).AddHelpElement('Control-Help:Post-Processing').AddToolTip('Edit calculation post processing')
@@ -245,6 +249,8 @@ class SignalIntegrityApp(tk.Frame):
         self.ZoomInDoer.AddMenuElement(ViewMenu,label='Zoom In',underline=5)
         self.ZoomOutDoer.AddMenuElement(ViewMenu,label='Zoom Out',underline=5)
         self.PanDoer.AddMenuElement(ViewMenu,label='Pan',underline=0)
+        ViewMenu.add_separator()
+        self.ViewPictureDoer.AddMenuElement(ViewMenu,label='View Picture',underline=0)
         # ------
         CalcMenu=tk.Menu(self)
         TheMenu.add_cascade(label='Calculate',menu=CalcMenu,underline=0)
@@ -304,6 +310,8 @@ class SignalIntegrityApp(tk.Frame):
         tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
         self.VariablesDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'variables-view.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         self.EquationsDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'equations-view.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+        tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
+        self.ViewPictureDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'photo.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         tk.Frame(ToolBarFrame,height=2,bd=2,relief=tk.RAISED).pack(side=tk.LEFT,fill=tk.X,padx=5,pady=5)
         self.HelpDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'help-contents-5.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
         self.ControlHelpDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'help-3.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
@@ -907,6 +915,61 @@ class SignalIntegrityApp(tk.Frame):
     def onEquations(self):
         EquationsDialog(self)
 
+    def onDeletePicture(self):
+        SignalIntegrity.App.Project['Picture'].PutLines([])
+
+    def onViewPicture(self):
+        from SignalIntegrity.App.Picture import PictureDialog
+        try:
+            pil_image = PictureDialog.uudecode_to_photoimage_from_text(SignalIntegrity.App.Project['Picture'].GetTextString())
+        except:
+            pil_image = None
+        title_name = self.fileparts.FileNameTitle()+self.fileparts.fileext
+
+        try:
+            if not hasattr(self, 'pictureDialog'):
+                self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            if self.pictureDialog == None:
+                self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            else:
+                if not self.pictureDialog.winfo_exists():
+                    self.pictureDialog = PictureDialog(self,pil_image,title_name)
+            self.pictureDialog.lift(self)
+        except:
+            pass
+
+    def onEmbedPicture(self):
+        fp=self.fileparts
+        filename = AskOpenFileName(filetypes=[('pictures', ('*.png', '*.jpg','*.bmp'))],
+                                     initialdir=fp.AbsoluteFilePath(),
+                                     initialfile=None,
+                                     parent=self)
+        from SignalIntegrity.App.Picture import PictureDialog
+        try:
+            lines = PictureDialog.encode_image_file_to_base64_lines(filename)
+        except:
+            messagebox.showerror('picture', 'cannot open or encode picture')
+            return
+
+        SignalIntegrity.App.Project['Picture'].PutLines(lines)
+        self.onViewPicture()
+
+    def onPastePicture(self):
+        from SignalIntegrity.App.Picture import PictureDialog
+        try:
+            import pyperclipimg
+            image_data = pyperclipimg.paste()
+            #image.show()
+            if isinstance(image_data,Image.Image):
+                byte_stream = io.BytesIO()
+                image_data.save(byte_stream,format='PNG')
+                image_bytes=byte_stream.getvalue()
+                lines=PictureDialog.encode_image_to_base64_lines(image_bytes)
+                SignalIntegrity.App.Project['Picture'].PutLines(lines)
+                self.onViewPicture()
+        except:
+            tk.messagebox.showerror('picture', 'could not be pasted from clipboard')
+
     def PrintProgress(self,iteration):
         self.statusbar.set('Fitting - iteration:'+str(self.m_fitter.ccm._IterationsTaken)+' mse:'+str(self.m_fitter.m_mse))
 
@@ -1162,6 +1225,7 @@ class SignalIntegrityApp(tk.Frame):
             self.ZoomInDoer.Activate(True)
             self.ZoomOutDoer.Activate(True)
             self.PanDoer.Activate(True)
+            self.ViewPictureDoer.Activate(True)
             # ------
             self.CalculationPropertiesDoer.Activate(True)
             self.PostProcessingDoer.Activate(True)

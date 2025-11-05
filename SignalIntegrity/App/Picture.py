@@ -41,9 +41,9 @@ class PictureDialog(tk.Toplevel):
         self.ExitDoer = Doer(self.onExit)
 
         #self.CutDoer = Doer(self.onCut)
-        self.DeleteDoer = Doer(self.onDelete)
-        self.CopyDoer = Doer(self.onCopy)
-        self.PasteDoer = Doer(self.onPaste)
+        self.DeleteDoer = Doer(self.onDelete).AddKeyBindElement(self,'<Control-d>')
+        self.CopyDoer = Doer(self.onCopy).AddKeyBindElement(self,'<Control-x>')
+        self.PasteDoer = Doer(self.onPaste).AddKeyBindElement(self,'<Control-v>')
 
         self.AboutDoer = Doer(self.onAbout).AddHelpElement(help)
 
@@ -77,12 +77,18 @@ class PictureDialog(tk.Toplevel):
             self.PasteDoer.Activate(False)
 
         self.pil_image = pil_image
-        self.image = ImageTk.PhotoImage(pil_image) 
+        if not self.pil_image is None:
+            try:
+                self.image = ImageTk.PhotoImage(pil_image) 
 
-        self.imageFrame=tk.Frame(self, relief=tk.RIDGE, borderwidth=5)
-        self.imageFrame.pack()
-        image_label = tk.Label(self.imageFrame, image=self.image)
-        image_label.pack(padx=10, pady=10)
+                self.imageFrame=tk.Frame(self, relief=tk.RIDGE, borderwidth=5)
+                self.imageFrame.pack()
+                image_label = tk.Label(self.imageFrame, image=self.image)
+                image_label.pack(padx=10, pady=10)
+            except:
+                self.image = None
+        else:
+            self.image = None
         self.resizable(width=False, height=False)
         self.deiconify()
 
@@ -108,10 +114,8 @@ class PictureDialog(tk.Toplevel):
     def onDelete(self):
         if not messagebox.askokcancel('picture', 'Are you sure you want to delete the picture?'):
             return
-        self.parent.sp.picture = None
-        self.parent.ViewPictureDoer.Activate(False)
-        self.parent.onWriteSParametersToFile()
         self.onExit()
+        self.parent.onDeletePicture()
 
     def onCut(self):
         pass
@@ -124,22 +128,8 @@ class PictureDialog(tk.Toplevel):
             tk.messagebox.showerror('picture','could not copy image to clipboard')
 
     def onPaste(self):
-        try:
-            import pyperclipimg
-            image_data = pyperclipimg.paste()
-            #image.show()
-            if isinstance(image_data,Image.Image):
-                byte_stream = io.BytesIO()
-                image_data.save(byte_stream,format='PNG')
-                image_bytes=byte_stream.getvalue()
-                lines=self.encode_image_to_base64_lines(image_bytes)
-                self.parent.sp.picture = lines
-                self.parent.ViewPictureDoer.Activate(True)
-                self.parent.onWriteSParametersToFile()
-                self.onExit()
-                self.parent.onViewPicture()
-        except:
-            tk.messagebox.showerror('picture', 'could not be pasted from clipboard')
+        self.onExit()
+        self.parent.onPastePicture()
 
     def onExit(self):
         self.__root.destroy()

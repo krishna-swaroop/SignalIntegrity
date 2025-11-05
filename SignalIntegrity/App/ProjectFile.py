@@ -442,8 +442,6 @@ class EquationLineConfiguration(XMLConfiguration):
         XMLConfiguration.__init__(self,'EquationLine')
         self.Add(XMLPropertyDefaultString('Line',''))
 
-
-
 class EquationsConfiguration(XMLConfiguration):
     def __init__(self):
         XMLConfiguration.__init__(self,'Equations')
@@ -471,6 +469,41 @@ class EquationsConfiguration(XMLConfiguration):
             pplines[l]['Line']=lines[l]
         self['Lines']=pplines
 
+class PictureLineConfiguration(XMLConfiguration):
+    def __init__(self):
+        XMLConfiguration.__init__(self,'PostProcessingLine')
+        self.Add(XMLPropertyDefaultString('Line',''))
+
+class PictureConfiguration(XMLConfiguration):
+    def __init__(self):
+        XMLConfiguration.__init__(self,'Picture')
+        self.Add(XMLProperty('Lines',[PictureLineConfiguration() for _ in range(0)],'array',arrayType=PictureLineConfiguration()))
+    def GetPicture(self):
+        from SignalIntegrity.App.Picture import PictureDialog
+        pil_image = PictureDialog.uudecode_to_photoimage_from_text('\n'.join(self.GetTextString()))
+        return pil_image
+    def GetTextString(self):
+        try:
+            lines=[ppline['Line'] for ppline in self['Lines']]
+            goodlines=[]
+            for line in lines:
+                if not line is None:
+                    goodlines.append(line)
+            textstr='\n'.join(goodlines)
+        except:
+            textstr=''
+        return textstr
+    def PutLines(self,lines):
+        pplines=[PictureLineConfiguration() for line in lines]
+        for l in range(len(lines)):
+            pplines[l]['Line']=lines[l].strip()
+        self['Lines']=pplines
+    def OutputXML(self,indent):
+        if len(self['Lines']) > 0:
+            return XMLConfiguration.OutputXML(self, indent)
+        else:
+            return []
+
 class ProjectFile(ProjectFileBase):
     def __init__(self):
         ProjectFileBase.__init__(self,'si')
@@ -479,6 +512,7 @@ class ProjectFile(ProjectFileBase):
         self.SubDir(PostProcessingConfiguration())
         self.SubDir(VariablesConfiguration())
         self.SubDir(EquationsConfiguration())
+        self.SubDir(PictureConfiguration())
         # for backwards compatibility with projects with global eye diagram configurations, allow for these projects to be
         # read properly - the eye diagram configuration will then be assigned to each device, and when the project file is
         # saved, the global eye diagram configuration will be removed
