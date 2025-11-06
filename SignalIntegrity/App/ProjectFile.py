@@ -471,7 +471,7 @@ class EquationsConfiguration(XMLConfiguration):
 
 class PictureLineConfiguration(XMLConfiguration):
     def __init__(self):
-        XMLConfiguration.__init__(self,'PostProcessingLine')
+        XMLConfiguration.__init__(self,'PictureLine')
         self.Add(XMLPropertyDefaultString('Line',''))
 
 class PictureConfiguration(XMLConfiguration):
