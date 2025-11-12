@@ -59,6 +59,7 @@ from TestOpticalCalculator import *
 from TestPAM6 import *
 from TestPI import *
 from TestPDN import *
+from TestPoleZeroFitter import *
 from TestPowerDelivery import *
 from TestPRBS import *
 from TestPrbsSpecial import *

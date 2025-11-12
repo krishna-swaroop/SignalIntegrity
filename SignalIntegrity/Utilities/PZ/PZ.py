@@ -24,7 +24,7 @@ import math
 import os
 from SignalIntegrity.Lib.Fit.PoleZero.PoleZeroFitter import PoleZeroLevMar
 
-class PZ_Main(object):
+class PZ_Fitter(dict):
     prog='PZ'
     def PrintProgress(self,iteration):
         iteration_string=str(self.m_fitter.ccm._IterationsTaken)+'  '+str(self.m_fitter.m_mse)
@@ -163,7 +163,8 @@ class PZ_Main(object):
             plt.pause(5)
         plt.pause(0.001)
 
-    def __init__(self):
+    @staticmethod
+    def ParseKeywordPairs(args_list=[]):
         import argparse
         from argparse import RawTextHelpFormatter
         parser = argparse.ArgumentParser(
@@ -236,32 +237,31 @@ the delay is part of the fit.')
         parser.add_argument('-lm','--lambda_multiplier',type=float,default=2.,help=argparse.SUPPRESS)
         parser.add_argument('-tol','--tolerance',type=float,default=1e-6,help=argparse.SUPPRESS)
         parser.add_argument('-mfm','--max_frequency_multiplier',type=float,default=5,help=argparse.SUPPRESS)
-        args, unknown = parser.parse_known_args()
+        parser.add_argument('-cli','--command_line',type=bool,default=False,help=argparse.SUPPRESS)
+        args, unknown = parser.parse_known_args(args_list)
+        return vars(args),unknown
 
-        #self.args=dict(zip(unknown[0::2],unknown[1::2]))
+    def Message(self,message,error=False):
+        if self.args['verbose'] or self.args['debug']:
+            print(message)
+        if error:
+            print('error')
+            exit(1)
 
-        def Message(message,error=False):
-            if args.verbose or args.debug:
-                print(message)
-            if error:
-                print('error')
-                exit(1)
+    def Error(self,message):
+        self.Message(message,error=True)
 
-        def Error(message):
-            Message(message,error=True)
+    def __init__(self,**kwargs):
+        dict.__init__(self,{})
 
-        import sys
-        if len(sys.argv)==1:
-            # parser.print_help()
-            # parser.exit()
-            Error('file name and keyword values must be specified')
+        defaults,_ = self.ParseKeywordPairs()
 
-        if len(unknown):
-            # parser.print_usage()
-            # parser.exit()
-            Error(f'unknown keyword {unknown[0]} encountered')
+        # default any argument not supplied in kwargs
+        for key in defaults.keys():
+            if not key in kwargs:
+                kwargs[key]=defaults[key]
 
-        self.args=vars(args)
+        self.args=kwargs
 
         if self.args['max_iterations'] == None:
             iterations_dict = {'short':10000,
@@ -270,11 +270,11 @@ the delay is part of the fit.')
                                'infinite':1000000000000}
             try:
                 self.args['max_iterations']=iterations_dict[self.args['iterations']]
-                Message('iterations are: '+self.args['iterations'])
+                self.Message('iterations are: '+self.args['iterations'])
             except KeyError:
-                Error('iterations must be short, medium, or long.  you specified: '+self.args['iterations'])
+                self.Error('iterations must be short, medium, or long.  you specified: '+self.args['iterations'])
         else:
-            Message('max iterations set to: '+str(self.args['max_iterations']))
+            self.Message('max iterations set to: '+str(self.args['max_iterations']))
 
         if self.args['mse_unchanging_threshold'] == None:
             mse_unchanging_dict = {'low':1e-5,
@@ -283,11 +283,11 @@ the delay is part of the fit.')
                                'super':1e-8}
             try:
                 self.args['mse_unchanging_threshold']=mse_unchanging_dict[self.args['precision']]
-                Message('precision is: '+self.args['precision'])
+                self.Message('precision is: '+self.args['precision'])
             except KeyError:
-                Error('precision must be low, medium, high, or super.  you specified: '+self.args['precision'])
+                self.Error('precision must be low, medium, high, or super.  you specified: '+self.args['precision'])
         else:
-            Message('mse unchanging threshold set to: '+str(self.args['mse_unchanging_threshold']))
+            self.Message('mse unchanging threshold set to: '+str(self.args['mse_unchanging_threshold']))
 
         filename=self.args['filename']
 
@@ -312,44 +312,44 @@ the delay is part of the fit.')
                         else:
                             raise # not in initial lines, reraise exception
                 fr=si.fd.FrequencyResponse(f,r)
-                Message(os.path.split(filename)[-1] +' read')
+                self.Message(os.path.split(filename)[-1] +' read')
                 if self.args['reference_impedance'] != None:
-                    Message('reference impedance (-r) ignored')
+                    self.Message('reference impedance (-r) ignored')
                 if self.args['voltage_transfer_function']:
-                    Message('voltage transfer function (-vt) ignored')
+                    self.Message('voltage transfer function (-vt) ignored')
             except:
-                Error('file: '+filename+' could not be opened')
+                self.Error('file: '+filename+' could not be opened')
         elif len(ext)>=4:
             if ext[0:2].lower() == '.s' and ext[-1].lower() == 'p' and ext[2:-1].isnumeric():
                 # it's an s-parameter file
                 try:
                     sp=si.sp.SParameterFile(filename)
                     if self.args['reference_impedance'] != None:
-                        Message(f"reference impedance specified as {ToSI(self.args['reference_impedance'],'ohm')}")
+                        self.Message(f"reference impedance specified as {ToSI(self.args['reference_impedance'],'ohm')}")
                         sp.SetReferenceImpedance(self.args['reference_impedance'])
                     else:
-                        Message(f"no reference impedance specified so the reference impedance of {ToSI(sp.m_Z0,'ohm')} in the file will be used")
+                        self.Message(f"no reference impedance specified so the reference impedance of {ToSI(sp.m_Z0,'ohm')} in the file will be used")
                     fr=sp.FrequencyResponse(2,1)
                     if self.args['voltage_transfer_function']:
-                        Message('fit will be to the voltage transfer function')
+                        self.Message('fit will be to the voltage transfer function')
                         s11=sp.FrequencyResponse(1,1)
                         for n in range(len(fr)):
                             fr[n]=fr[n]/(1+s11[n])
                     else:
-                        Message('fit will be to s21, which is not the voltage transfer function')
-                    Message(os.path.split(filename)[-1] +' read')
+                        self.Message('fit will be to s21, which is not the voltage transfer function')
+                    self.Message(os.path.split(filename)[-1] +' read')
                 except:
-                    Error('file: '+filename+' could not be opened')
+                    self.Error('file: '+filename+' could not be opened')
             else:
-                Error('only .csv and s-parameter files supported currently')
+                self.Error('only .csv and s-parameter files supported currently')
         if self.args['end_frequency'] != None or self.args['frequency_points'] != None:
             if self.args['end_frequency'] == None:
-                Error('if number of frequency points specified, then end frequency must be specified')
+                self.Error('if number of frequency points specified, then end frequency must be specified')
             if self.args['frequency_points'] == None:
-                Error('if end frequency is specified, then number of frequency points must be specified')
+                self.Error('if end frequency is specified, then number of frequency points must be specified')
             fe=self.args['end_frequency']; n = self.args['frequency_points']
             fr=fr.Resample(si.fd.EvenlySpacedFrequencyList(fe,n))
-            Message(f"frequency response resampled to end frequency: {ToSI(fe,'Hz')} with: {n} points")
+            self.Message(f"frequency response resampled to end frequency: {ToSI(fe,'Hz')} with: {n} points")
 
         guess=None
         guess_file = self.args['guess_file']
@@ -363,95 +363,95 @@ the delay is part of the fit.')
                         self.args['zero_pairs'] = gf['zero pair']['number of']
                         self.args['pole_pairs'] = gf['pole pair']['number of']
 
-                        Message('guess file: '+filename+' read')
-                        Message('zeros are '+str(self.args['zero_pairs'])+' and poles are '+str(self.args['pole_pairs'])+' from guess file')
+                        self.Message('guess file: '+filename+' read')
+                        self.Message('zeros are '+str(self.args['zero_pairs'])+' and poles are '+str(self.args['pole_pairs'])+' from guess file')
                 except:
-                    Error('guess file: '+filename+' could not be opened')
+                    self.Error('guess file: '+filename+' could not be opened')
             else:
                 try:
                     gf = PoleZeroLevMar.ReadResultsFile(guess_file)
-                    Message('guess file: '+os.path.split(filename)[-1]+' read')
+                    self.Message('guess file: '+os.path.split(filename)[-1]+' read')
 
                     self.args['zero_pairs'] = gf[0]
                     self.args['pole_pairs'] = gf[1]
                     guess = gf[2:]
-                    Message('zeros are '+str(gf[0])+' and poles are '+str(gf[1])+' from guess file')
+                    self.Message('zeros are '+str(gf[0])+' and poles are '+str(gf[1])+' from guess file')
                 except:
-                    Error('guess file: '+filename+' could not be opened')
+                    self.Error('guess file: '+filename+' could not be opened')
 
         num_poles = self.args['pole_pairs']
         num_zeros = self.args['zero_pairs']
 
         if num_zeros == None:
-            Error('number of zero pairs must be specified (-zp)')
+            self.Error('number of zero pairs must be specified (-zp)')
 
         if num_poles == None:
-            Error('number of pole pairs must be specified (-pp)')
+            self.Error('number of pole pairs must be specified (-pp)')
 
         if guess == None:
-            Message('zeros are '+str(num_zeros)+' and poles are '+str(num_poles))
+            self.Message('zeros are '+str(num_zeros)+' and poles are '+str(num_poles))
 
-        Message(f"initial delay: {ToSI(self.args['initial_delay'],'s')}")
-        Message(f"minimum delay allowed: {ToSI(self.args['min_delay'],'s')}")
+        self.Message(f"initial delay: {ToSI(self.args['initial_delay'],'s')}")
+        self.Message(f"minimum delay allowed: {ToSI(self.args['min_delay'],'s')}")
         if self.args['max_delay'] == None:
-            Message('there is no limit on maximum delay')
+            self.Message('there is no limit on maximum delay')
         else:
-            Message(f"maximum delay allowed: {ToSI(self.args['max_delay'],'s')}")
+            self.Message(f"maximum delay allowed: {ToSI(self.args['max_delay'],'s')}")
 
         if self.args['fix_gain']:
-            Message('gain is fixed')
+            self.Message('gain is fixed')
         else:
-            Message('gain is a free variable in the fit')
+            self.Message('gain is a free variable in the fit')
 
         if not self.args['fix_delay'] and self.args['fit_type'] == 'magnitude':
             self.args['fix_delay'] = True
-            Message('delay is always fixed for magnitude fits')
+            self.Message('delay is always fixed for magnitude fits')
         else:
             if self.args['fix_delay']:
-                Message('delay is fixed')
+                self.Message('delay is fixed')
             else:
-                Message('delay is a free variable in the fit')
+                self.Message('delay is a free variable in the fit')
 
-        Message("poles are always restricted to LHP")
+        self.Message("poles are always restricted to LHP")
         if self.args['lhp_zeros']:
-            Message("zeros are restricted to LHP")
+            self.Message("zeros are restricted to LHP")
         else:
-            Message('no restriction on LHP or RHP on zeros')
+            self.Message('no restriction on LHP or RHP on zeros')
 
         if self.args['real_zeros']:
-            Message('zeros are restricted to be real')
+            self.Message('zeros are restricted to be real')
         else:
-            Message('zeros are allowed to be complex')
+            self.Message('zeros are allowed to be complex')
 
-        Message(f"maximum Q is {self.args['max_q']}")
+        self.Message(f"maximum Q is {self.args['max_q']}")
 
         fit_type=self.args['fit_type']
         if fit_type == 'magnitude':
-            Message('fit type is: magnitude')
+            self.Message('fit type is: magnitude')
         elif fit_type == 'complex':
-            Message('fit type is: complex')
+            self.Message('fit type is: complex')
         else:
-            Error('fit type must be either "magnitude" or "complex"')
+            self.Error('fit type must be either "magnitude" or "complex"')
 
-        default_initial_lambda = parser.get_default('initial_lambda')
+        default_initial_lambda = defaults['initial_lambda']
         initial_lambda=self.args['initial_lambda']
         if default_initial_lambda != initial_lambda:
-            Message(f'initial λ: {initial_lambda} as opposed to default of: {default_initial_lambda}')
+            self.Message(f'initial λ: {initial_lambda} as opposed to default of: {default_initial_lambda}')
 
-        default_lambda_multiplier = parser.get_default('lambda_multiplier')
+        default_lambda_multiplier = defaults['lambda_multiplier']
         lambda_multiplier=self.args['lambda_multiplier']
         if default_lambda_multiplier != lambda_multiplier:
-            Message(f'λ multiplier: {lambda_multiplier} as opposed to default of: {default_lambda_multiplier}')
+            self.Message(f'λ multiplier: {lambda_multiplier} as opposed to default of: {default_lambda_multiplier}')
 
-        default_tolerance = parser.get_default('tolerance')
+        default_tolerance = defaults['tolerance']
         tolerance=self.args['tolerance']
         if default_tolerance != tolerance:
-            Message(f'tolerance is: {tolerance} as opposed to default of: {default_tolerance}')
+            self.Message(f'tolerance is: {tolerance} as opposed to default of: {default_tolerance}')
 
-        default_max_frequency_multiplier = parser.get_default('max_frequency_multiplier')
+        default_max_frequency_multiplier = defaults['max_frequency_multiplier']
         max_frequency_multiplier=self.args['max_frequency_multiplier']
         if default_max_frequency_multiplier != max_frequency_multiplier:
-            Message(f'max_frequency_multiplier is: {max_frequency_multiplier} as opposed to default of: {default_max_frequency_multiplier}')
+            self.Message(f'max_frequency_multiplier is: {max_frequency_multiplier} as opposed to default of: {default_max_frequency_multiplier}')
 
         import time
         from datetime import datetime
@@ -488,8 +488,8 @@ the delay is part of the fit.')
         else:
             self.m_fitter.Solve()
 
-        Message('convergence: '+str(self.m_fitter.ccm.why))
-        Message('iterations: '+str(self.m_fitter.ccm._IterationsTaken)+' mse:'+str(self.m_fitter.ccm._Mse))
+        self.Message('convergence: '+str(self.m_fitter.ccm.why))
+        self.Message('iterations: '+str(self.m_fitter.ccm._IterationsTaken)+' mse:'+str(self.m_fitter.ccm._Mse))
 
         end_time = time.time()
         elapsed_time=end_time-start_time
@@ -524,14 +524,14 @@ the delay is part of the fit.')
                 sp.WriteToFile('debug')
             except:
                 pass
-        Message(f'elapsed time: {elapsed_time} s')
+        self.Message(f'elapsed time: {elapsed_time} s')
 
-        if self.args['output_file']:
-            self.args['output_file']=os.path.splitext(self.args['output_file'])[0]+'.json'
+        results={}
+        if self.args['output_file'] or not self.args['command_line']:
             num_zero_pairs=self.m_fitter.num_zero_pairs
             num_pole_pairs=self.m_fitter.num_pole_pairs
             raw_results=self.m_fitter.Results()
-            results={}
+
             results['raw']=raw_results
             results['configuration']=self.args
             results['convergence']={'iterations':self.m_fitter.ccm._IterationsTaken,
@@ -617,11 +617,41 @@ the delay is part of the fit.')
                                        'mag':pole_mag[p],
                                        'angle':{'rad':pole_angle[p],
                                                 'deg':pole_angle[p]*180./np.pi}})
-            import json
-            with open(self.args['output_file'],'w') as f:
-                json.dump(results,f,indent=4)
-        print('done')
+
+            if self.args['output_file']:
+                self.args['output_file']=os.path.splitext(self.args['output_file'])[0]+'.json'
+                import json
+                with open(self.args['output_file'],'w') as f:
+                    json.dump(results,f,indent=4)
+        self.Message('done')
         if self.args['debug']:
             input("Press Enter to continue...")
+        dict.__init__(self,results)
+
 if __name__ == '__main__': # pragma: no cover
-    PZ_Main()
+    import sys
+    args_list=sys.argv[1:]
+    args,unknown = PZ_Fitter.ParseKeywordPairs(args_list)
+    args['command_line']=True
+    # def Message(message,error=False):
+    #     if args.verbose or args.debug:
+    #         print(message)
+    #     if error:
+    #         print('error')
+    #         exit(1)
+    #
+    # def Error(message):
+    #     Message(message,error=True)
+    #
+    # import sys
+    # if len(args_list)==1:
+    #     # parser.print_help()
+    #     # parser.exit()
+    #     Error('file name and keyword values must be specified')
+    #
+    # if len(unknown):
+    #     # parser.print_usage()
+    #     # parser.exit()
+    #     Error(f'unknown keyword {unknown[0]} encountered')
+
+    PZ_Fitter(**args)
