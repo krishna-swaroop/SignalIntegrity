@@ -52,7 +52,7 @@ class PZ_Fitter(dict):
             self.fig.suptitle('SignalIntegrity Pole/Zero Fitting Dashboard')
             self.fig.canvas.manager.set_window_title('SignalIntegrity PZ Utility')
             import tkinter as tk
-            if self.windows:
+            if self.windows and self.args['command_line']: # pragma: no cover
                 import SignalIntegrity.App.Project
                 self.img = tk.PhotoImage(file=SignalIntegrity.App.IconsBaseDir+'AppIcon2.gif')
                 thismanager = plt.get_current_fig_manager()
@@ -246,7 +246,10 @@ the delay is part of the fit.')
             print(message)
         if error:
             print('error')
-            exit(1)
+            if self.args['command_line']:
+                exit(1)
+            else:
+                raise Exception(message)
 
     def Error(self,message):
         self.Message(message,error=True)
@@ -255,6 +258,10 @@ the delay is part of the fit.')
         dict.__init__(self,{})
 
         defaults,_ = self.ParseKeywordPairs()
+
+        for key in kwargs:
+            if not key in defaults:
+                self.Error(f'unknown key: {key}')
 
         # default any argument not supplied in kwargs
         for key in defaults.keys():
@@ -290,6 +297,8 @@ the delay is part of the fit.')
             self.Message('mse unchanging threshold set to: '+str(self.args['mse_unchanging_threshold']))
 
         filename=self.args['filename']
+        if filename is None:
+            self.Error('file name must be supplied')
 
         ext=os.path.splitext(filename)[-1]
         if ext.lower() == '.csv':
@@ -624,34 +633,16 @@ the delay is part of the fit.')
                 with open(self.args['output_file'],'w') as f:
                     json.dump(results,f,indent=4)
         self.Message('done')
-        if self.args['debug']:
+        if self.args['debug'] and self.args['command_line']:
             input("Press Enter to continue...")
         dict.__init__(self,results)
 
-if __name__ == '__main__': # pragma: no cover
+def PZ_Main():
     import sys
     args_list=sys.argv[1:]
     args,unknown = PZ_Fitter.ParseKeywordPairs(args_list)
     args['command_line']=True
-    # def Message(message,error=False):
-    #     if args.verbose or args.debug:
-    #         print(message)
-    #     if error:
-    #         print('error')
-    #         exit(1)
-    #
-    # def Error(message):
-    #     Message(message,error=True)
-    #
-    # import sys
-    # if len(args_list)==1:
-    #     # parser.print_help()
-    #     # parser.exit()
-    #     Error('file name and keyword values must be specified')
-    #
-    # if len(unknown):
-    #     # parser.print_usage()
-    #     # parser.exit()
-    #     Error(f'unknown keyword {unknown[0]} encountered')
-
     PZ_Fitter(**args)
+
+if __name__ == '__main__': # pragma: no cover
+    PZ_Main()

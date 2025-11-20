@@ -33,6 +33,15 @@ class TestPoleZeroFitterTest(unittest.TestCase,
         self.cwd=os.getcwd()
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
     def tearDown(self):
+        def remove_file(filename):
+            try:
+                os.remove(filename)
+            except FileNotFoundError:
+                pass
+        remove_file('./PZ.json')
+        remove_file('./debug.s4p')
+        remove_file('./test_goal.txt')
+        remove_file('./test_result.txt')
         unittest.TestCase.tearDown(self)
         os.chdir(self.cwd)
     def FileNameForTest(self):
@@ -63,13 +72,13 @@ class TestPoleZeroFitterTest(unittest.TestCase,
     def testPZ(self):
         args={'filename': 'MM.s4p',
               'fit_type': 'magnitude',
-              'debug': False,
+              'debug': True,
               'profile': False,
               'verbose': False,
               'zero_pairs': 2,
               'pole_pairs': 4,
               'guess_file': None,
-              #'output_file': 'guess.json',
+              'output_file': 'PZ.json',
               'end_frequency': 100000000000.0,
               'frequency_points': 40,
               'min_delay': 0.0,
@@ -88,8 +97,8 @@ class TestPoleZeroFitterTest(unittest.TestCase,
               'mse_unchanging_threshold': None,
               'initial_lambda': 1000.0,
               'lambda_multiplier': 2.0,
-              'tolerance': 1e-06,
-              'max_frequency_multiplier': 5}
+              'tolerance': 1e-07,
+              'max_frequency_multiplier': 6}
         result=PZ_Fitter(**args)
         self.Compare(result)
     def testPZ1(self):
@@ -160,10 +169,10 @@ class TestPoleZeroFitterTest(unittest.TestCase,
         args={'filename': 'Fitted.s2p',
               'fit_type': 'magnitude',
               'debug': False,
-              'profile': False,
+              'profile': True,
               'verbose': True,
-              'zero_pairs': 0,
-              'pole_pairs': 40,
+              'zero_pairs': 2,
+              'pole_pairs': 4,
               'guess_file': None,
               'end_frequency': 100000000000.0,
               'frequency_points': 200,
@@ -187,3 +196,123 @@ class TestPoleZeroFitterTest(unittest.TestCase,
               'max_frequency_multiplier': 10.0}
         result=PZ_Fitter(**args)
         self.Compare(result)
+    def baselineArgs(self):
+        return {'filename': 'MM.s4p',
+              'fit_type': 'magnitude',
+              'debug': True,
+              'profile': False,
+              'verbose': False,
+              'zero_pairs': 2,
+              'pole_pairs': 4,
+              'guess_file': None,
+              'output_file': 'PZ.json',
+              'end_frequency': 100000000000.0,
+              'frequency_points': 40,
+              'min_delay': 0.0,
+              'max_delay': 0.0,
+              'max_q': 10.0,
+              'initial_delay': 0.0,
+              'iterations': 'infinite',
+              'precision': 'super',
+              'real_zeros': False,
+              'lhp_zeros': True,
+              'voltage_transfer_function': True,
+              'fix_gain': False,
+              'fix_delay': True,
+              'reference_impedance': 46.0,
+              'max_iterations': None,
+              'mse_unchanging_threshold': None,
+              'initial_lambda': 1000.0,
+              'lambda_multiplier': 2.0,
+              'tolerance': 1e-06,
+              'max_frequency_multiplier': 5}
+    def testAAAWrongIterations(self):
+        args=self.baselineArgs()
+        args['iterations']='garbage'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongPrecision(self):
+        args=self.baselineArgs()
+        args['precision']='garbage'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAExtraKey(self):
+        args=self.baselineArgs()
+        args['garbage']='garbage'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongFilenameCsv(self):
+        args=self.baselineArgs()
+        args['filename']='garbage.csv'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongFilenameS2P(self):
+        args=self.baselineArgs()
+        args['filename']='garbage.s2p'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongFilenameExtension(self):
+        args=self.baselineArgs()
+        args['filename']='garbage.xxx'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAANoEndFrequency(self):
+        args=self.baselineArgs()
+        del args['end_frequency']
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAANoFrequencyPoints(self):
+        args=self.baselineArgs()
+        del args['frequency_points']
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongGuessFileJson(self):
+        args=self.baselineArgs()
+        args['guess_file'] = 'garbage.json'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongGuessFileTxt(self):
+        args=self.baselineArgs()
+        args['guess_file'] = 'garbage.txt'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAANoZeroPairs(self):
+        args=self.baselineArgs()
+        del args['zero_pairs']
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAANoPolePairs(self):
+        args=self.baselineArgs()
+        del args['pole_pairs']
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAAWrongFitType(self):
+        args=self.baselineArgs()
+        del args['max_delay']
+        args['max_iterations'] = 100
+        args['real_zeros'] = True
+        args['fit_type'] = 'garbage'
+        args['guess_file']='result.txt'
+        with self.assertRaises(Exception) as cme:
+            PZ_Fitter(**args)
+            print (cme.message)
+    def testAAACommandLine(self):
+        result = os.system('python ../../../SignalIntegrity/Utilities/PZ/PZ.py')
+        self.assertEqual(result, 1, 'incorrect result')
+    def testAAACommandLine2(self):
+        from SignalIntegrity.Utilities.PZ.PZ import PZ_Main
+        with self.assertRaises(SystemExit) as cme:
+            PZ_Main()
+            print (cme.message)
