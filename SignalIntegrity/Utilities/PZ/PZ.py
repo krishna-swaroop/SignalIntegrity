@@ -30,7 +30,7 @@ class PZ_Fitter(dict):
         iteration_string=str(self.m_fitter.ccm._IterationsTaken)+'  '+str(self.m_fitter.m_mse)
         if self.m_fitter.ccm._IterationsTaken == 2:
             iteration_string+='                             '
-        print(iteration_string, end='\r')
+        print(iteration_string, end='\r',flush=True)
     def PlotResult(self,iteration):
         if not self.args['verbose'] and not self.args['debug']:
             return
