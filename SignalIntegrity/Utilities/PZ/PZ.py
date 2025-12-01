@@ -259,6 +259,8 @@ the delay is part of the fit.')
 
         defaults,_ = self.ParseKeywordPairs()
 
+        self.args=kwargs
+
         for key in kwargs:
             if not key in defaults:
                 self.Error(f'unknown key: {key}')
