@@ -38,7 +38,7 @@ class Numeric(object):
             if '#' in self[d].Name:
                 self[d].AssignSParameters(TeeThreePortSafe(0.000000001))
     def Dagger(self,A,Left=None,Right=None,Mul=False):
-        """
+        r"""
         Special computation of \f$\mathbf{A}^\dagger\f$ where
         \f$\mathbf{L}\cdot\mathbf{A}^\dagger\cdot\mathbf{R}\f$ needs to be computed\n
         @param A matrix \f$\mathbf{A}\f$ to be inverted

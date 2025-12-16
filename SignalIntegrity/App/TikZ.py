@@ -116,7 +116,7 @@ class TikZ(object):
             textToWrite=textToWrite.replace('_','\\textunderscore ')
         #hack to deal with unicode sigma
         if textToWrite==u"\u03C3":
-            textToWrite='$\sigma$'
+            textToWrite='$\\sigma$'
         if self.textSize is None:
             line=line+'{'+textToWrite+'};\n'
         else:

@@ -23,7 +23,7 @@ import cmath
 
 
 def TLineFourPort(Zc,gamma,Z0=50.):
-    """TLineFourPort
+    r"""TLineFourPort
     Ideal Four-port Transmission Line
     @param Zc float or complex characteristic impedance
     @param gamma float or complex propagation constant
@@ -38,7 +38,7 @@ def TLineFourPort(Zc,gamma,Z0=50.):
     @note this device is functionally equivalent to the two-port transmission line TLineTwoPort() when
     ports 3 and 4 are grounded.
     """
-    """
+    r"""
               +-----------------------+
              / \                       \
       1 ----+-  |     Z    Td           +----- 2

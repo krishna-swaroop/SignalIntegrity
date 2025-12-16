@@ -20,7 +20,7 @@ Handles Callbacks that allow progress reporting during long calculations and cap
 # If not, see <https://www.gnu.org/licenses/>
 
 class CallBacker(object):
-    """CallBacker  
+    r"""CallBacker  
     To use callbacks, a class is derived from CallBacker.  
     Either the constructor of the derived class or some other mechanism should
     provide means for supplying the callback function, which is installed in a

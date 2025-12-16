@@ -3,7 +3,7 @@ class SystemSParametersSymbolic(SystemDescriptionSymbolic):
         SystemDescriptionSymbolic.__init__(self,sd,**args)
     def _LaTeXSi(self):
         sW=self._LaTeXMatrix(self.WeightsMatrix())
-        self._AddEq('\mathbf{Si} = \\left[ '+self._Identity()+\
+        self._AddEq('\\mathbf{Si} = \\left[ '+self._Identity()+\
             ' - '+sW+' \\right]^{-1}')
         return self
     def LaTeXSolution(self,**args):

@@ -23,7 +23,7 @@ import cmath
 import math
 
 def CZT(x,Fs,fs,fe,M,highSpeed=True):
-    """Provides M+1 points from fs to fe of the chirp z transform of the vector x
+    r"""Provides M+1 points from fs to fe of the chirp z transform of the vector x
     @param x an input vector (list) of real time-domain samples
     @param Fs the sample rate of the the data samples in x
     @param fs the start frequency for the result

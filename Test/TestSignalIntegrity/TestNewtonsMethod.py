@@ -129,7 +129,7 @@ class TestNewtonsMethodTests(unittest.TestCase,si.test.RoutineWriterTesterHelper
         plt.cla()
 
         plt.plot(Y,g,color='black',label='seed value')
-        plt.plot(Y,[math.sqrt(y) for y in Y],color='gray',label='$\sqrt{y}$')
+        plt.plot(Y,[math.sqrt(y) for y in Y],color='gray',label='$\\sqrt{y}$')
         plt.xlabel('y')
         plt.ylabel('values')
         plt.xlim(0.5,1)
@@ -210,9 +210,9 @@ class TestNewtonsMethodTests(unittest.TestCase,si.test.RoutineWriterTesterHelper
         yf=[[y[0]+1.0] for y in (array(X).dot(array(a))).tolist()]
         r=(array(yf)-array([[y] for y in mS21])).tolist()
         sigma=math.sqrt(((array(r).conj().T.dot(array(r))).tolist()[0][0])/K)
-        print('\[a_1 = '+ str(a[0][0])+'/GHz\]')
-        print('\[a_2 = '+ str(a[1][0])+ '/\sqrt{GHz}\]')
-        print('\[\sigma = '+ str(sigma)+'\]')
+        print('\\[a_1 = '+ str(a[0][0])+'/GHz\\]')
+        print('\\[a_2 = '+ str(a[1][0])+ '/\\sqrt{GHz}\\]')
+        print('\\[\\sigma = '+ str(sigma)+'\\]')
         # pragma: silent exclude
         import matplotlib.pyplot as plt
         plt.cla()

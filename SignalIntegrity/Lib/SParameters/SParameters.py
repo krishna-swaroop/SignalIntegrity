@@ -95,7 +95,7 @@ class SParameters(SParameterManipulation):
         """
         return FrequencyResponse(self.f(),self.Response(ToP,FromP))
     def Text(self,formatString=None):
-        """returns text for the s-parameters file
+        r"""returns text for the s-parameters file
         @param formatString (optional) string containing the  format
         Creates the file in the Touchstone 1.0 format using the format string provided.
 
@@ -165,7 +165,7 @@ class SParameters(SParameterManipulation):
             lines.append(pline)
         return lines
     def WriteToFile(self,name,formatString=None):
-        """Writes the s-parameters to a file
+        r"""Writes the s-parameters to a file
         @param name string filename to write to
         @param formatString (optional) string containing the  format
         Writes the file in the Touchstone 1.0 format using the format string provided.
