@@ -6,7 +6,7 @@
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>1030x378+28+30</Geometry>
+			<Geometry>1030x378+130+130</Geometry>
 			<Grid>14.0</Grid>
 			<Originx>-12</Originx>
 			<Originy>-7</Originy>
@@ -1013,6 +1013,9 @@
 				<Line>cp.CalculateOthersFromBaseInformation()</Line>
 			</EquationLine>
 			<EquationLine>
+				<Line>ImpulseResponseLength=cp['ImpulseResponseLength']</Line>
+			</EquationLine>
+			<EquationLine>
 				<Line>dur_desired=2*N*T_b</Line>
 			</EquationLine>
 			<EquationLine>
@@ -1032,18 +1035,6 @@
 			</EquationLine>
 			<EquationLine>
 				<Line>start=-T_b/2.</Line>
-			</EquationLine>
-			<EquationLine>
-				<Line></Line>
-			</EquationLine>
-			<EquationLine>
-				<Line></Line>
-			</EquationLine>
-			<EquationLine>
-				<Line></Line>
-			</EquationLine>
-			<EquationLine>
-				<Line></Line>
 			</EquationLine>
 			<EquationLine>
 				<Line></Line>
