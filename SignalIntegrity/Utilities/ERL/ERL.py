@@ -102,7 +102,10 @@ def ERL(filename,args,debug=False,verbose=False):
             }
 
     if debug: # pragma: no cover
-        kwPairs=' '.join([key+' '+str(args[key]) for key in args.keys()])
+        debug_args=args
+        if ' ' in debug_args['file_name']:
+            debug_args['file_name']='"'+args['file_name'].replace('"','')+'"'
+        kwPairs=' '.join([key+' '+str(debug_args[key]) for key in debug_args.keys()])
         pwdArgString=''
         result=os.system('SignalIntegrity "'+os.path.abspath(os.path.join(os.path.dirname(__file__),'Projects','ERL_S11_Impulse.si'))+'"'+pwdArgString+' --external '+kwPairs)
 

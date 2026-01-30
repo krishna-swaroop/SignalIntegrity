@@ -292,7 +292,7 @@ class LinesCache(ResultsCache):
                             fileList[lineList[5]]={key:value
                                                    for key,value in [(lineList[k],lineList[k+1])
                                                                      for k in range(6,len(lineList),2)]
-                                                   if key not in ['scale']}
+                                                   if key not in ['scale','reorder']}
                         elif lineList[3] == 'impulseresponsefilter':
                             fileList[lineList[4]]={key:value
                                                    for key,value in [(lineList[k],lineList[k+1])
