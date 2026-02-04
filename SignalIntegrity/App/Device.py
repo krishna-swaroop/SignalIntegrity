@@ -1165,9 +1165,21 @@ class DeviceNPNTransistor(Device):
                                       PartPropertyPorts(3)]+propertiesList,
                                       PartPictureVariableNPNTransister())
 
+class DeviceRLGCFitFromFileNetListLine(DeviceNetListLine):
+    def __init__(self,devicename=None,partname=None,showReference=True,showports=True,values=None):
+        DeviceNetListLine.__init__(self,devicename=devicename,partname=partname,showReference=showReference,showports=showports,values=values)
+    def NetListLine(self,device):
+        reorder_string=device.PartPropertyByKeyword('reorder').PropertyString(stype='netlist')
+        if reorder_string not in ['','None']:
+            reorder_string = ' reorder '+reorder_string
+        else:
+            reorder_string = ''
+        returnstring=DeviceNetListLine.NetListLine(self,device)+reorder_string
+        return returnstring
+
 class DeviceRLGCFitFromFile(Device):
     def __init__(self):
-        netlist=DeviceNetListLine(partname='rlgcfit',values=[('file',True),('scale',True)])
+        netlist=DeviceRLGCFitFromFileNetListLine(partname='rlgcfit',values=[('file',True),('scale',True)])
         Device.__init__(self,netlist,[PartPropertyDescription('Two Port RLGC fitted transmission line'),
                                       PartPropertyPorts(2),
                                       PartPropertyCategory('Transmission Lines'),
@@ -1176,7 +1188,8 @@ class DeviceRLGCFitFromFile(Device):
                                       PartPropertyDefaultReferenceDesignator('T?'),
                                       PartPropertyCalculationProperties(),
                                       PartPropertyFileName(),
-                                      PartPropertyScale(scale=1)],
+                                      PartPropertyScale(scale=1),
+                                      PartPropertyReorder()],
                             PartPictureVariableTransmissionLineTwoPort())
 
 class DeviceNetworkAnalyzer(Device):

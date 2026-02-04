@@ -349,7 +349,7 @@ class VariableConfiguration(XMLConfiguration):
             except ValueError:
                 value = ''
         elif self['Type'] == 'file':
-            value=('/'.join(str(os.path.abspath(value)).split('\\')))
+            value=('/'.join(str(os.path.abspath(value.replace('"',''))).split('\\')))
             if ' ' in value:
                 value="'"+value+"'"
         elif self['Type'] == 'string':
