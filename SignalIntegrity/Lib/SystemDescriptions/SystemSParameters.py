@@ -26,13 +26,15 @@ class SystemSParameters(SystemDescription):
     def __init__(self,sd=None):
         SystemDescription.__init__(self,sd)
     def PortANames(self):
+        pref=SystemDescription.port_refdes
         return [x[1] for x in sorted
-                ([(int(self[d].Name.strip('P')),self[d][0].A)
-                  for d in range(len(self)) if self[d].Name[0]=='P'])]
+                ([(int(self[d].Name.strip(pref)),self[d][0].A)
+                  for d in range(len(self)) if self[d].Name[0:len(pref)]==pref])]
     def PortBNames(self):
+        pref=SystemDescription.port_refdes
         return [x[1] for x in sorted
-                ([(int(self[d].Name.strip('P')),self[d][0].B)
-                  for d in range(len(self)) if self[d].Name[0]=='P'])]
+                ([(int(self[d].Name.strip(SystemDescription.port_refdes)),self[d][0].B)
+                  for d in range(len(self)) if self[d].Name[0:len(pref)]==pref])]
     def OtherNames(self,K):
         other=[]
         for item in self.NodeVector():

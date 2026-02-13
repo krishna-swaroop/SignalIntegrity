@@ -35,6 +35,7 @@ class SystemDescription(list):
 
     A system description is fundamentally a list of devices, which in turn are lists
     of ports and port connections."""
+    port_refdes = '__P'
     def __init__(self,sd=None):
         """Constructor
         @param sd (optional, defaults to None) instance of class SystemDescription
@@ -161,7 +162,7 @@ class SystemDescription(list):
 
         @todo Consider removing the AddThru argument
         """
-        PortName = 'P'+str(SystemPort)
+        PortName = self.port_refdes+str(SystemPort)
         self.AddDevice(PortName,1,[[0.0]])
         self.AssignM(PortName,1,'m'+str(SystemPort))
         if not AddThru:

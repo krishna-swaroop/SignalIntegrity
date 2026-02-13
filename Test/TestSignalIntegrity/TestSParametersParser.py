@@ -287,6 +287,28 @@ class TestSParametersParserTest(unittest.TestCase,si.test.SParameterCompareHelpe
                         'post taper 30e9 40e9',])
         sp=sspnp.SParameters()
         self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    #@unittest.expectedFailure
+    def testSParametersReferenceStartsWithP(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device P1 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 P1 1',
+                        'port 2 D2 2',
+                        'connect P1 2 D2 1',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
+    #@unittest.expectedFailure
+    def testSParametersReferenceStartsWithPTooShort(self):
+        fd=si.fd.EvenlySpacedFrequencyList(20e9,400)
+        sspnp=si.p.SystemSParametersNumericParser(fd)
+        sspnp.AddLines(['device P 2 file cable.s2p',
+                        'device D2 2 file filter.s2p',
+                        'port 1 P 1',
+                        'port 2 D2 2',
+                        'connect P 2 D2 1',])
+        sp=sspnp.SParameters()
+        self.SParameterRegressionChecker(sp,self.id()+'.s2p')
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
