@@ -49,6 +49,7 @@ from TestHDMICable import *
 from TestHeaders import *
 from TestHiRes import *
 from TestImpedanceProfile import *
+from TestIXT import *
 from TestImpulseResponseFilter import *
 from TestLaplace import *
 from TestLeCroyWaveforms import *
