@@ -1,5 +1,6 @@
 from __future__ import print_function
 import SignalIntegrity.Lib as si
+si.sd.SystemDescription.port_refdes = 'P'
 sd = si.sd.SystemDescription()
 sd.AddDevice('L', 2)  # add two-port left device
 sd.AddDevice('R', 2)  # add two-port right device

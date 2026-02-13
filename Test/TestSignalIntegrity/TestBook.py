@@ -87,45 +87,52 @@ class Test(unittest.TestCase,si.test.RoutineWriterTesterHelper,si.test.ResponseT
         regressionFile.close()
         self.assertTrue(regression == mystdout.getvalue(), 'Book Example 1 incorrect')
     def testSystemDescriptionExample(self):
-        sd = si.sd.SystemDescription()
-        sd.AddDevice('L', 2)  # add two-port left device
-        sd.AddDevice('R', 2)  # add two-port right device
-        sd.AddPort('L', 1, 1)  # add a port at port 1 of left device
-        sd.AddPort('R', 2, 2)  # add a port at port 2 of right device
-        sd.ConnectDevicePort('L', 2, 'R', 1)  # connect the other ports
-        # pragma: exclude
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = StringIO()
-        # pragma: include
-        sd.Print()  # print the system description
-        spc = si.sd.SystemSParameters(sd)
-        n = spc.NodeVector()  # get the node vector
-        m = spc.StimulusVector()  # get the stimulus vector
-        W = spc.WeightsMatrix()  # get the weights matrix
-        # print out the vectors and matrices
-        print(('{0:' + str(5 * len(n)) + '}').format('Weights Matrix'), end=' ')
-        print('| {0:4}'.format('n'), end=' ')
-        print('| {0:4} |'.format('m'))
-        print('----------------------------------------------')
-        for r in range(len(W)):
-            for c in range(len(W[r])):
-                print('{0:4}'.format(str(W[r][c])), end=' ')
-            print(' | {0:4}'.format(n[r]), end=' ')
-            print('| {0:4} |'.format(m[r]))
-        print('----------------------------------------------')
-        # pragma: exclude
-        sys.stdout = old_stdout
-        os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        fileName = '_'.join(self.id().split('.')) + '.txt'
-        if not os.path.exists(fileName):
-            resultFile = open(fileName, 'w')
-            resultFile.write(mystdout.getvalue())
-            resultFile.close()
-            self.assertTrue(False, fileName + ' not found')
-        regressionFile = open(fileName, 'rU' if sys.version_info.major < 3 else 'r')
-        regression = regressionFile.read()
-        regressionFile.close()
-        self.assertTrue(regression == mystdout.getvalue(), 'Book Example System Description incorrect')
+        # pragma: silent exclude
+        try:
+            refdes=si.sd.SystemDescription.port_refdes
+            # pragma: include outdent
+            si.sd.SystemDescription.port_refdes = 'P'
+            sd = si.sd.SystemDescription()
+            sd.AddDevice('L', 2)  # add two-port left device
+            sd.AddDevice('R', 2)  # add two-port right device
+            sd.AddPort('L', 1, 1)  # add a port at port 1 of left device
+            sd.AddPort('R', 2, 2)  # add a port at port 2 of right device
+            sd.ConnectDevicePort('L', 2, 'R', 1)  # connect the other ports
+            # pragma: exclude
+            old_stdout = sys.stdout
+            sys.stdout = mystdout = StringIO()
+            # pragma: include
+            sd.Print()  # print the system description
+            spc = si.sd.SystemSParameters(sd)
+            n = spc.NodeVector()  # get the node vector
+            m = spc.StimulusVector()  # get the stimulus vector
+            W = spc.WeightsMatrix()  # get the weights matrix
+            # print out the vectors and matrices
+            print(('{0:' + str(5 * len(n)) + '}').format('Weights Matrix'), end=' ')
+            print('| {0:4}'.format('n'), end=' ')
+            print('| {0:4} |'.format('m'))
+            print('----------------------------------------------')
+            for r in range(len(W)):
+                for c in range(len(W[r])):
+                    print('{0:4}'.format(str(W[r][c])), end=' ')
+                print(' | {0:4}'.format(n[r]), end=' ')
+                print('| {0:4} |'.format(m[r]))
+            print('----------------------------------------------')
+            # pragma: exclude
+            sys.stdout = old_stdout
+            os.chdir(os.path.dirname(os.path.realpath(__file__)))
+            fileName = '_'.join(self.id().split('.')) + '.txt'
+            if not os.path.exists(fileName):
+                resultFile = open(fileName, 'w')
+                resultFile.write(mystdout.getvalue())
+                resultFile.close()
+                self.assertTrue(False, fileName + ' not found')
+            regressionFile = open(fileName, 'rU' if sys.version_info.major < 3 else 'r')
+            regression = regressionFile.read()
+            regressionFile.close()
+            self.assertTrue(regression == mystdout.getvalue(), 'Book Example System Description incorrect')
+        finally:
+            si.sd.SystemDescription.port_refdes = refdes
     def testSymbolicExample(self):
         symbolic = si.sd.Symbolic()
         symbolic.DocStart()
@@ -1070,7 +1077,12 @@ class Test(unittest.TestCase,si.test.RoutineWriterTesterHelper,si.test.ResponseT
         self.WriteCode('TestBook.py','testSymbolicSolutionParserFileExample3(self)',self.standardHeader)
     def testSystemDescriptionExampleCode(self):
         headerLines=['from __future__ import print_function\n']+self.standardHeader
-        self.WriteCode('TestBook.py','testSystemDescriptionExample(self)',headerLines)
+        try:
+            refdes = si.sd.SystemDescription.port_refdes
+            si.sd.SystemDescription.port_refdes = 'P'
+            self.WriteCode('TestBook.py','testSystemDescriptionExample(self)',headerLines)
+        finally:
+            si.sd.SystemDescription.port_refdes = refdes
     def testSymbolicExampleCode(self):
         self.WriteCode('TestBook.py','testSymbolicExample(self)',self.standardHeader)
     def testSystemDescriptionExampleSymbolicCode(self):

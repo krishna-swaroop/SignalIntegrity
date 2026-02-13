@@ -1,5 +1,4 @@
 class SystemDescription(list):
-...
     def AddDevice(self,Name,Ports,SParams=None,Type='device'):
         self.append(Device(Name,Ports,Type))
         if isinstance(SParams,list):
@@ -24,7 +23,7 @@ class SystemDescription(list):
             self.ConnectDevicePort(FromN,FromP,TeeN,2)
             self.ConnectDevicePort(TeeN,3,ToN,ToP)
     def AddPort(self,DeviceName,DevicePort,SystemPort,AddThru=False):
-        PortName = 'P'+str(SystemPort)
+        PortName = self.port_refdes+str(SystemPort)
         self.AddDevice(PortName,1,[[0.0]])
         self.AssignM(PortName,1,'m'+str(SystemPort))
         if not AddThru:

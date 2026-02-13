@@ -41,36 +41,41 @@ class TestSystemDescription(unittest.TestCase):
         #print "This should"
         #print mystdout.getvalue()
     def testBasic(self):
-        D=si.sd.SystemDescription()
-        D.AddDevice('D1',2)
-        D.AddDevice('D2',2)
-        D.AddDevice('D3',2)
-        D.ConnectDevicePort('D1',2,'D2',1)
-        D.ConnectDevicePort('D1',2,'D3',1)
-        D.AddPort('D1',1,1)
-        D.AddPort('D2',2,2)
-        D.AddPort('D3',2,3)
-        SC=si.sd.SystemSParameters(D)
-        n=SC.NodeVector()
-        W=SC.WeightsMatrix()
-        m=SC.StimulusVector()
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = StringIO()
-        SC.Print()
-        SC[0].Print()
-        SC[0][0].Print()
-        sys.stdout = old_stdout
-        os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        fileName='_'.join(self.id().split('.'))+'.txt'
-        if not os.path.exists(fileName):
-            resultFile=open(fileName,'w')
-            resultFile.write(mystdout.getvalue())
-            resultFile.close()
-            self.assertTrue(False,fileName+ ' not found')
-        regressionFile=open(fileName,'rU' if sys.version_info.major < 3 else 'r')
-        regression = regressionFile.read()
-        regressionFile.close()
-        self.assertTrue(regression==mystdout.getvalue(),'System Description incorrect')
+        try:
+            refdes = si.sd.SystemDescription.port_refdes
+            si.sd.SystemDescription.port_refdes = 'P'
+            D=si.sd.SystemDescription()
+            D.AddDevice('D1',2)
+            D.AddDevice('D2',2)
+            D.AddDevice('D3',2)
+            D.ConnectDevicePort('D1',2,'D2',1)
+            D.ConnectDevicePort('D1',2,'D3',1)
+            D.AddPort('D1',1,1)
+            D.AddPort('D2',2,2)
+            D.AddPort('D3',2,3)
+            SC=si.sd.SystemSParameters(D)
+            n=SC.NodeVector()
+            W=SC.WeightsMatrix()
+            m=SC.StimulusVector()
+            old_stdout = sys.stdout
+            sys.stdout = mystdout = StringIO()
+            SC.Print()
+            SC[0].Print()
+            SC[0][0].Print()
+            sys.stdout = old_stdout
+            os.chdir(os.path.dirname(os.path.realpath(__file__)))
+            fileName='_'.join(self.id().split('.'))+'.txt'
+            if not os.path.exists(fileName):
+                resultFile=open(fileName,'w')
+                resultFile.write(mystdout.getvalue())
+                resultFile.close()
+                self.assertTrue(False,fileName+ ' not found')
+            regressionFile=open(fileName,'rU' if sys.version_info.major < 3 else 'r')
+            regression = regressionFile.read()
+            regressionFile.close()
+            self.assertTrue(regression==mystdout.getvalue(),'System Description incorrect')
+        finally:
+            si.sd.SystemDescription.port_refdes = refdes
     def testSystemDescriptionExampleBlock(self):
         from numpy import array
         D=si.sd.SystemDescription()
