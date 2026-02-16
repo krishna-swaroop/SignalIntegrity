@@ -141,18 +141,6 @@ class TestIXTTest(unittest.TestCase,
             self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
             return
         self.fail('IXT should have exited with SystemExit exception raised')
-    # @unittest.skip('skip for now')
-    # def testIXTMainNoArgs(self):
-    #     import sys
-    #     from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-    #     self.formIXTMain_argv()
-    #     sys.argv=[sys.argv[0]]
-    #     try:
-    #         IXT_Main()
-    #     except SystemExit as e:
-    #         self.assertEqual(e.code,1,'IXT_Main did not exit properly') # failed
-    #         return
-    #     self.fail('IXT should have exited with SystemExit exception raised')
     def testIXTMainUnknownKeyword(self):
         import sys
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
@@ -200,63 +188,67 @@ class TestIXTTest(unittest.TestCase,
             self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
             return
         self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingTr(self):
+    def testIXTMainMissingFeN(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['T_r'])
+        self.formIXTMain_argv(['end_frequency','frequency_points'])
         try:
             IXT_Main()
         except SystemExit as e:
             self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
             return
         self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainTrUI(self):
+    def testIXTMainNoZ0(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'T_r':'1.0625UI'})
+        self.formIXTMain_argv(['reference_impedance'])
+        try:
+            result = IXT_Main()
+        except SystemExit as e:
+            self.assertEqual(e.code,0,'IXT_Main did not exit properly') # should succeed
+            return
+        self.fail('IXT should have exited with SystemExit exception raised')
+    def testIXTMainSingleZ0(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
+        self.formIXTMain_argv(replace={'reference_impedance':'46.25'})
+        try:
+            result = IXT_Main()
+        except SystemExit as e:
+            self.assertEqual(e.code,0,'IXT_Main did not exit properly') # should succeed
+            return
+        self.fail('IXT should have exited with SystemExit exception raised')
+    def testIXTMainTooManyZ0(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
+        self.formIXTMain_argv(replace={'reference_impedance':'46.25,50,50'})
+        try:
+            result = IXT_Main()
+        except SystemExit as e:
+            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
+            return
+        self.fail('IXT should have exited with SystemExit exception raised')
+    def testIXTMainaNonNumericZ0(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
+        self.formIXTMain_argv(replace={'reference_impedance':'Z0'})
+        try:
+            result = IXT_Main()
+        except SystemExit as e:
+            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
+            return
+        self.fail('IXT should have exited with SystemExit exception raised')
+    def testIXTMainProfile(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
+        self.formIXTMain_argv()
+        import sys
+        sys.argv.append('-p')
         try:
             IXT_Main()
         except SystemExit as e:
             self.assertEqual(e.code,0,'IXT_Main did not exit properly') # should succeed
             return
         self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadTr(self):
+    def testIXTMainProfileFailure(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'T_r':'10Hz'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should succeed
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingBetaX(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['beta_x'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadBetaX(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'beta_x':'50lbs'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingRhoX(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['rho_x'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadRhoX(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'rho_x':'1UI'})
+        self.formIXTMain_argv(['end_frequency'])
+        import sys
+        sys.argv.append('-p')
         try:
             IXT_Main()
         except SystemExit as e:
@@ -286,152 +278,87 @@ class TestIXTTest(unittest.TestCase,
             self.assertEqual(e.code,2,'IXT_Main did not exit properly') # should fail
             return
         self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingNBx(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['N_bx'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadNBx(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'N_bx':'20GBaud'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingZ0(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['Z0'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,0,'IXT_Main did not exit properly') # should succeed
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadZ0(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'Z0':'20ps'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingTFx(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['T_fx'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,0,'IXT_Main did not exit properly') # should succeed
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadTFx(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'T_fx':'30kcycle'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingFb(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['f_b'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadFb(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'f_b':'200kbps'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainMissingDER0(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(['DER_0'])
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTMainBadDER0(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT_Main
-        self.formIXTMain_argv(replace={'DER_0':'50UI'})
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,1,'IXT_Main did not exit properly') # should fail
-            return
-        self.fail('IXT should have exited with SystemExit exception raised')
-    def atestIXTPythonScript(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT
-        file_name='sparam_res.s4p'
+    def testIXTPythonScript(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
         ixt_args=self.IXT_args()
-        ixt_args['T_r'] = FromSI(ixt_args['T_r'],'s')
-        ixt_args['beta_x'] = FromSI(ixt_args['beta_x'],'Hz')
-        ixt_args['rho_x'] = FromSI(ixt_args['rho_x'],None)
-        ixt_args['N'] = FromSI(ixt_args['N'],'UI')
-        ixt_args['N_bx'] = FromSI(ixt_args['N_bx'],'UI')
-        ixt_args['Z0'] = FromSI(ixt_args['Z0'],'ohm')
-        ixt_args['T_fx'] = FromSI(ixt_args['T_fx'],'s')
-        ixt_args['f_b'] = FromSI(ixt_args['f_b'],'Baud')
-        ixt_args['DER_0'] = FromSI(ixt_args['DER_0'],None)
-        ixt_args['phi'] = FromSI(ixt_args['phi'],None)
-        result = IXT(file_name,ixt_args,verbose=True)
-        result_dB = ToSI(float(result),'dB',round=5)
+        ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        result = IXT_Calculator(**ixt_args)
+        result_dB = ToSI(result['ixt'],'dB',round=5)
         # print('result: ',result_dB)
-        target = '9.3858 dB'
+        target = '-50.249 dB'
         self.assertEqual(result_dB, target, 'IXT produced incorrect value')
-    def atestIXTPythonScriptMissingSp(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT
-        file_name='missing.s4p'
+    def testIXTPythonScriptNoVt(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
         ixt_args=self.IXT_args()
-        ixt_args['T_r'] = FromSI(ixt_args['T_r'],'s')
-        ixt_args['beta_x'] = FromSI(ixt_args['beta_x'],'Hz')
-        ixt_args['rho_x'] = FromSI(ixt_args['rho_x'],None)
-        ixt_args['N'] = FromSI(ixt_args['N'],'UI')
-        ixt_args['N_bx'] = FromSI(ixt_args['N_bx'],'UI')
-        ixt_args['Z0'] = FromSI(ixt_args['Z0'],'ohm')
-        ixt_args['T_fx'] = FromSI(ixt_args['T_fx'],'s')
-        ixt_args['f_b'] = FromSI(ixt_args['f_b'],'Baud')
-        ixt_args['DER_0'] = FromSI(ixt_args['DER_0'],None)
-        ixt_args['phi'] = FromSI(ixt_args['phi'],None)
-        with self.assertRaises(si.SignalIntegrityException) as cme:
-            IXT(file_name,ixt_args,verbose=True)
-    def atestIXTPythonScriptMissingKeyword(self):
-        from SignalIntegrity.Utilities.IXT.IXT import IXT
-        file_name='sparam_res.s4p'
+        ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        ixt_args['voltage_transfer_function']=False
+        result = IXT_Calculator(**ixt_args)
+        result_dB = ToSI(result['ixt'],'dB',round=5)
+        # print('result: ',result_dB)
+        target = '-50.539 dB'
+        self.assertEqual(result_dB, target, 'IXT produced incorrect value')
+    def testIXTPythonScriptNoVtError(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
         ixt_args=self.IXT_args()
-        ixt_args['T_r'] = FromSI(ixt_args['T_r'],'s')
-        ixt_args['beta_x'] = FromSI(ixt_args['beta_x'],'Hz')
-        ixt_args['rho_x'] = FromSI(ixt_args['rho_x'],None)
-        ixt_args['N'] = FromSI(ixt_args['N'],'UI')
-        ixt_args['N_bx'] = FromSI(ixt_args['N_bx'],'UI')
-        ixt_args['Z0'] = FromSI(ixt_args['Z0'],'ohm')
-        ixt_args['T_fx'] = FromSI(ixt_args['T_fx'],'s')
-        ixt_args['f_b'] = FromSI(ixt_args['f_b'],'Baud')
-        ixt_args['DER_0'] = FromSI(ixt_args['DER_0'],None)
-        ixt_args['phi'] = FromSI(ixt_args['phi'],None)
-        del ixt_args['T_r']
-        with self.assertRaises(si.SignalIntegrityException) as cme:
-            IXT(file_name,ixt_args,verbose=True)
-
+        ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        ixt_args['voltage_transfer_function']=False
+        ixt_args['aggressor_ports']='9,2'
+        #result = IXT_Calculator(**ixt_args)
+        with self.assertRaises(Exception) as cme:
+            IXT_Calculator(**ixt_args)
+    def testIXTPythonScriptVtError(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
+        file_name=os.path.join(os.path.dirname(__file__),file_name)
+        ixt_args=self.IXT_args()
+        ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        ixt_args['aggressor_ports']='9,2'
+        #result = IXT_Calculator(**ixt_args)
+        with self.assertRaises(Exception) as cme:
+            IXT_Calculator(**ixt_args)
+    def testIXTPythonScriptMissingSp(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
+        file_name=os.path.join(os.path.dirname(__file__),file_name)
+        ixt_args=self.IXT_args()
+        #ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        #result = IXT_Calculator(**ixt_args)
+        with self.assertRaises(Exception) as cme:
+            IXT_Calculator(**ixt_args)
+    def testIXTPythonScriptUnknownKeyword(self):
+        from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
+        script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
+        file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
+        file_name=os.path.join(os.path.dirname(__file__),file_name)
+        ixt_args=self.IXT_args()
+        ixt_args['filename']=file_name
+        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
+        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
+        ixt_args['gobbledygook']=32.54
+        #result = IXT_Calculator(**ixt_args)
+        with self.assertRaises(Exception) as cme:
+            IXT_Calculator(**ixt_args)
 
 if __name__ == '__main__': # pragma: no cover
     unittest.main()
