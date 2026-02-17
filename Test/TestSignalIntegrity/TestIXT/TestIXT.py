@@ -80,7 +80,17 @@ class TestIXTTest(unittest.TestCase,
         return {'port_reorder':'1,2,3,4,16,15,14,13','single_ended_ports':'1,2,5,6,3,4,7,8',
                 'reference_impedance':'46.25,50','voltage_transfer_function':'True','victim_ports':'1,2','aggressor_ports':'3,2',
                 'end_frequency':'55e9','frequency_points':'40','multiply':'8'}
-
+    def IXT_args_for_calculator(self):
+        args=self.IXT_args()
+        args['port_reorder']=eval('['+args['port_reorder']+']')
+        args['single_ended_ports']=eval('['+args['single_ended_ports']+']')
+        args['reference_impedance']=eval('['+args['reference_impedance']+']')
+        args['victim_ports']=eval('['+args['victim_ports']+']')
+        args['aggressor_ports']=eval('['+args['aggressor_ports']+']')
+        args['voltage_transfer_function']=eval(args['voltage_transfer_function'])
+        args['end_frequency']=eval(args['end_frequency'])
+        args['frequency_points']=eval(args['frequency_points'])
+        return args
     def testIXTSubprocess(self):
         import subprocess
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
@@ -283,10 +293,8 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         ixt_args['filename']=file_name
-        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
-        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
         result = IXT_Calculator(**ixt_args)
         result_dB = ToSI(result['ixt'],'dB',round=5)
         # print('result: ',result_dB)
@@ -297,10 +305,8 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         ixt_args['filename']=file_name
-        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
-        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
         ixt_args['voltage_transfer_function']=False
         result = IXT_Calculator(**ixt_args)
         result_dB = ToSI(result['ixt'],'dB',round=5)
@@ -312,12 +318,10 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         ixt_args['filename']=file_name
-        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
-        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
         ixt_args['voltage_transfer_function']=False
-        ixt_args['aggressor_ports']='9,2'
+        ixt_args['aggressor_ports']=[9,2]
         #result = IXT_Calculator(**ixt_args)
         with self.assertRaises(Exception) as cme:
             IXT_Calculator(**ixt_args)
@@ -326,11 +330,9 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         ixt_args['filename']=file_name
-        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
-        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
-        ixt_args['aggressor_ports']='9,2'
+        ixt_args['aggressor_ports']=[9,2]
         #result = IXT_Calculator(**ixt_args)
         with self.assertRaises(Exception) as cme:
             IXT_Calculator(**ixt_args)
@@ -339,7 +341,7 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         #ixt_args['filename']=file_name
         ixt_args['end_frequency']=float(ixt_args['end_frequency'])
         ixt_args['frequency_points']=int(ixt_args['frequency_points'])
@@ -351,10 +353,8 @@ class TestIXTTest(unittest.TestCase,
         script_file = os.path.abspath(os.path.relpath('../../../SignalIntegrity/Utilities/IXT/IXT.py', os.path.dirname(__file__)))
         file_name='nitro_9-13-24b-tx1_4_HFSS-sig1p0_res.s16p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
-        ixt_args=self.IXT_args()
+        ixt_args=self.IXT_args_for_calculator()
         ixt_args['filename']=file_name
-        ixt_args['end_frequency']=float(ixt_args['end_frequency'])
-        ixt_args['frequency_points']=int(ixt_args['frequency_points'])
         ixt_args['gobbledygook']=32.54
         #result = IXT_Calculator(**ixt_args)
         with self.assertRaises(Exception) as cme:

@@ -36,6 +36,9 @@ class IXT_Calculator(dict):
 
                         Calculates integrated crosstalk
 
+s-parameter file (-f) is read in.  Then, the port reordering (-pr) is applied.  The new s-parameter file has the number of ports in the port reordering, in that order.
+Then, single-ended ports (-se) are applied.  The number of these must match the number of ports surviving the port reordering and are in order p,n,p,n,....  The new ports, after conversion to mixed mode, are all differential followed by all common.  The differential are in order of the first p,n (differential port 1), the second p,n (differential port 2), etc. followed by the common-mode ports.  Then, the reference impedances are applied (-z0).  There must be either one value (applied to all ports), two values (applied to the two ports, or the first value is applied to the differential ports and the second to the common ports) or one value per port surviving the mixed-mode conversion.  Then, if -vt is supplied, all differential and common mode ports are converted to voltage transfer functions.  Finally, the victim ports (-vp) and aggressor ports (-ap) are used.
+
                         """,
                         epilog='',
                         formatter_class=RawTextHelpFormatter)
@@ -134,7 +137,7 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
 
         if not self.args['port_reorder'] is None:
             try:
-                sp=sp.PortReorder(eval('['+self.args['port_reorder']+']'))
+                sp=sp.PortReorder(self.args['port_reorder'])
                 self.Message('ports reordered')
             except:
                 self.Error('port reordering failed')
@@ -155,7 +158,7 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
         if not self.args['single_ended_ports'] is None:
             try:
                 # conversion from single ended to mixed mode
-                single_ended_ports = eval('['+self.args['single_ended_ports']+']')
+                single_ended_ports = self.args['single_ended_ports']
                 if len(single_ended_ports)//2*2 != len(single_ended_ports):
                     self.Error('number of single-ended ports must be even')
                 netlist=[f'device S {sp.m_P}']
@@ -188,7 +191,9 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
             if self.args['reference_impedance'] is None:
                 Z0_list = [sp.m_Z0 for _ in range(sp.m_P)]
             else:
-                Z0_raw_list = eval('['+self.args['reference_impedance']+']')
+                Z0_raw_list = self.args['reference_impedance']
+                if not isinstance(Z0_raw_list,list):
+                    Z0_raw_list = [Z0_raw_list]
                 if len(Z0_raw_list) == 1:
                     Z0_list = [Z0_raw_list[0] for _ in range(sp.m_P)]
                 elif len(Z0_raw_list) == 2:
@@ -202,7 +207,7 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
         except:
             self.Error('error determining reference impedances')
 
-        port_list = eval('['+self.args['victim_ports']+']') + eval('['+self.args['aggressor_ports']+']')
+        port_list = self.args['victim_ports']+self.args['aggressor_ports']
         tm_list = []
 
         if self.args['voltage_transfer_function']:
@@ -269,6 +274,23 @@ def IXT_Main():
     import sys
     args_list=sys.argv[1:]
     args,unknown = IXT_Calculator.ParseKeywordPairs(args_list)
+
+    def ConvertStringToList(list_string):
+        if list_string is None:
+            return list_string
+        else:
+            try:
+                return eval('['+list_string+']')
+            except:
+                return list_string
+    
+    args['port_reorder']=ConvertStringToList(args['port_reorder'])
+    args['single_ended_ports']=ConvertStringToList(args['single_ended_ports'])
+    args['reference_impedance']=ConvertStringToList(args['reference_impedance'])
+    args['victim_ports']=ConvertStringToList(args['victim_ports'])
+    args['aggressor_ports']=ConvertStringToList(args['aggressor_ports'])
+    args['multiply']=ConvertStringToList(args['multiply'])
+
     args['command_line']=True
     if args['profile']:
         import cProfile
