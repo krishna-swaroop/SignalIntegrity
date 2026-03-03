@@ -113,14 +113,14 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
 
         self.args=kwargs
 
-        for key in kwargs:
-            if not key in defaults:
-                self.Error(f'unknown key: {key}')
-
         # default any argument not supplied in kwargs
         for key in defaults.keys():
             if not key in kwargs:
                 kwargs[key]=defaults[key]
+
+        for key in kwargs:
+            if not key in defaults:
+                self.Error(f'unknown key: {key}')
 
         self.args=kwargs
 
@@ -264,6 +264,21 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
                 self.Error('error extracting transfer functions')
 
         try:
+            if self.args['debug']:
+                import matplotlib.pyplot as plt
+                plt.cla()
+                plt.plot(tm_list[0].Frequencies('GHz'),tm_list[0].Values('dB'),label='victim')
+                if len(tm_list) == 2:
+                    plt.plot(tm_list[1].Frequencies('GHz'),tm_list[1].Values('dB'),label='aggressor')
+                else:
+                    for tmi in range(len(tm_list)-1):
+                        plt.plot(tm_list[tmi+1].Frequencies('GHz'),tm_list[tmi+1].Values('dB'),label=f'aggressor {tmi+1}')
+                plt.xlabel('frequency (GHz)')
+                plt.ylabel('magnitude (dB)')
+                plt.legend()
+                plt.grid(True,'both')
+                plt.ylim(-100,0)
+                plt.show()
             ixt=self.IXT(tm_list[0],tm_list[1:],tm_list[0].Frequencies()[-1])
         except:
             self.Error('integrated crosstalk could not be calculated')
