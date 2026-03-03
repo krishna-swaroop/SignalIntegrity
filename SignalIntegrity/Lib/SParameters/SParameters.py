@@ -121,7 +121,7 @@ class SParameters(SParameterManipulation):
             elif lin.startswith('!'): lines.append(lin+'\n')
             else: lines.append('! '+lin+'\n')
         # pragma: silent exclude
-        if hasattr(self,'picture') and not self.picture is None:
+        if hasattr(self,'picture') and not (self.picture is None or self.picture == ''):
             lines.append('! picture start\n')
             for lin in self.picture:
                 lines.append('!'+lin)

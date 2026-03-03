@@ -894,6 +894,7 @@ class SignalIntegrityApp(tk.Frame):
         progressDialog = ProgressDialog(self,"Calculating S-parameters",spnp,spnp.SParameters,granularity=1.0)
         try:
             sp=progressDialog.GetResult()
+            sp.picture = SignalIntegrity.App.Project['Picture'].GetTextString()
         except si.SignalIntegrityException as e:
             messagebox.showerror('S-parameter Calculator',e.parameter+': '+e.message)
             return None

@@ -254,6 +254,7 @@ class SignalIntegrityAppHeadless(object):
             sp=spnp.SParameters()
         except si.SignalIntegrityException as e:
             return Result('s-parameters',None)
+        sp.picture = SignalIntegrity.App.Project['Picture'].GetTextString()
         return Result('s-parameters',{'s-parameters':sp,
                                       'file names':self.fileparts.FullFilePathExtension('s'+str(sp.m_P)+'p'),
                                       'variables':SignalIntegrity.App.Project['Variables'].Dictionary()})
