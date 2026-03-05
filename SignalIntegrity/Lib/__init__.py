@@ -22,6 +22,7 @@ from __future__ import absolute_import
 from . import SystemDescriptions as sd
 from . import Conversions as cvt
 from . import Devices as dev
+from . import Eye as eye
 from . import SParameters as sp
 from . import Splines as spl
 from . import Parsers as p

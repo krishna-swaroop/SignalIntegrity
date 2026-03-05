@@ -19,7 +19,6 @@ Differentiator.py
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyResponse import FrequencyResponse
-from SignalIntegrity.Lib.TimeDomain.Waveform.ImpulseResponse import ImpulseResponse
 
 class Differentiator(FrequencyResponse):
     """Frequency response of a differentiator
@@ -33,6 +32,7 @@ class Differentiator(FrequencyResponse):
         of FrequencyResponse such that the filter corresponding to the original frequency response now also differentiates
         the applied frequency content.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform.ImpulseResponse import ImpulseResponse
         td=fl.TimeDescriptor()
         resp=[0 for _ in range(td.K)]
         resp[td.K//2]=td.Fs

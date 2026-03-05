@@ -26,10 +26,7 @@ from numpy import fft
 
 from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionWaveform
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyDomain import FrequencyDomain
-from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
-from SignalIntegrity.Lib.TimeDomain.Waveform.SineWaveform import SineWaveform
 from SignalIntegrity.Lib.ChirpZTransform.ChirpZTransform import CZT
-from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
 
 class FrequencyContent(FrequencyDomain):
     """Handles frequency content of waveforms.  
@@ -66,6 +63,9 @@ class FrequencyContent(FrequencyDomain):
         @see FrequencyList
         @see ChirpZTransform
         """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
+        # pragma: include
         td=wf.td
         if fd is None:
             X=fft.fft(wf.Values())
@@ -127,6 +127,9 @@ class FrequencyContent(FrequencyDomain):
         The waveform produced is essentially the inverse process of class initialization.\n
         @see WaveformFromDefinition()
         """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
+        # pragma: include
         Keven=(self.td.K//2)*2==self.td.K
         X=self.Values()
         X=[X[n]*self.td.K*\
@@ -155,6 +158,10 @@ class FrequencyContent(FrequencyDomain):
         the class.\n
         @see Waveform().
         """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
+        from SignalIntegrity.Lib.TimeDomain.Waveform.SineWaveform import SineWaveform
+        # pragma: include
         absX=self.Values('mag')
         theta=self.Values('deg')
         wf=Waveform(self.td)

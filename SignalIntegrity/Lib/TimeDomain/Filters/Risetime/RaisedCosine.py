@@ -20,7 +20,6 @@ RaisedCosine.py
 # If not, see <https://www.gnu.org/licenses/>
 
 from SignalIntegrity.Lib.TimeDomain.Filters.FirFilter import FirFilter
-from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor
 from SignalIntegrity.Lib.TimeDomain.Waveform.ImpulseResponse import ImpulseResponse
 from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
 
@@ -38,6 +37,7 @@ class RaisedCosine(FirFilter):
         @param is1090 boolean (optional, defaults to True) whether 10-90 risetime
         is specified.  Otherwise 20-80 risetime is used.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor
         import numpy as np
         a=self.a1090 if is1090 else self.a2080
         K=int(np.ceil(rt*a*Fs/2))*2+1 # guaranteed to be odd

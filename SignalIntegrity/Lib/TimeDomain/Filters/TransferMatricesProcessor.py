@@ -21,7 +21,6 @@ TransferMatricesProcessor.py
 
 from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionSimulator
 from SignalIntegrity.Lib.CallBacker import CallBacker
-from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
 
 class TransferMatricesProcessor(CallBacker):
     """process transfer matrices  
@@ -59,6 +58,9 @@ class TransferMatricesProcessor(CallBacker):
         input waveforms must be provided in that order and the output waveforms are
         produced in that order.
         """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
+        # pragma: include
         if td is None:
             td = [wflm.td.Fs if isinstance(wflm,Waveform) else None for wflm in wfl]
         ir = self.TransferMatrices.ImpulseResponses(td)

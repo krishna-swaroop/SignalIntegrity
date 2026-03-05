@@ -25,8 +25,6 @@ import cmath
 
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyDomain import FrequencyDomain
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
-from SignalIntegrity.Lib.TimeDomain.Waveform.ImpulseResponse import ImpulseResponse
-from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
 from SignalIntegrity.Lib.Splines import Spline
 from SignalIntegrity.Lib.ChirpZTransform import CZT
 from SignalIntegrity.Lib.Rat import Rat
@@ -89,6 +87,10 @@ class FrequencyResponse(FrequencyDomain):
         In this way, only the sample rate can be specified in the resampling, and all processing as shown in the
         table above will assume that a time descriptor has been supplied of this calculated type.
         """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.TimeDomain.Waveform.ImpulseResponse import ImpulseResponse
+        from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
+        # pragma: include
         fd = self.FrequencyList()
         if isinstance(td,float) or isinstance(td,int):
             Fs=float(td)

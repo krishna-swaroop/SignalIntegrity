@@ -17,9 +17,7 @@ ClockRecovery.py
 #
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
-
-from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor,Waveform
-from SignalIntegrity.Lib.TimeDomain.Filters import WaveformTrimmer
+from SignalIntegrity.Lib.TimeDomain.Waveform import Waveform
 
 import numpy as np
 from copy import deepcopy
@@ -37,6 +35,8 @@ class ClockRecoveredWaveform(Waveform):
         UI waveform that determines the time error for the clock recovery.  This must be enough points so that when
         interpolating, the timing error does not try to interpolate beyond the boundaries of the input waveform.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor
+        from SignalIntegrity.Lib.TimeDomain.Filters import WaveformTrimmer
         Fs=baudrate*2. # we want a waveform that contains two samples per unit interval
         UpsampleFactor=Fs/input_waveform.td.Fs
 

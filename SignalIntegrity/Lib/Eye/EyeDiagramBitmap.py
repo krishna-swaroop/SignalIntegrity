@@ -20,8 +20,6 @@ EyeDiagramBitmap.py
 
 from SignalIntegrity.Lib.CallBacker import CallBacker
 from SignalIntegrity.Lib.ResultsCache import ResultsCache
-from SignalIntegrity.Lib.TimeDomain.Filters.WaveformTrimmer import WaveformTrimmer
-from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor,Waveform
 from SignalIntegrity.Lib.Rat.Rat import Rat
 from SignalIntegrity.Lib.ToSI import ToSI
 
@@ -103,6 +101,7 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
         @remark derived classes should override this method and call the base class HashValue with their stuff added
         @return integer hash value
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import Waveform
         stuffToHash=stuffToHash+repr(self.YAxisMode)+repr(self.YMax)+repr(self.YMin)+\
                     repr(self.RowsSpecified)+repr(self.Cols)+repr(Waveform.adaptionStrategy)+\
                     repr(self.BaudRate)+repr(self.prbswf)+repr(self.EnhancementMode)+\
@@ -186,6 +185,8 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
         6.  Annotations
         7.  CreateImage
         """
+        from SignalIntegrity.Lib.TimeDomain.Filters.WaveformTrimmer import WaveformTrimmer
+        from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor
         self.YAxisMode=YAxisMode
         self.YMax=YMax
         self.YMin=YMin
@@ -408,6 +409,7 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
         | Vertical      | N/A                 | Max               | The center of the eye is found by finding the horizontal location where the vertical opening is maximized for any eye.                    |
         The side effect of this function is for the rawBitmap member variable to be replaced with a new bitmap containing the aligned eye diagram.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor
         bitmap=self.rawBitmap.copy()
         numberOfEyes=int(self.Levels-1)
         (R,C)=bitmap.shape
@@ -601,6 +603,7 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
         * VerticalResolution - the resolution, in V, for each row of the eye.
         * HorizontalResolution - the resolution in seconds, for each column of the eye.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import Waveform
         bitmap=self.rawBitmap.copy()
         numberOfEyes=int(self.Levels-1)
         (R,C)=bitmap.shape
@@ -977,6 +980,7 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
                     - Measured - the total, measured bit error rate, considering the measured probability that a given bit was transmitted.
         @remark The Measure member function be called prior to this call.
         """
+        from SignalIntegrity.Lib.TimeDomain.Waveform import TimeDescriptor,Waveform
         numberOfEyes=int(self.Levels-1)
         UI=1./self.BaudRate
         (R,C)=self.rawBitmap.shape
