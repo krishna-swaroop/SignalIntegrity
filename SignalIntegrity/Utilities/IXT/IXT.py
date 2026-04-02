@@ -43,6 +43,7 @@ Then, single-ended ports (-se) are applied.  The number of these must match the 
                         epilog='',
                         formatter_class=RawTextHelpFormatter)
         parser.add_argument('filename',nargs='?',default=None, help='s-parameter file name')
+        parser.add_argument('-sp','--s_parameters',default=None)
         parser.add_argument('-pr','--port_reorder',type=str,default=None,help='optional comma seperated list of ports to use')
         parser.add_argument('-se','--single_ended_ports',type=str,default=None,help='optional comma seperated list of single-ended ports for conversion to mixed-mode')
         parser.add_argument('-z0','--reference_impedance',type=str,default=None,help='optional comma seperated list of reference impedances\n\
@@ -91,6 +92,8 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
         ixt = 0
         num = 0
         for n in range(len(frequencies)):
+            if frequencies[n] == 0.:
+                continue
             if frequencies[n] > end_frequency:
                 break
             ixt += (np.sqrt(sum([aggressor_mag[n]**2 for aggressor_mag in aggressors_mag]))/victim_mag[n])**2
@@ -124,16 +127,19 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
 
         self.args=kwargs
 
-        filename=self.args['filename']
-        if filename is None:
-            self.Error('file name must be supplied')
-
-        ext=os.path.splitext(filename)[-1]
-        try:
-            sp=si.sp.SParameterFile(filename)
-            self.Message(os.path.split(filename)[-1] +' read')
-        except:
-            self.Error('file: '+filename+' could not be opened')
+        if self.args['s_parameters'] is None:
+            filename=self.args['filename']
+            if filename is None:
+                self.Error('file name must be supplied')
+    
+            ext=os.path.splitext(filename)[-1]
+            try:
+                sp=si.sp.SParameterFile(filename)
+                self.Message(os.path.split(filename)[-1] +' read')
+            except:
+                self.Error('file: '+filename+' could not be opened')
+        else:
+            sp = self.args['s_parameters']
 
         if not self.args['port_reorder'] is None:
             try:
