@@ -68,8 +68,12 @@ class DeviceProperty(tk.Frame):
             self.propertyFileBrowseButton = tk.Button(self,text='browse',command=self.onFileBrowse)
             self.propertyFileBrowseButton.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
             if self.partProperty['PropertyName'] in ['filename','waveformfilename','errorterms']:
+                # this feature is disabled for the moment
+                # self.propertyFileCalcButton = tk.Button(self,text='calc',command=self.onFileCalc)
+                # self.propertyFileCalcButton.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
                 self.propertyFileViewButton = tk.Button(self,text='view',command=self.onFileView)
                 self.propertyFileViewButton.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
+
     def onFileBrowse(self):
         # this is a seemingly ugly workaround
         # I do this because when you change the number of ports and then touch the file
@@ -222,6 +226,42 @@ class DeviceProperty(tk.Frame):
                     return
                 else:
                     self.parent.parent.parent.ViewCalibration(calibration)
+
+    def onFileCalc(self):
+        device=self.parent.device
+        line = device.NetListLine()
+        ports = int(device['ports']['Value'])
+        refdes = device['ref']['Value']
+        ports_line = 'port'
+        for portnum in range(ports):
+            ports_line += ((' '+str(portnum+1)+' '+refdes+' '+str(portnum+1)))
+        from SignalIntegrity.Lib.Parsers import SystemDescriptionParser
+        from SignalIntegrity.Lib.Parsers import SystemSParametersNumericParser
+        # Get evenly spaced frequency list from calculation properties
+        calculationProperties = SignalIntegrity.App.Project['CalculationProperties']
+        frequency_list = calculationProperties.FrequencyList()  # This is the evenly spaced frequency list
+        ssnp=SystemSParametersNumericParser(f=frequency_list).AddLines([line,ports_line])
+        sp=ssnp.SParameters()
+        filename='calculated'
+        spd=SParametersDialog(self.parent.parent.parent,sp,filename)
+        try:
+            spd.grab_set()
+            spd.focus_set()
+            import platform
+            thisOS=platform.system()
+            if thisOS == 'Linux':
+                spd.attributes('-type','dialog')
+            elif thisOS == 'Windows':
+                spd.attributes('-toolwindow',True)
+            def disable_event():
+                pass
+            self.parent.parent.protocol("WM_DELETE_WINDOW", disable_event)
+            spd.attributes('-topmost', 1)
+            #spd.transient(self.parent.parent)
+            self.wait_window(spd)
+        finally:
+            self.parent.parent.protocol("WM_DELETE_WINDOW", self.parent.parent.cancel)
+
     def onPropertyVisible(self):
         self.partProperty['Visible']=bool(self.propertyVisible.get())
         self.callBack()
