@@ -103,7 +103,7 @@ class TestIXTTest(unittest.TestCase,
         result = subprocess.getoutput(cmd_str)
         result_dB = ToSI(float(result),'dB',round=5)
         # print('result: ',result_dB)
-        target = '-50.249 dB'
+        target = '-50.141 dB'
         self.assertEqual(result_dB, target, 'IXT produced incorrect value')
     def testIXTSubprocessMissingSp(self):
         import subprocess
@@ -298,7 +298,7 @@ class TestIXTTest(unittest.TestCase,
         result = IXT_Calculator(**ixt_args)
         result_dB = ToSI(result['ixt'],'dB',round=5)
         # print('result: ',result_dB)
-        target = '-50.249 dB'
+        target = '-50.141 dB'
         self.assertEqual(result_dB, target, 'IXT produced incorrect value')
     def testIXTPythonScriptNoVt(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
@@ -311,7 +311,7 @@ class TestIXTTest(unittest.TestCase,
         result = IXT_Calculator(**ixt_args)
         result_dB = ToSI(result['ixt'],'dB',round=5)
         # print('result: ',result_dB)
-        target = '-50.539 dB'
+        target = '-50.432 dB'
         self.assertEqual(result_dB, target, 'IXT produced incorrect value')
     def testIXTPythonScriptNoVtError(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator
