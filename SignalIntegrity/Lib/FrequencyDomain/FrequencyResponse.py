@@ -38,6 +38,7 @@ class FrequencyResponse(FrequencyDomain):
     @see ImpulseResponse
     """
     oldSpline=True
+    linear=False
     def __init__(self,f=None,resp=None):
         """Constructor
         @param f instance of class FrequencyList
@@ -108,9 +109,14 @@ class FrequencyResponse(FrequencyDomain):
                 newresp=[Poly.Evaluate(f) if f <= oldfd[-1] else 0.0001 for f in newfd]
             # pragma: silent exclude
             else:
-                from scipy.interpolate import CubicSpline
-                cs=CubicSpline(oldfd,self.Response())
-                newresp=cs(newfd)
+                if self.linear:
+                    from numpy import interp
+                    newresp=interp(newfd,oldfd,self.Response()).tolist()
+                else:
+                    from scipy.interpolate import CubicSpline
+                    cs=CubicSpline(oldfd,self.Response())
+                    newresp=cs(newfd)
+
                 newresp=[nr if f <= oldfd[-1] else 0.0001 for f,nr in zip(newfd,newresp)]
             # pragma: silent include indent
             newfr=FrequencyResponse(newfd,newresp)
@@ -168,9 +174,13 @@ class FrequencyResponse(FrequencyDomain):
             newresp=[Poly.Evaluate(f) if f <= fd[-1] else 0.0001 for f in fdp]
         # pragma: silent exclude
         else:
-            from scipy.interpolate import CubicSpline
-            cs=CubicSpline(fd,self.Response())
-            newresp=cs(fdp)
+            if self.linear:
+                from numpy import interp
+                newresp=interp(fdp,fd,self.Response()).tolist()
+            else:
+                from scipy.interpolate import CubicSpline
+                cs=CubicSpline(fd,self.Response())
+                newresp=cs(fdp)
             newresp=[nr if f <= fd[-1] else 0.0001 for f,nr in zip(fdp,newresp)]
         # pragma: silent include indent
         return FrequencyResponse(fdp,newresp)

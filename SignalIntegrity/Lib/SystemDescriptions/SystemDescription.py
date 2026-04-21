@@ -25,6 +25,7 @@ from SignalIntegrity.Lib.Devices import Thru
 from .Device import Device
 from .UniqueNameFactory import UniqueNameFactory
 from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionSystemDescription
+from networkx.algorithms.components.connected import is_connected
 
 class SystemDescription(list):
     """Allows the construction of system descriptions for use with all of the
@@ -106,8 +107,18 @@ class SystemDescription(list):
         """
         if len(self)==0:
             raise SignalIntegrityExceptionSystemDescription('no devices')
-        if not all([self[d][p].IsConnected()
-            for d in range(len(self)) for p in range(len(self[d]))]):
+        # pragma: silent exclude
+        # if not all([self[d][p].IsConnected()
+        #     for d in range(len(self)) for p in range(len(self[d]))]):
+        #     raise SignalIntegrityExceptionSystemDescription('unconnected device ports')
+        # pragma: include
+        is_connected = True
+        for d in range(len(self)):
+            for p in range(len(self[d])):
+                if not self[d][p].IsConnected():
+                    print (f'not connected: {self[d].Name} - {p+1}')
+                    is_connected = False
+        if not is_connected:
             raise SignalIntegrityExceptionSystemDescription('unconnected device ports')
     def ConnectDevicePort(self,FromN,FromP,ToN,ToP):
         """Connects one device port to another

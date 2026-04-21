@@ -122,6 +122,12 @@ class SParametersParser(SParameters):
                                    to_frequency=taper_frequency)
                     else:
                         raise IndexError
+                elif tokens[1] == 'wavelet':
+                    if tokens[2] == 'denoise':
+                        try:
+                            self.WaveletDenoise(float(tokens[3]))
+                        except:
+                            raise IndexError
                 elif tokens[1][0]=='!':
                     self.header.append(line[len('post !'):])
                 else:

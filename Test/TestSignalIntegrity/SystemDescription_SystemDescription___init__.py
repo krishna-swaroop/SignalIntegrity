@@ -23,8 +23,13 @@ class SystemDescription(list):
     def CheckConnections(self):
         if len(self)==0:
             raise SignalIntegrityExceptionSystemDescription('no devices')
-        if not all([self[d][p].IsConnected()
-            for d in range(len(self)) for p in range(len(self[d]))]):
+        is_connected = True
+        for d in range(len(self)):
+            for p in range(len(self[d])):
+                if not self[d][p].IsConnected():
+                    print (f'not connected: {self[d].Name} - {p+1}')
+                    is_connected = False
+        if not is_connected:
             raise SignalIntegrityExceptionSystemDescription('unconnected device ports')
 ...
     def AssignSParameters(self,DeviceName,SParameters):
