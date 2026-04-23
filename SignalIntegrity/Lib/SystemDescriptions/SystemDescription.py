@@ -25,7 +25,6 @@ from SignalIntegrity.Lib.Devices import Thru
 from .Device import Device
 from .UniqueNameFactory import UniqueNameFactory
 from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionSystemDescription
-from networkx.algorithms.components.connected import is_connected
 
 class SystemDescription(list):
     """Allows the construction of system descriptions for use with all of the
