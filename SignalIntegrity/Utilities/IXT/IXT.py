@@ -54,7 +54,10 @@ otherwise one number per port.')
 the default is to fit s21, which is the ratio of output\n\
 wave to incident wave. this is not the voltage transfer function, which is s21/(1+s11).')
         parser.add_argument('-vp','--victim_ports',type=str,help='comma seperated list of the two victim ports: input,output')
+        parser.add_argument('-vn','--victim_name', type=str, default='')# make this a hidden argument -- help='Label for the victim in debug plots'
         parser.add_argument('-ap','--aggressor_ports',type=str,help='comma seperated list of aggessor ports: input1,output1,input2,output2,... etc.')
+        parser.add_argument('-an', '--aggressor_names', type=str, default='')# make this a hidden argument -- help='comma separated list of labels for aggressors in debug plots')
+        parser.add_argument('-ps', '--plot_save', type=str, default='') # file name to save debug plot to (if --debug is set)
         parser.add_argument('-mult','--multiply',type=str,help='comma seperated list of numbers to multiply by each aggressor port crosstalk')
         parser.add_argument('-debug','--debug',action='store_true', help='shows debug information and plots as the computation proceeds')
         parser.add_argument('-p','--profile',action='store_true', help='profiles the software')
@@ -273,18 +276,23 @@ it\'s a good idea to use as few frequency points as needed to improve speed.')
             if self.args['debug']:
                 import matplotlib.pyplot as plt
                 plt.cla()
-                plt.plot(tm_list[0].Frequencies('GHz'),tm_list[0].Values('dB'),label='victim')
+                victim_label = f"victim: {self.args['victim_name']}" if self.args['victim_name'] != '' else 'victim'
+                plt.plot(tm_list[0].Frequencies('GHz'),tm_list[0].Values('dB'),label=victim_label)
                 if len(tm_list) == 2:
                     plt.plot(tm_list[1].Frequencies('GHz'),tm_list[1].Values('dB'),label='aggressor')
                 else:
                     for tmi in range(len(tm_list)-1):
-                        plt.plot(tm_list[tmi+1].Frequencies('GHz'),tm_list[tmi+1].Values('dB'),label=f'aggressor {tmi+1}')
+                        aggressor_label = f"aggressor {tmi+1}" if self.args['aggressor_names'] == [] else f"aggressor {self.args['aggressor_names'][tmi]}"
+                        plt.plot(tm_list[tmi+1].Frequencies('GHz'),tm_list[tmi+1].Values('dB'),label=aggressor_label)
                 plt.xlabel('frequency (GHz)')
                 plt.ylabel('magnitude (dB)')
                 plt.legend()
                 plt.grid(True,'both')
-                plt.ylim(-100,0)
-                plt.show()
+                plt.ylim(-100,20)
+                if self.args.get('plot_save', ''):
+                    plt.savefig(self.args['plot_save'])
+                else:
+                    plt.show()
             ixt=self.IXT(tm_list[0],tm_list[1:],tm_list[0].Frequencies()[-1])
         except:
             self.Error('integrated crosstalk could not be calculated')
