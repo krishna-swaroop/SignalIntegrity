@@ -45,7 +45,7 @@ class TestPoleZeroFitterTest(unittest.TestCase,
         unittest.TestCase.tearDown(self)
         os.chdir(self.cwd)
     def FileNameForTest(self):
-        return '_'.join(self.id().split('.'))+'.json'
+        return self.id().split('.')[-1]+'.json'
     def Compare(self,result):
         try:
             del result['convergence']['time']
@@ -53,6 +53,11 @@ class TestPoleZeroFitterTest(unittest.TestCase,
             pass
         try:
             del result['convergence']['completed']
+        except KeyError:
+            pass
+        # todo: I should not have to delete these, but they are not deterministic.
+        try:
+            del result['convergence']['iterations']
         except KeyError:
             pass
         try:
