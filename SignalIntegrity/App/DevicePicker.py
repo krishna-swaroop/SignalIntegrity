@@ -37,10 +37,10 @@ class DevicePicker(tk.Frame):
         for device in deviceList:
             if device.enabled:
                 parttype=device['partname'].GetValue()
-                description='\ '.join(device['desc'].GetValue().split())
+                description='\\ '.join(device['desc'].GetValue().split())
                 category=device['cat'].GetValue()
                 if category not in categories:
-                    categoryText='\ '.join(category.split())
+                    categoryText='\\ '.join(category.split())
                     self.tree.insert('','end',category,text=category,values=(categoryText),tags='category')
                     categories.append(category)
                 self.tree.insert(category,'end',text=parttype,values=(description),tags=str(indexIntoDeviceList))
