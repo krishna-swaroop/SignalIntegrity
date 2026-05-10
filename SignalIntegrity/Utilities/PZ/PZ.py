@@ -567,10 +567,13 @@ the delay is part of the fit.')
                 Qz=raw_results[s*2+2+1]
                 zeta=1/(2.*Qz)
                 if zeta < 1./np.sqrt(2):
-                    try:
-                        wr=np.sqrt(1-2*(zeta*zeta))*wz
-                    except (RuntimeWarning,RuntimeError):
-                        wr=0
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("error", RuntimeWarning)
+                        try:
+                            wr=np.sqrt(1-2*(zeta*zeta))*wz
+                        except (RuntimeWarning,RuntimeError):
+                            wr=0
                     if np.isnan(wr):
                         wr=0
                 else:
@@ -600,10 +603,13 @@ the delay is part of the fit.')
                 Qp=raw_results[(s+num_zero_pairs)*2+2+1]
                 zeta=1/(2.*Qp)
                 if zeta < 1./np.sqrt(2):
-                    try:
-                        wr=np.sqrt(1-2*(zeta*zeta))*wp
-                    except (RuntimeWarning,RuntimeError):
-                        wr=0
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("error", RuntimeWarning)
+                        try:
+                            wr=np.sqrt(1-2*(zeta*zeta))*wp
+                        except (RuntimeWarning,RuntimeError):
+                            wr=0
                     if np.isnan(wr):
                         wr=0
                 else:

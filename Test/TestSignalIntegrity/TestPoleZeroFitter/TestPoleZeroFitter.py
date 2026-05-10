@@ -100,6 +100,8 @@ class TestPoleZeroFitterTest(unittest.TestCase,
               'tolerance': 1e-07,
               'max_frequency_multiplier': 6}
         result=PZ_Fitter(**args)
+        import matplotlib.pyplot as plt
+        plt.close()
         self.Compare(result)
     def testPZ1(self):
         args={'filename': 'MM_s21.csv',
