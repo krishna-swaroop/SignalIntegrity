@@ -732,7 +732,8 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
             noiseWf[k]=x-levels[l] # error
             signalWf[k]=levels[l] # signal (ideal)
         # calculate the power of each
-        signalRms=math.sqrt(1./len(signalWf)*sum([x**2 for x in signalWf]))
+        mean=1./len(signalWf)*sum(signalWf)
+        signalRms=math.sqrt(1./len(signalWf)*sum([(x-mean)**2 for x in signalWf]))
         noiseResidual=math.sqrt(1./len(noiseWf)*sum([x**2 for x in noiseWf]))
         sdr=20.*math.log10(signalRms/noiseResidual)
         if self.NoiseSigma==0.:
