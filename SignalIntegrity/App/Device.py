@@ -235,7 +235,7 @@ class Device(object):
                 token=variable.GetValue('Name')+' '+value
             elif variable.GetValue('Type')=='file':
                 if ' ' in value:
-                    value='"'+value+'"'
+                    value="'"+value+"'"
                 token=variable.GetValue('Name')+' '+value
             variablesLine+=(' '+token)
         if not self['calcprop'] == None:
