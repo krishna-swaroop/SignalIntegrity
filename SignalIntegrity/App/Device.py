@@ -234,6 +234,8 @@ class Device(object):
                     value = 'Invalid'
                 token=variable.GetValue('Name')+' '+value
             elif variable.GetValue('Type')=='file':
+                import os
+                value = str(os.path.abspath(value))
                 if ' ' in value:
                     value="'"+value+"'"
                 token=variable.GetValue('Name')+' '+value
