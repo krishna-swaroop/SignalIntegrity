@@ -469,8 +469,8 @@ class PartPropertyCalculationDirection(PartProperty):
         PartProperty.__init__(self,'cd',type='enum',keyword='cd',description='calculation direction',value=dir,visible=False,keywordVisible=False)
 
 class PartPropertyStandardFileName(PartProperty):
-    def __init__(self,fileName=''):
-        PartProperty.__init__(self,'std',type='file',unit=None,keyword='std',description='cal standard file name',value=fileName)
+    def __init__(self,reference=''):
+        PartProperty.__init__(self,'std',type='string',unit=None,keyword='std',description='cal standard reference',value=reference)
 
 class PartPropertyOtherPortNumber(PartProperty):
     def __init__(self,portNumber):

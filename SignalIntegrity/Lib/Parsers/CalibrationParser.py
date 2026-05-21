@@ -84,6 +84,8 @@ class CalibrationParser(SystemDescriptionParser):
                         measDict['thrutype']=tokenValue
                     elif '$'+tokenName+'$' in self.m_vars.keys():
                         args[tokenName]=self.m_vars['$'+tokenName+'$']
+                    else:
+                        args[tokenName]=tokenValue
                 # second time, with args defined
                 for i in range(2,len(lineList),2):
                     tokenName,tokenValue = lineList[i],lineList[i+1]
