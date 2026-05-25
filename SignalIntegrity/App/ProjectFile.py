@@ -559,10 +559,17 @@ class ProjectFile(ProjectFileBase):
 
     @staticmethod
     def EvaluateSafely(equations,sendargs,returnargs):
+        # proposed solution Sam McD-S:
+        # _globals = {**sendargs, **returnargs} # We will pass this as the globals namespace used in the exec function
+        # exec(equations, _globals) # Since __builtins__ isn't defined, the equation will be run with __builtins__ from this process
+        # return {key:_globals[key] for key in returnargs.keys()}
+        #
+        # I ran into what might have been the problem that he was seeing, and I did verify that his code works, but before doing that
+        # I was able to fix the problem by simply using a raw string.
         for argkey in sendargs.keys():
             arg=sendargs[argkey]
             if isinstance(arg,str):
-                exec(argkey+' = "'+arg+'"')
+                exec(argkey+' = r"'+arg+'"')
             else:
                 exec(argkey+' = '+str(arg))
         exec(equations)
