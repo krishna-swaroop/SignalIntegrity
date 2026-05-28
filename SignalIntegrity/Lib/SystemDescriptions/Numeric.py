@@ -92,7 +92,7 @@ class Numeric(object):
         @throw LinAlgError if anything fails.
         """
         from numpy import linalg,array,diag,ndarray
-        from numpy.linalg.linalg import LinAlgError,svd
+        from numpy.linalg import LinAlgError,svd
         if A is None: return None
         if isinstance(A,list): A=array(A)
         if not self.alwaysUseSVD:

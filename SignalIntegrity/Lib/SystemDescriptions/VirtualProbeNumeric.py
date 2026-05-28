@@ -51,7 +51,7 @@ class VirtualProbeNumeric(VirtualProbe,Numeric):
         The transfer matrix provided is for a single frequency.
         """
         # pragma: silent exclude
-        from numpy.linalg.linalg import LinAlgError
+        from numpy.linalg import LinAlgError
         self.Check()
         # pragma: include
         if self.m_D is None:
