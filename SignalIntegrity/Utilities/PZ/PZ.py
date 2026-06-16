@@ -243,7 +243,14 @@ the delay is part of the fit.')
 
     def Message(self,message,error=False):
         if self.args['verbose'] or self.args['debug']:
-            print(message)
+            try:
+                # Direct print (works if console encoding supports the characters)
+                print(message)
+            except UnicodeEncodeError:
+                import sys
+                # Fallback: encode to console's encoding with replacement, then decode back
+                encoding = sys.stdout.encoding or 'utf-8'
+                print(message.encode(encoding, errors='replace').decode(encoding))
         if error:
             print('error')
             if self.args['command_line']:

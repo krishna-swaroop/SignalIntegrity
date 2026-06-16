@@ -282,11 +282,24 @@ class TestIXTTest(unittest.TestCase,
         self.formIXTMain_argv(replace={'frequency_points':'50kHz'})
         #sys.argv.append('-v')
         #sys.argv.append('-p')
-        try:
-            IXT_Main()
-        except SystemExit as e:
-            self.assertEqual(e.code,2,'IXT_Main did not exit properly') # should fail
-            return
+        if self.python == 'python3': # linux
+            output = '/dev/null'
+        else: # windows
+            output = 'nul'
+        with open(output,'w') as f:
+            from contextlib import redirect_stderr
+            with redirect_stderr(f):
+                try:
+                    IXT_Main()
+                except SystemExit as e:
+                    self.assertEqual(e.code,2,'IXT_Main did not exit properly') # should fail
+                    return
+                finally:
+                    import os
+                    try:
+                        os.remove('NULL')
+                    except FileNotFoundError:
+                        pass
         self.fail('IXT should have exited with SystemExit exception raised')
     def testIXTPythonScript(self):
         from SignalIntegrity.Utilities.IXT.IXT import IXT_Calculator

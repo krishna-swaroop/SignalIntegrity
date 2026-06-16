@@ -328,5 +328,7 @@ class TestPoleZeroFitterTest(unittest.TestCase,
     def testAAACommandLine2(self):
         from SignalIntegrity.Utilities.PZ.PZ import PZ_Main
         with self.assertRaises(SystemExit) as cme:
+            import sys
+            sys.argv=['PZ.py']
             PZ_Main()
             print (cme.message)
