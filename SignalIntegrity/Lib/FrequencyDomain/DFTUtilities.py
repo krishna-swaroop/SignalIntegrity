@@ -1,0 +1,301 @@
+"""
+ DFTUtilities.py
+"""
+# Copyright (c) 2021 Nubis Communications, Inc.
+# Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
+# All rights reserved worldwide.
+#
+# This file is part of SignalIntegrity.
+#
+# SignalIntegrity is free software: You can redistribute it and/or modify it under the terms
+# of the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>
+
+import math
+import cmath
+import random
+
+class DFTUtilities(object):
+    """A set of DFT utilities for dealing with the DFT for handling frequency
+    and time-domain information properly.
+
+    @remark
+    All methods are static. They operate on either:
+    - a full conjugate-symmetric DFT vector of length K, or
+    - a single-sided spectrum of length N+1 where N = K // 2.
+
+    The @a Keven flag indicates the parity of the time-record length K:
+    - Keven = True  : K = 2*N
+    - Keven = False : K = 2*N + 1
+
+    Reference: Pupalaikis, Peter J., S-parameters for Signal Integrity,
+    Cambridge University Press, p. 371.
+    """
+
+    # ---- basic counts / axes -------------------------------------------------
+
+    @staticmethod
+    def N(K):
+        """Number of frequency points minus one.
+        @param K integer time-record length.
+        @return integer N = floor(K/2), the index of the highest frequency bin
+        in a single-sided spectrum.
+        """
+        return K // 2
+
+    @staticmethod
+    def K(N, Keven=True):
+        """Time-record length from the frequency bin count.
+        @param N integer number of frequency bins minus one.
+        @param Keven (optional) bool, True (default) if K is even (K=2N),
+        False if K is odd (K=2N+1).
+        @return integer K = 2*N if Keven else 2*N + 1.
+        @see N
+        """
+        return 2 * N + (0 if Keven else 1)
+
+    @staticmethod
+    def Keven(K):
+        """Parity test for a time-record length K.
+        @param K integer (or integer-valued) time-record length.
+        @return bool, True if K is even, False if odd.
+        @remark K is cast to int first so that callers passing numpy
+        integer/float scalars (e.g. from a TimeDescriptor) get a correct
+        integer parity test rather than an accidental float modulus.
+        @see N
+        @see K
+        """
+        return int(K) % 2 == 0
+
+    @staticmethod
+    def EndFrequency(K, Fs):
+        """Highest frequency of a single-sided spectrum.
+        @param K integer time-record length.
+        @param Fs float sample rate (Hz).
+        @return float Fe = (N/K) * Fs, where N = K//2.
+        @note Equals Fs/2 only when K is even.
+        @see SampleRate
+        """
+        return (K // 2) * Fs / K
+
+    @staticmethod
+    def SampleRate(K, Fe):
+        """Sample rate from the end frequency.
+        @param K integer time-record length.
+        @param Fe float end frequency (Hz).
+        @return float Fs = (K/N) * Fe, where N = K//2.
+        @note Inverse of EndFrequency().
+        @see EndFrequency
+        """
+        return K * Fe / (K // 2)
+
+    @staticmethod
+    def DeltaFrequency(K, Fs):
+        """Frequency bin spacing.
+        @param K integer time-record length.
+        @param Fs float sample rate (Hz).
+        @return float df = Fs / K.
+        """
+        return Fs / K
+
+    @staticmethod
+    def Frequency(n, K, Fs):
+        """Frequency of the n-th DFT bin.
+        @param n integer bin index (0..K-1).
+        @param K integer time-record length.
+        @param Fs float sample rate (Hz).
+        @return float frequency in Hz, f = n * Fs / K.
+        """
+        return n * Fs / K
+
+    # ---- DFT length conversions ---------------------------------------------
+
+    @staticmethod
+    def Full_to_Half(X):
+        """Single-sided spectrum from a full conjugate-symmetric DFT.
+        @param X list of complex values, the full DFT of length K (even or odd).
+        @return list of complex values, the first N+1 = K//2 + 1 entries.
+        @remark
+        A Keven flag is unnecessary because N = K // 2 yields the correct
+        half length for both parities:
+        - K = 2N   (Keven=True)  -> half length N+1
+        - K = 2N+1 (Keven=False) -> half length N+1
+        @see Half_to_Full
+        """
+        N = len(X) // 2
+        return list(X[:N + 1])
+
+    @staticmethod
+    def Half_to_Full(X,Keven=True):
+        N = len(X) - 1
+        K = DFTUtilities.K(N, Keven)
+        F = [0 for _ in range(K)]
+        for n in range(N + 1):
+            F[n] = X[n]
+        if Keven:
+            for sigma in range(1, N):
+                F[N+sigma] = X[N-sigma].conjugate()
+        else:
+            for sigma in range(1, N+1):
+                F[N+sigma] = X[N-sigma+1].conjugate()
+        return F
+
+    # ---- DFT <-> amplitude --------------------------------------------------
+
+    @staticmethod
+    def X_to_A(X, Keven = True):
+        """Single-sided amplitude A[n] from single-sided DFT X[n].
+        @param X list of complex single-sided DFT values, length N+1.
+        @param Keven bool, True if the underlying K is even (K=2N),
+        False if odd (K=2N+1).
+        @return list of float amplitudes A[n] = |X[n]| / K * factor, where
+        factor is 1 for the DC bin (n=0) and (when Keven) the Nyquist bin
+        (n=N), and 2 otherwise.
+        @see AtoX
+        """
+        N = len(X) - 1
+        K = 2 * N if Keven else 2 * N + 1
+        return [abs(X[n]) / K *
+                (1. if (n == 0 or (n == N and Keven)) else 2.)
+                for n in range(N + 1)]
+
+    # ---- amplitude -> DFT ---------------------------------------------------
+
+    @staticmethod
+    def A_to_X(A, Keven = True, random_phase=True):
+        """Single-sided DFT X[n] from amplitude A[n].
+        @param A list of float per-bin amplitudes, length N+1.
+        @param Keven bool, True if the underlying K is even (K=2N),
+        False if odd (K=2N+1).
+        @param random_phase (optional) bool, True (default) to assign each
+        interior bin an independent phase uniformly distributed in
+        [-pi, pi); False to use zero phase (returns real magnitudes).
+        @return list of complex DFT values of length N+1 with
+        |X[n]| = A[n] * K / factor, where factor is 1 for the DC bin (n=0)
+        and (when Keven) the Nyquist bin (n=N), and 2 otherwise.
+        @note The DC bin (n=0) and, when Keven, the Nyquist bin (n=N) are
+        kept real so that Hermitian extension yields a real-valued
+        time-domain signal.
+        @note Inverse of X_to_A().
+        @see X_to_A
+        """
+        N = len(A) - 1
+        K = 2 * N if Keven else 2 * N + 1
+        X = []
+        for n in range(N + 1):
+            factor = 1. if (n == 0 or (n == N and Keven)) else 2.
+            mag = A[n] * K / factor
+            if random_phase and not (n == 0 or (n == N and Keven)):
+                phase = random.uniform(-math.pi, math.pi)
+            else:
+                phase = 0.0
+            X.append(mag * cmath.exp(1j * phase))
+        return X
+
+    # ---- amplitude -> rms ---------------------------------------------------
+
+    @staticmethod
+    def A_to_rms(A, Keven = True):
+        """RMS values from single-sided amplitudes.
+        @param A list of float amplitudes A[n], length N+1.
+        @param Keven bool, True if the underlying K is even.
+        @return list of float rms values, rms[n] = A[n] for DC and (when
+        Keven) Nyquist bins, else A[n] / sqrt(2).
+        @see rms_to_A
+        """
+        N = len(A) - 1
+        return [A[n] / (1. if (n == 0 or (n == N and Keven)) else math.sqrt(2.))
+                for n in range(N + 1)]
+
+    @staticmethod
+    def rms_to_A(rms, Keven = True):
+        """Single-sided amplitudes from RMS values.
+        @param rms list of float per-bin rms values, length N+1.
+        @param Keven bool, True if the underlying K is even.
+        @return list of float amplitudes, A[n] = rms[n] for DC and (when
+        Keven) Nyquist bins, else rms[n] * sqrt(2).
+        @note Inverse of A_to_rms().
+        @see A_to_rms
+        """
+        N = len(rms) - 1
+        return [rms[n] * (1. if (n == 0 or (n == N and Keven)) else math.sqrt(2.))
+                for n in range(N + 1)]
+
+    # ---- dBm ----------------------------------------------------------------
+
+    @staticmethod
+    def rms_to_dBm(rms):
+        """Convert per-bin RMS values to dBm (referenced to 50 ohm, 1 mW).
+        @param rms list of float per-bin rms values (Vrms).
+        @return list of float dBm values, computed as
+        20*log10(rms) - 10*log10(R*P), with R = 50 ohm and P = 1 mW.
+        @note Values below 1e-15 Vrms clamp to -3000 dBm to avoid log of zero.
+        """
+        LogRP10 = 10. * math.log10(50.0 * 1e-3)
+        return [-3000. if r < 1e-15 else 20. * math.log10(r) - LogRP10
+                for r in rms]
+
+    # ---- spectral density ---------------------------------------------------
+
+    @staticmethod
+    def rms_to_rho(rms, delta_f, Keven = True):
+        """Spectral density (Vrms/sqrt(Hz)) from per-bin RMS values.
+        @param rms list of float per-bin rms values, length N+1.
+        @param delta_f float bin spacing (Hz).
+        @param Keven bool, True if the underlying K is even.
+        @return list of float spectral densities rho[n]; an extra factor of
+        sqrt(2) is applied at the DC bin (and, when Keven, the Nyquist bin)
+        to account for their one-sided contribution.
+        @see rho_to_rms
+        """
+        N = len(rms) - 1
+        sqrt_df = math.sqrt(delta_f)
+        return [rms[n] *
+                (math.sqrt(2.) if (n == 0 or (n == N)) else 1.) /
+                sqrt_df for n in range(N + 1)]
+
+    @staticmethod
+    def rho_to_rms(rho, delta_f, Keven = True):
+        """Per-bin RMS values from spectral density.
+        @param rho list of float spectral densities (Vrms/sqrt(Hz)), length N+1.
+        @param delta_f float bin spacing (Hz).
+        @param Keven bool, True if the underlying K is even.
+        @return list of float per-bin rms values; an extra 1/sqrt(2) is
+        applied at the DC bin (and, when Keven, the Nyquist bin), undoing
+        the boost applied by rms_to_rho.
+        @note Inverse of rms_to_rho().
+        @see rms_to_rho
+        """
+        N = len(rho) - 1
+        sqrt_df = math.sqrt(delta_f)
+        return [rho[n] /
+                (math.sqrt(2.) if (n == 0 or (n == N)) else 1.) *
+                sqrt_df for n in range(N + 1)]
+
+    # ---- totals -------------------------------------------------------------
+
+    @staticmethod
+    def TotalSpectralContentRMS(rms):
+        """Total RMS across a single-sided spectrum.
+        @param rms list of float per-bin rms values.
+        @return float total rms = sqrt(sum(rms[n]^2)).
+        """
+        return math.sqrt(sum(r * r for r in rms))
+
+    @staticmethod
+    def TotalSpectralContentdBm(dBm):
+        """Total power (dBm) across a single-sided spectrum.
+        @param dBm list of float per-bin dBm values.
+        @return float total power in dBm, obtained by summing the linear
+        powers and converting back to dBm.
+        """
+        LogRP10 = 10. * math.log10(50.0 * 1e-3)
+        return 10. * math.log10(
+            sum(10. ** ((d + LogRP10) / 10.) for d in dBm)) - LogRP10

@@ -4,7 +4,7 @@ class FrequencyContent(FrequencyDomain):
         if fd is None:
             X=fft.fft(wf.Values())
             K=int(td.K)
-            Keven=(K//2)*2 == K
+            Keven = DFTUtilities.Keven(td.K)
             fd=td.FrequencyList()
         else:
             K=fd.N*2
@@ -17,7 +17,7 @@ class FrequencyContent(FrequencyDomain):
         self.td=td
     def Values(self,unit=None):
         if unit=='rms':
-            Keven=(self.td.K/2)*2==self.td.K
+            Keven = DFTUtilities.Keven(self.td.K)
             A=FrequencyDomain.Values(self,'mag')
             return [A[n]/(1 if (n==0 or ((n==self.m_f.N) and Keven))
                     else math.sqrt(2)) for n in range(len(A))]
@@ -25,7 +25,7 @@ class FrequencyContent(FrequencyDomain):
             return [-3000. if r < 1e-15 else 20.*math.log10(r)-self.LogRP10
                         for r in self.Values('rms')]
         elif unit=='dBmPerHz':
-            Keven=(self.td.K/2)*2==self.td.K
+            Keven = DFTUtilities.Keven(self.td.K)
             Deltaf=self.m_f.Fe/self.m_f.N
             adder=-10*math.log10(Deltaf)
             dBm=self.Values('dBm')
@@ -34,7 +34,7 @@ class FrequencyContent(FrequencyDomain):
                     else 0) for n in range(len(dBm))]
         else: return FrequencyDomain.Values(self,unit)
     def Waveform(self,td=None):
-        Keven=(self.td.K//2)*2==self.td.K
+        Keven = DFTUtilities.Keven(self.td.K)
         X=self.Values()
         X=[X[n]*self.td.K*\
             (1. if (n==0 or ((n==self.m_f.N) and Keven)) else 0.5)*\
