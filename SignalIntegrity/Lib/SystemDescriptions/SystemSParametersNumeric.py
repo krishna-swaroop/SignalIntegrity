@@ -44,7 +44,7 @@ class SystemSParametersNumeric(SystemSParameters,Numeric):
         the direct solution.
         @todo document this better
         """
-        from numpy.linalg.linalg import LinAlgError
+        from numpy.linalg import LinAlgError
         solvetype = args['solvetype'] if 'solvetype' in args else 'block'
         AN=self.PortBNames()
         BN=self.PortANames()

@@ -36,7 +36,7 @@ class Simulator(SystemSParameters,object):
             else: return sp
         return sp
     def SIPrime(self,symbolic=False,Left=None,Right=None):
-        from numpy.linalg.linalg import LinAlgError
+        from numpy.linalg import LinAlgError
         n=self.NodeVector()
         m=self.StimulusVector()
         mprime=self.StimsPrime()

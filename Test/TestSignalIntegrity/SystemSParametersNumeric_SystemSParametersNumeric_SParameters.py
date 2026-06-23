@@ -2,7 +2,7 @@ class SystemSParametersNumeric(SystemSParameters,Numeric):
     def __init__(self,sd=None):
         SystemSParameters.__init__(self,sd)
     def SParameters(self,**args):
-        from numpy.linalg.linalg import LinAlgError
+        from numpy.linalg import LinAlgError
         solvetype = args['solvetype'] if 'solvetype' in args else 'block'
         AN=self.PortBNames()
         BN=self.PortANames()

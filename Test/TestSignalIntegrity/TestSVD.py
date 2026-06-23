@@ -26,7 +26,7 @@ from numpy import array
 import SignalIntegrity as si
 
 from numpy import linalg,matrix,identity
-from numpy.linalg.linalg import LinAlgError,svd
+from numpy.linalg import LinAlgError,svd
 from numpy import diag
 
 class TestSVDTest(unittest.TestCase):
