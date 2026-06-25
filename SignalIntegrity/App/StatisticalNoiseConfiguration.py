@@ -1,5 +1,5 @@
 """
-EyeDiagramConfiguration.py
+StatisticalNoiseConfiguration.py
 """
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
@@ -17,28 +17,27 @@ EyeDiagramConfiguration.py
 #
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
-from SignalIntegrity.App.EyeDiagramPreferencesFile import EyeConfiguration
+from SignalIntegrity.App.StatisticalNoisePreferencesFile import NoiseConfiguration
 from SignalIntegrity.App.DeviceExtendedConfiguration import DeviceExtendedConfiguration
 import SignalIntegrity.App.Preferences
 import copy
 
-class EyeDiagramConfiguration(EyeConfiguration,DeviceExtendedConfiguration):
+class StatisticalNoiseConfiguration(NoiseConfiguration,DeviceExtendedConfiguration):
     def __init__(self):
         if DeviceExtendedConfiguration.headless:
             dialog=None
         else:
-            from SignalIntegrity.App.EyeDiagramPropertiesDialog import EyeDiagramPropertiesDialog
-            dialog=EyeDiagramPropertiesDialog
-        EyeConfiguration.__init__(self)
+            from SignalIntegrity.App.StatisticalNoisePropertiesDialog import StatisticalNoisePropertiesDialog
+            dialog=StatisticalNoisePropertiesDialog
+        NoiseConfiguration.__init__(self)
         DeviceExtendedConfiguration.__init__(self,
-            label='Eye Diagram Configuration',
+            label='Statistical Noise Configuration',
             dialog=dialog
             )
     def HandleBackwardsCompatibility(self):
-        # for backwards compatibility with old projects with eye probes with global eye diagram configurations,
-        # assign the global configuration to the probe.  When the file is written, these individual configurations
+        # for backwards compatibility with old projects with noise sources with global noise configurations,
+        # assign the global configuration to the device.  When the file is written, these individual configurations
         # will be retained and the global configuration will be removed.
         import SignalIntegrity.App.Project
-        if not SignalIntegrity.App.Project['EyeDiagram'] is None:
-            self.dict = copy.deepcopy(SignalIntegrity.App.Project['EyeDiagram'].dict)
-        EyeConfiguration.HandleBackwardsCompatibility(self)
+        if not SignalIntegrity.App.Project['Noise'] is None:
+            self.dict = copy.deepcopy(SignalIntegrity.App.Project['Noise'].dict)

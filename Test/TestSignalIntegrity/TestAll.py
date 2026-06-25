@@ -80,6 +80,7 @@ from TestSParameterEnforcements import *
 from TestSParameterFile import *
 from TestSParametersParser import *
 from TestSplines import *
+from TestStatisticalNoise import *
 from TestSubcircuit import *
 from TestSubProjectReferenceImpedance import *
 from TestSystemDescription import *

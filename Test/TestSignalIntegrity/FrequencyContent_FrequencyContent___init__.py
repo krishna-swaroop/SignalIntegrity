@@ -33,6 +33,7 @@ class FrequencyContent(FrequencyDomain):
                     (self.dB3 if (n==0 or ((n==self.m_f.N) and Keven))
                     else 0) for n in range(len(dBm))]
         else: return FrequencyDomain.Values(self,unit)
+...
     def Waveform(self,td=None):
         Keven = DFTUtilities.Keven(self.td.K)
         X=self.Values()

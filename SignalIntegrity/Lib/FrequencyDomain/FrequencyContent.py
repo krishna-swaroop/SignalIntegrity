@@ -28,7 +28,7 @@ from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionWaveform
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyDomain import FrequencyDomain
 from SignalIntegrity.Lib.ChirpZTransform.ChirpZTransform import CZT
 from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
-
+from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
 
 class FrequencyContent(FrequencyDomain):
     """Handles frequency content of waveforms.  
@@ -119,7 +119,22 @@ class FrequencyContent(FrequencyDomain):
             return [dBm[n]+adder+
                     (self.dB3 if (n==0 or ((n==self.m_f.N) and Keven))
                     else 0) for n in range(len(dBm))]
+        # pragma: silent exclude
+        elif unit=='VPerRootHz':
+            Keven = DFTUtilities.Keven(self.td.K)
+            Deltaf=self.m_f.Fe/self.m_f.N
+            A = FrequencyDomain.Values(self,'mag')
+            rms = DFTUtilities.A_to_rms(A,Deltaf,Keven)
+            rho = DFTUtilities.rms_to_rho(rms,Deltaf,Keven)
+            return rho
+        # pragma: include
         else: return FrequencyDomain.Values(self,unit)
+    def SpectralDensity(self):
+        """Spectral density values
+        @return instance of class SpectralDensity containing the spectral density values in V/sqrt(Hz).
+        @see SpectralDensity
+        """
+        return SpectralDensity(self.m_f,self.Values('VPerRootHz'),self.Keven)
     def Waveform(self,td=None):
         """Computes the time-domain waveform using IDFT methods
         @param td (optional) instance of class TimeDescriptor declaring the time descriptor of the waveform to produce.

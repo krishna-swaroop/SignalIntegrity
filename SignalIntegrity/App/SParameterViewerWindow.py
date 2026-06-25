@@ -1336,6 +1336,7 @@ class SParametersDialog(tk.Toplevel):
         self.delayViewerProperty.onEntered(None)
 
     def onDelayEntered(self,event):
+        from matplotlib.collections import LineCollection
         self.topRightPlot.cla()
         fr=self.sp.FrequencyResponse(self.toPort,self.fromPort)
         TD = self.delayViewerProperty.GetString()

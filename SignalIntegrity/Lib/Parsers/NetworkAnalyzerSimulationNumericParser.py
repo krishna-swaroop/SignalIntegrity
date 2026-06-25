@@ -69,7 +69,7 @@ class NetworkAnalyzerSimulationNumericParser(SimulatorNumericParser):
         dutFound=False
         for line in self.m_lines:
             tokens=LineSplitter(line)
-            if tokens[0] in ['voltagesource','networkanalyzerport']:
+            if tokens[0] in ['voltagesource','networkanalyzerport','voltagenoisesource']:
                 isNetworkAnalyzerPort=False
                 if len(tokens)>3:
                     sourceDict={'ref':tokens[1],'port':tokens[2],'line':line}

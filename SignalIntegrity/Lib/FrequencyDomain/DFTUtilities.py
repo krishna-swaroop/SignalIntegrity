@@ -299,3 +299,50 @@ class DFTUtilities(object):
         LogRP10 = 10. * math.log10(50.0 * 1e-3)
         return 10. * math.log10(
             sum(10. ** ((d + LogRP10) / 10.) for d in dBm)) - LogRP10
+
+    # --- spectral density conversions --------------------------------------
+
+    @staticmethod
+    def ConvertSpectralDensity(value, from_units, to_units, bw=None):
+        """Convert a spectral quantity between unit representations.
+
+        Supported units:
+            - 'dBm/Hz'      power spectral density (50 ohm, 1 mW reference)
+            - 'V/sqrt(Hz)'  amplitude spectral density
+            - 'Vrms'        integrated rms voltage over bandwidth @a bw
+                            (assumes a flat/white spectrum across @a bw)
+
+        @param value      float value to convert.
+        @param from_units one of 'dBm/Hz', 'V/sqrt(Hz)', 'Vrms'.
+        @param to_units   one of 'dBm/Hz', 'V/sqrt(Hz)', 'Vrms'.
+        @param bw         float bandwidth in Hz; required only when 'Vrms'
+                          appears as input or output.
+        @return           converted value in @a to_units.
+        @throws ValueError on unknown units, or missing @a bw when needed.
+        """
+        valid = ('dBm/Hz', 'V/sqrt(Hz)', 'Vrms')
+        if from_units not in valid:
+            raise ValueError(f'Unknown spectral density unit: {from_units}')
+        if to_units not in valid:
+            raise ValueError(f'Unknown spectral density unit: {to_units}')
+        if from_units == to_units:
+            return value
+        if (from_units == 'Vrms' or to_units == 'Vrms') and bw is None:
+            raise ValueError("'bw' is required when converting to/from 'Vrms'")
+
+        # Step 1: normalize input to V/sqrt(Hz)
+        if from_units == 'V/sqrt(Hz)':
+            asd = value
+        elif from_units == 'dBm/Hz':
+            asd = math.sqrt(50. * 1e-3 * 10. ** (value / 10.))
+        else:  # 'Vrms'
+            asd = value / math.sqrt(bw)
+
+        # Step 2: convert V/sqrt(Hz) to requested output
+        if to_units == 'V/sqrt(Hz)':
+            return asd
+        if to_units == 'dBm/Hz':
+            if asd <= 0.:
+                return -3000.
+            return 10. * math.log10(asd * asd / 50. / 1e-3)
+        return asd * math.sqrt(bw)  # 'Vrms'

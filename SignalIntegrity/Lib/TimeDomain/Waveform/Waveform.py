@@ -393,6 +393,23 @@ class Waveform(list):
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyContent import FrequencyContent
         # pragma: include
         return FrequencyContent(self,fd)
+    def SpectralDensity(self,fd=None):
+        """spectral density
+        provides the spectral density equivalent of the waveform.
+        @param fd (optional) instance of class FrequencyList providing
+        frequencies to provide the content for (defaults to None)
+        @return instance of class SpectralDensity containing the spectral density of the
+        waveform.
+        @note if None is supplied for fd, the spectral density is provided using the frequency
+        list corresponding to the time descriptor inherent to the waveform.  In this way,
+        self.SpectralDensity().Waveform() equals self.
+        @see SignalIntegrity.FrequencyDomain.SpectralDensity
+        @see SignalIntegrity.FrequencyDomain.FrequencyList
+        """
+        # pragma: silent exclude
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        # pragma: include
+        return self.FrequencyContent(fd).SpectralDensity()
     def Integral(self,c=0.,addPoint=True,scale=True):
         """integral of waveform  
         the integral is calculated using Riemann sums (as opposed to trapezoidal

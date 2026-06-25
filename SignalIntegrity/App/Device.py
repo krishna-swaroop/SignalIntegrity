@@ -194,6 +194,8 @@ class Device(object):
             elif wfType == 'DC':
                 amplitude=float(self['a'].GetValue())
                 waveform=amplitude
+            elif wfType == 'statistical':
+                waveform=0.0
         return waveform
     def WaveformTimeDescriptor(self):
         import SignalIntegrity.Lib as si
@@ -1791,6 +1793,21 @@ class DeviceReference(Device):
                         PartPictureVariableReference()
                         )
 
+class DeviceVoltageStatisticalNoiseSource(Device):
+    def __init__(self,propertiesList,partPicture):
+        from SignalIntegrity.App.StatisticalNoiseConfiguration import StatisticalNoiseConfiguration
+        netlist=DeviceNetListLine(devicename='voltagenoisesource')
+        Device.__init__(self,
+                        netlist,
+                        propertiesList+[
+                            PartPropertyCategory('Statistical Noise Sources'),
+                            PartPropertyPartName('VoltageStatisticaLNoiseSource'),
+                            PartPropertyDefaultReferenceDesignator('VN?'),
+                            PartPropertyWaveformType('statistical')
+                        ],
+                        partPicture,
+                        configuration=StatisticalNoiseConfiguration())
+
 class Devices(list):
     def __init__(self,devices):
         list.__init__(self,devices)
@@ -1910,7 +1927,9 @@ DeviceList=Devices([
                 DeviceRaisedCosineRisetimeFilter(),
                 DeviceGaussianRisetimeFilter(),
                 DeviceIdealBalun(),
-                DeviceReference()
+                DeviceReference(),
+                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('One Port Voltage Statistical Noise Generator'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
+                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
                 ])
 
 

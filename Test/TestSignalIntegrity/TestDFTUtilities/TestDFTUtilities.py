@@ -25,7 +25,7 @@ from SignalIntegrity.App import TikZ
 import SignalIntegrity.Lib as si
 from numpy import fft
 import numpy as np
-
+import math
 import os
 
 class TestDFTUtilitiesTest(unittest.TestCase,si.test.SParameterCompareHelper,si.test.SignalIntegrityAppTestHelper):
@@ -327,6 +327,139 @@ class TestDFTUtilitiesTest(unittest.TestCase,si.test.SParameterCompareHelper,si.
         A = si.fd.DFTUtilities.X_to_A(XH, Keven = False)
         rms = si.fd.DFTUtilities.A_to_rms(A, Keven = False)
         self.assertEqual(si.ToSI.ToSI(rms[n0],'V',round=3),'707.0 mV')
+
+
+    # -- ConvertSpectralDensity ------------------------------------------------
+
+    def testConvertSpectralDensityIdentityDBmHz(self):
+        """Same-unit conversion returns the input unchanged."""
+        self.assertEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(-100.0, 'dBm/Hz', 'dBm/Hz'),
+            -100.0)
+
+    def testConvertSpectralDensityIdentityVPerSqrtHz(self):
+        """Same-unit conversion returns the input unchanged."""
+        self.assertEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(1e-9, 'V/sqrt(Hz)', 'V/sqrt(Hz)'),
+            1e-9)
+
+    def testConvertSpectralDensityIdentityVrmsNoBwRequired(self):
+        """Vrms -> Vrms short-circuits before the bw check, so bw is not needed."""
+        self.assertEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(5e-3, 'Vrms', 'Vrms'),
+            5e-3)
+
+    def testConvertSpectralDensityVPerSqrtHzToDBmHz(self):
+        """1 V/sqrt(Hz) into 50 ohm / 1 mW is 10*log10(20) dBm/Hz."""
+        expected = 10. * math.log10(1.0 / 50.0 / 1e-3)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(1.0, 'V/sqrt(Hz)', 'dBm/Hz'),
+            expected, places=12)
+
+    def testConvertSpectralDensityDBmHzToVPerSqrtHz(self):
+        """0 dBm/Hz in 50 ohm corresponds to sqrt(50 mW) V/sqrt(Hz)."""
+        expected = math.sqrt(50. * 1e-3)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(0.0, 'dBm/Hz', 'V/sqrt(Hz)'),
+            expected, places=12)
+
+    def testConvertSpectralDensityVPerSqrtHzToVrms(self):
+        """5 mV / sqrt(100 GHz) integrated over 100 GHz is 5 mV rms."""
+        bw = 100e9
+        asd = 5e-3 / math.sqrt(bw)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(asd, 'V/sqrt(Hz)', 'Vrms', bw=bw),
+            5e-3, places=12)
+
+    def testConvertSpectralDensityVrmsToVPerSqrtHz(self):
+        """5 mV rms over 100 GHz gives 5 mV / sqrt(100 GHz) V/sqrt(Hz)."""
+        bw = 100e9
+        expected = 5e-3 / math.sqrt(bw)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(5e-3, 'Vrms', 'V/sqrt(Hz)', bw=bw),
+            expected, places=20)
+
+    def testConvertSpectralDensityVrmsToDBmHz(self):
+        """Vrms -> dBm/Hz matches the analytical ASD^2 / (R * Pref) per Hz."""
+        bw = 100e9
+        rms = 5e-3
+        expected = 10. * math.log10(rms * rms / 50. / 1e-3 / bw)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(rms, 'Vrms', 'dBm/Hz', bw=bw),
+            expected, places=10)
+
+    def testConvertSpectralDensityDBmHzToVrms(self):
+        """dBm/Hz -> Vrms inverts Vrms -> dBm/Hz at the same bandwidth."""
+        bw = 100e9
+        rms = 5e-3
+        dbm = si.fd.DFTUtilities.ConvertSpectralDensity(rms, 'Vrms', 'dBm/Hz', bw=bw)
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(dbm, 'dBm/Hz', 'Vrms', bw=bw),
+            rms, places=12)
+
+    def testConvertSpectralDensityRoundtripVPerSqrtHzDBmHz(self):
+        """V/sqrt(Hz) -> dBm/Hz -> V/sqrt(Hz) returns the original value."""
+        asd = 1e-9
+        dbm = si.fd.DFTUtilities.ConvertSpectralDensity(asd, 'V/sqrt(Hz)', 'dBm/Hz')
+        asd2 = si.fd.DFTUtilities.ConvertSpectralDensity(dbm, 'dBm/Hz', 'V/sqrt(Hz)')
+        self.assertAlmostEqual(asd, asd2, places=20)
+
+    def testConvertSpectralDensityRoundtripVrmsVPerSqrtHz(self):
+        """Vrms -> V/sqrt(Hz) -> Vrms returns the original value."""
+        bw = 100e9
+        rms = 5e-3
+        asd = si.fd.DFTUtilities.ConvertSpectralDensity(rms, 'Vrms', 'V/sqrt(Hz)', bw=bw)
+        rms2 = si.fd.DFTUtilities.ConvertSpectralDensity(asd, 'V/sqrt(Hz)', 'Vrms', bw=bw)
+        self.assertAlmostEqual(rms, rms2, places=15)
+
+    def testConvertSpectralDensityRoundtripVrmsDBmHz(self):
+        """Vrms -> dBm/Hz -> Vrms returns the original value."""
+        bw = 100e9
+        rms = 5e-3
+        dbm = si.fd.DFTUtilities.ConvertSpectralDensity(rms, 'Vrms', 'dBm/Hz', bw=bw)
+        rms2 = si.fd.DFTUtilities.ConvertSpectralDensity(dbm, 'dBm/Hz', 'Vrms', bw=bw)
+        self.assertAlmostEqual(rms, rms2, places=12)
+
+    def testConvertSpectralDensityKnownDBmHzAtFiveMilliVoltOver100GHz(self):
+        """5 mV rms over 100 GHz in 50 ohm gives a known dBm/Hz value."""
+        bw = 100e9
+        rms = 5e-3
+        expected = 10. * math.log10(rms * rms / 50. / 1e-3 / bw)  # ~ -143.01 dBm/Hz
+        self.assertAlmostEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(rms, 'Vrms', 'dBm/Hz', bw=bw),
+            expected, places=10)
+
+    def testConvertSpectralDensityZeroAsdToDBmHzClampsTo3000(self):
+        """Zero amplitude spectral density clamps the log to -3000 dBm/Hz."""
+        self.assertEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(0.0, 'V/sqrt(Hz)', 'dBm/Hz'),
+            -3000.0)
+
+    def testConvertSpectralDensityZeroVrmsToDBmHzClampsTo3000(self):
+        """Zero Vrms (which yields zero ASD) also clamps to -3000 dBm/Hz."""
+        self.assertEqual(
+            si.fd.DFTUtilities.ConvertSpectralDensity(0.0, 'Vrms', 'dBm/Hz', bw=100e9),
+            -3000.0)
+
+    def testConvertSpectralDensityUnknownFromUnitsRaises(self):
+        """An unknown source unit raises ValueError."""
+        with self.assertRaises(ValueError):
+            si.fd.DFTUtilities.ConvertSpectralDensity(1.0, 'XYZ', 'dBm/Hz')
+
+    def testConvertSpectralDensityUnknownToUnitsRaises(self):
+        """An unknown target unit raises ValueError."""
+        with self.assertRaises(ValueError):
+            si.fd.DFTUtilities.ConvertSpectralDensity(1.0, 'dBm/Hz', 'XYZ')
+
+    def testConvertSpectralDensityVrmsFromWithoutBwRaises(self):
+        """Converting from Vrms without bw raises ValueError."""
+        with self.assertRaises(ValueError):
+            si.fd.DFTUtilities.ConvertSpectralDensity(5e-3, 'Vrms', 'V/sqrt(Hz)')
+
+    def testConvertSpectralDensityVrmsToWithoutBwRaises(self):
+        """Converting to Vrms without bw raises ValueError."""
+        with self.assertRaises(ValueError):
+            si.fd.DFTUtilities.ConvertSpectralDensity(1e-9, 'V/sqrt(Hz)', 'Vrms')
 
 
 if __name__ == "__main__":

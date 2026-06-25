@@ -108,8 +108,16 @@ class CalculationPropertyFileName(CalculationProperty):
         CalculationProperty.__init__(self,parentFrame,textLabel,enteredCallback,updateStringsCallback,project,projectPath,tooltip)
     def onTouched(self,event):
         if not self.readonly:
-            fp=FileParts(os.path.join(self.fileparts.AbsoluteFilePath(),self.project[self.projectPath]))
-            filename=AskOpenFileName(filetypes=[('txt', '.txt'),('trc','.trc')],
+            import os
+            try:
+                fp=FileParts(os.path.join(self.fileparts.AbsoluteFilePath(),self.project[self.projectPath]))
+            except:
+                try:
+                    fp=FileParts(self.project[self.projectPath])
+                except:
+                    fp=FileParts(self.fileparts.AbsoluteFilePath())
+            filename=AskOpenFileName(parent=self.parentFrame,
+                                     filetypes=[('txt', '.txt'),('trc','.trc')],
                                     initialdir=fp.AbsoluteFilePath(),
                                     initialfile=fp.FileNameWithExtension('txt'))
             if filename is None:
