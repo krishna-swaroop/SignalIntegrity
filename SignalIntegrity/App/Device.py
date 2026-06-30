@@ -1709,6 +1709,7 @@ class DeviceThru(Device):
                 wire['Vertices'].append(Vertex(right_pin,False))
                 wire_list.append(wire)
             return wire_list
+
 class DeviceEyeProbe(Device):
     def __init__(self):
         netlist=DeviceNetListLine(devicename='eyeprobe',showReference=True,showports=False)
@@ -1802,11 +1803,16 @@ class DeviceVoltageStatisticalNoiseSource(Device):
                         propertiesList+[
                             PartPropertyCategory('Statistical Noise Sources'),
                             PartPropertyPartName('VoltageStatisticaLNoiseSource'),
+                            PartPropertyHelp('device:Voltage-StatisticaL-Noise-Source'),
                             PartPropertyDefaultReferenceDesignator('VN?'),
                             PartPropertyWaveformType('statistical')
                         ],
                         partPicture,
                         configuration=StatisticalNoiseConfiguration())
+    def SpectralDensity(self):
+        return self.configuration.SpectralDensity(
+            SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
+            SignalIntegrity.App.Project['CalculationProperties']['FrequencyPoints'])
 
 class Devices(list):
     def __init__(self,devices):
@@ -1929,7 +1935,7 @@ DeviceList=Devices([
                 DeviceIdealBalun(),
                 DeviceReference(),
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('One Port Voltage Statistical Noise Generator'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
-                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
+                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort())
                 ])
 
 

@@ -42,8 +42,9 @@ import SignalIntegrity.App.Project
 import SignalIntegrity.Lib as si
 
 class SParametersDialog(tk.Toplevel):
-    def __init__(self, parent,sp,filename=None,title=None,buttonLabels=None,standalone=False):
+    def __init__(self, parent,sp,filename=None,title=None,buttonLabels=None,standalone=False,showBottomPlots=True):
         tk.Toplevel.__init__(self, parent)
+        self.showBottomPlots=showBottomPlots
         self.parent=parent
         self.standalone=standalone
         self.withdraw()
@@ -249,7 +250,8 @@ class SParametersDialog(tk.Toplevel):
         topFrame=tk.Frame(self.dialogFrame)
         topFrame.pack(side=tk.TOP,fill=tk.BOTH,expand=tk.YES)
         bottomFrame=tk.Frame(self.dialogFrame)
-        bottomFrame.pack(side=tk.TOP,fill=tk.BOTH,expand=tk.YES)
+        if self.showBottomPlots:
+            bottomFrame.pack(side=tk.TOP,fill=tk.BOTH,expand=tk.YES)
         topLeftFrame=tk.Frame(topFrame)
         topLeftFrame.pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES)
         self.topLeftLabel = tk.Label(topLeftFrame,fg='black')

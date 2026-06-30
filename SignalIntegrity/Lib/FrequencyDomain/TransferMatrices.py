@@ -129,22 +129,17 @@ class TransferMatrices(list,CallBacker):
             td = [td for _ in range(self.Inputs)]
         if fr == None:
             return None
-
         if self.cacheResponses and self.td == td and self.ir != None:
             return self.ir
-
         ir = [[None for s in range(self.Inputs)] for o in range(self.Outputs)]
-
         for o in range(self.Outputs):
             for s in range(self.Inputs):
                 ir[o][s] = fr[o][s].ImpulseResponse(td[s])
                 if not self.CallBack((o*self.Inputs+s)/
                                      (self.Inputs*self.Outputs)*100.0):
                     return None
-
         if not self.cacheResponses:
             return ir
-
         self.ir = ir
         self.td = td
         return copy.deepcopy(self.ir)
@@ -174,3 +169,61 @@ class TransferMatrices(list,CallBacker):
                     for o in range(self.Outputs)]
                         for n in range(len(fdp))]
         return TransferMatrices(fdp,d)
+    def Remove(self,outputs,sources,outputs_to_remove,sources_to_remove):
+        """Removes specified outputs and sources from the transfer matrices.
+        @param outputs list of output names corresponding to the rows of the transfer matrices.
+        @param sources list of source names corresponding to the columns of the transfer matrices.
+        @param outputs_to_remove list of output names to remove.
+        @param sources_to_remove list of source names to remove.
+        @return tuple (new_outputs, new_sources, new_transfer_matrices) where:
+            - new_outputs is the list of outputs with outputs_to_remove removed
+            - new_sources is the list of sources with sources_to_remove removed
+            - new_transfer_matrices is a new instance of TransferMatrices with the
+              corresponding rows and columns removed from each frequency's matrix.
+        @remark
+        The transfer matrices are a list of list of list where each element corresponds
+        to a frequency and is a list of list matrix M such that, for that frequency,
+        outputs = M * sources. After removal, the new matrix at each frequency contains
+        only the rows for outputs not in outputs_to_remove and only the columns for
+        sources not in sources_to_remove.
+        """
+        output_indices_to_keep=[o for o in range(len(outputs))
+                                if outputs[o] not in outputs_to_remove]
+        source_indices_to_keep=[s for s in range(len(sources))
+                                if sources[s] not in sources_to_remove]
+        new_outputs=[outputs[o] for o in output_indices_to_keep]
+        new_sources=[sources[s] for s in source_indices_to_keep]
+        new_d=[[[self[n][o][s] for s in source_indices_to_keep]
+                                for o in output_indices_to_keep]
+                                    for n in range(len(self))]
+        return (new_outputs,new_sources,TransferMatrices(self.f,new_d))
+    def Keep(self,outputs,sources,outputs_to_keep,sources_to_keep):
+        """Keeps only the specified outputs and sources in the transfer matrices.
+        @param outputs list of output names corresponding to the rows of the transfer matrices.
+        @param sources list of source names corresponding to the columns of the transfer matrices.
+        @param outputs_to_keep list of output names to keep.
+        @param sources_to_keep list of source names to keep.
+        @return tuple (new_outputs, new_sources, new_transfer_matrices) where:
+            - new_outputs is the list of outputs containing only those in outputs_to_keep,
+              in the order they appear in outputs.
+            - new_sources is the list of sources containing only those in sources_to_keep,
+              in the order they appear in sources.
+            - new_transfer_matrices is a new instance of TransferMatrices with only the
+              corresponding rows and columns retained in each frequency's matrix.
+        @remark
+        The transfer matrices are a list of list of list where each element corresponds
+        to a frequency and is a list of list matrix M such that, for that frequency,
+        outputs = M * sources. After keeping, the new matrix at each frequency contains
+        only the rows for outputs in outputs_to_keep and only the columns for sources
+        in sources_to_keep.
+        """
+        output_indices_to_keep=[o for o in range(len(outputs))
+                                if outputs[o] in outputs_to_keep]
+        source_indices_to_keep=[s for s in range(len(sources))
+                                if sources[s] in sources_to_keep]
+        new_outputs=[outputs[o] for o in output_indices_to_keep]
+        new_sources=[sources[s] for s in source_indices_to_keep]
+        new_d=[[[self[n][o][s] for s in source_indices_to_keep]
+                                for o in output_indices_to_keep]
+                                    for n in range(len(self))]
+        return (new_outputs,new_sources,TransferMatrices(self.f,new_d))

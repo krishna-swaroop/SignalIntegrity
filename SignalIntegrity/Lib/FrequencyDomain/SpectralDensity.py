@@ -69,8 +69,6 @@ class SpectralDensity(FrequencyDomain):
         Valid spectral-density units are:
         - 'V/sqrt(Hz)' - amplitude spectral density (default if no unit).
         - 'dBm/Hz' - power spectral density in dBm/Hz (50 ohm, 1 mW).
-        - 'rms' - per-bin rms values (Vrms).
-        - 'dBm' - per-bin dBm values (50 ohm, 1 mW).
 
         If no unit is specified, the magnitudes of the spectral density values
         (V/sqrt(Hz)) are returned.
@@ -82,27 +80,30 @@ class SpectralDensity(FrequencyDomain):
         """
         if unit is None or unit == 'V/sqrt(Hz)':
             return [abs(v) for v in list(self)]
-        elif unit == 'dBm/Hz':
+        elif unit in ['dBm/Hz','dBmPerHz']:
             return [-3000. if r < 1e-15 else 20.*math.log10(r)-self.LogRP10
                     for r in self.Values('V/sqrt(Hz)')]
-        elif unit == 'rms':
-            fd=self.FrequencyList()
-            delta_f=fd.Fe/fd.N
-            return DFTUtilities.rho_to_rms(self.Values('V/sqrt(Hz)'),delta_f,self.Keven)
-        elif unit == 'dBm':
-            return DFTUtilities.rms_to_dBm(self.Values('rms'))
         else:
             return FrequencyDomain.Values(self,unit)
     def TotalRMS(self):
         """Total RMS across the spectrum
         @return float total rms = sqrt(sum(rms[n]^2)).
         """
-        return DFTUtilities.TotalSpectralContentRMS(self.Values('rms'))
+        deltaf = DFTUtilities.DeltaFrequency((len(self)-1)*2, self.Frequencies()[-1]*2)
+        return DFTUtilities.TotalSpectralContentRMS(
+            DFTUtilities.rho_to_rms(
+                self.Values(),
+                deltaf))
     def TotaldBm(self):
         """Total power across the spectrum
         @return float total power in dBm.
         """
-        return DFTUtilities.TotalSpectralContentdBm(self.Values('dBm'))
+        deltaf = DFTUtilities.DeltaFrequency((len(self)-1)*2, self.Frequencies()[-1]*2)
+        return DFTUtilities.TotalSpectralContentdBm(
+            DFTUtilities.rms_to_dBm(
+                DFTUtilities.rho_to_rms(
+                    self.Values(),
+                    deltaf)))
     def NoiseWaveform(self,td=None):
         """Generates a random time-domain noise realization from the spectral density.
         @param td (optional) instance of class TimeDescriptor describing the time
@@ -195,6 +196,33 @@ class SpectralDensity(FrequencyDomain):
         @return bool whether self != other.
         """
         return not self == other
+
+    def __mul__(self, other):
+        """Multiplies a FrequencyResponse by this SpectralDensity (element-wise magnitude).
+        @param other instance of class FrequencyResponse.
+        @return instance of class SpectralDensity where each bin is |H(f)| * SD(f).
+        """
+        return SpectralDensity(self.FrequencyList(),
+            [abs(h) * s for h, s in zip(list(other), self.Values())],
+            self.Keven)
+
+    def __rmul__(self, other):
+        """Right-multiply: allows FrequencyResponse * SpectralDensity.
+        @param other instance of class FrequencyResponse.
+        @return instance of class SpectralDensity where each bin is |H(f)| * SD(f).
+        """
+        return self.__mul__(other)
+
+    def __add__(self, other):
+        """Adds two SpectralDensity instances as root-sum-square.
+        @param other instance of class SpectralDensity.
+        @return instance of class SpectralDensity where each bin is sqrt(a^2 + b^2).
+        @remark This models the combination of uncorrelated noise sources.
+        """
+        return SpectralDensity(self.FrequencyList(),
+            [math.sqrt(a**2 + b**2) for a, b in zip(self.Values(), other.Values())],
+            self.Keven)
+
     ##
     # @var Keven
     # bool whether the corresponding time-record length K is even (K=2*N) or

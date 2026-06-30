@@ -1,7 +1,7 @@
-
 """
 StatisticalNoisePropertiesDialog.py
 """
+
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
 # All rights reserved worldwide.
@@ -110,19 +110,19 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
                 continue  # leave stale value rather than crash the UI
             self.project[key] = converted
             widget.UpdateStrings()
-    
+
     def onNoisedBmPerHzChanged(self, _):
         self._propagateFrom('dBm/Hz')
         self.UpdateStrings()
-    
+
     def onVPerRootHzChanged(self, _):
         self._propagateFrom('V/sqrt(Hz)')
         self.UpdateStrings()
-    
+
     def onVRmsChanged(self, _):
         self._propagateFrom('Vrms')
         self.UpdateStrings()
-    
+
     def onNoiseBandwidthChanged(self, _):
         # Treat NoiseBandwidth as an input; rebuild the other two level fields
         # from whichever level is currently selected as the specification.

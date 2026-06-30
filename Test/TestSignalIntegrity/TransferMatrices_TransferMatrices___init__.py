@@ -34,22 +34,17 @@ class TransferMatrices(list,CallBacker):
             td = [td for _ in range(self.Inputs)]
         if fr == None:
             return None
-
         if self.cacheResponses and self.td == td and self.ir != None:
             return self.ir
-
         ir = [[None for s in range(self.Inputs)] for o in range(self.Outputs)]
-
         for o in range(self.Outputs):
             for s in range(self.Inputs):
                 ir[o][s] = fr[o][s].ImpulseResponse(td[s])
                 if not self.CallBack((o*self.Inputs+s)/
                                      (self.Inputs*self.Outputs)*100.0):
                     return None
-
         if not self.cacheResponses:
             return ir
-
         self.ir = ir
         self.td = td
         return copy.deepcopy(self.ir)
@@ -63,3 +58,4 @@ class TransferMatrices(list,CallBacker):
                     for o in range(self.Outputs)]
                         for n in range(len(fdp))]
         return TransferMatrices(fdp,d)
+...

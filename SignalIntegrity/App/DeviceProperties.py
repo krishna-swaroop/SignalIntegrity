@@ -300,6 +300,7 @@ class DeviceProperties(tk.Frame):
         partViewFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.YES)
         self.partViewButton = tk.Button(partViewFrame,text='view s-parameters according to calc properties',command=self.onPartView)
         self.waveformViewButton = tk.Button(partViewFrame,text='view waveform',command=self.onWaveformView)
+        self.noiseViewButton = tk.Button(partViewFrame,text='view noise',command=self.onNoiseView)
         if isinstance(self.device,Device): # part other than file - allow viewing
             fileTypeKeywords = list(set(['wffile','file']).intersection(set([property['Keyword'] for property in self.device.propertiesList])))
             if len(fileTypeKeywords) == 1:
@@ -314,9 +315,11 @@ class DeviceProperties(tk.Frame):
             else:
                 if self.device.netlist['DeviceName']=='device':
                     self.partViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
-                elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource','voltagenoisesource']:
+                elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource']:
                     if not self.device['wftype'].GetValue() == 'DC':
                         self.waveformViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
+                elif self.device.netlist['DeviceName'] == 'voltagenoisesource':
+                    self.noiseViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
         try:
             self.device['calcprop']['Hidden']= not self.isAProjectDevice
         except TypeError:
@@ -613,6 +616,39 @@ class DeviceProperties(tk.Frame):
             sd.grab_set()
 #             sd.transient(self.parent)
             self.wait_window(sd)
+        finally:
+            self.parent.protocol("WM_DELETE_WINDOW", self.parent.cancel)
+
+    def onNoiseView(self):
+        self.focus()
+        device=self.device
+        referenceDesignator=device['ref'].GetValue()
+        import SignalIntegrity.Lib as si
+        try:
+            sd=device.SpectralDensity()
+        except si.SignalIntegrityException as e:
+            messagebox.showerror('Noise Viewer',e.parameter+': '+e.message)
+            return
+        sim=self.parent.parent.simulator
+        nd=sim.NoiseDialog()
+        nd.title('Noise')
+        sim.UpdateNoise([sd],[referenceDesignator])
+        #nd.wait_visibility(nd)
+        try:
+            import platform
+            thisOS=platform.system()
+            if thisOS == 'Linux':
+                nd.attributes('-type','dialog')
+            elif thisOS == 'Windows':
+                nd.attributes('-toolwindow',True)
+            def disable_event():
+                pass
+            self.parent.protocol("WM_DELETE_WINDOW", disable_event)
+            nd.attributes('-topmost', 1)
+            nd.focus_set()
+            nd.grab_set()
+#             nd.transient(self.parent)
+            self.wait_window(nd)
         finally:
             self.parent.protocol("WM_DELETE_WINDOW", self.parent.cancel)
 

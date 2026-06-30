@@ -32,6 +32,7 @@ class NetList(object):
         self.sourceNamesToShow=[]
         self.stimNames=[]
         self.definingStimList=[]
+        self.noiseSourceNames=[]
         deviceList = schematic.deviceList
 
         wires_list = copy.deepcopy(SignalIntegrity.App.Project['Drawing.Schematic'].dict['Wires'])
@@ -72,6 +73,8 @@ class NetList(object):
                 self.textToShow.append(device.NetListLine())
                 if device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource','voltagenoisesource']:
                     self.sourceNames.append(device['ref'].GetValue())
+                    if device.netlist['DeviceName'] in ['voltagenoisesource']:
+                        self.noiseSourceNames.append(device['ref'].GetValue())
                     if not device['show'] == None:
                         if device['show']['Value'] == 'true':
                             self.sourceNamesToShow.append(device['ref'].GetValue())
@@ -234,7 +237,8 @@ class NetList(object):
                 for output in outputList:
                     deviceIndex = output[0]
                     self.textToShow.append(deviceList[deviceIndex].NetListLine() + ' ' + devicePinString)
-                    self.outputNames.append(deviceList[deviceIndex]['ref'].GetValue())
+                    ref = deviceList[deviceIndex]['ref'].GetValue()
+                    self.outputNames.append(ref)
                 for port in portList:
                     deviceIndex = port[0]
                     line=deviceList[deviceIndex].NetListLine() + ' ' + devicePinString
@@ -383,3 +387,5 @@ class NetList(object):
         return self.waveformNames
     def SourceNamesToShow(self):
         return self.sourceNamesToShow
+    def NoiseSourceNames(self):
+        return self.noiseSourceNames

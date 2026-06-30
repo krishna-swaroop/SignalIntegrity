@@ -1,0 +1,385 @@
+"""
+StatisticalNoiseDialog.py
+"""
+# Copyright (c) 2021 Nubis Communications, Inc.
+# Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
+# All rights reserved worldwide.
+#
+# This file is part of SignalIntegrity.
+#
+# SignalIntegrity is free software: You can redistribute it and/or modify it under the terms
+# of the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>
+
+import sys
+
+import tkinter as tk
+from tkinter import messagebox
+
+from SignalIntegrity.App.MenuSystemHelpers import Doer,StatusBar
+from SignalIntegrity.App.SParameterViewerPreferencesDialog import SParameterViewerPreferencesDialog
+from SignalIntegrity.Lib.ToSI import FromSI,ToSI
+
+import SignalIntegrity.App.Project
+
+import math
+
+import SignalIntegrity.Lib as si
+
+class StatisticalNoiseDialog(tk.Toplevel):
+    def __init__(self, parent):
+        tk.Toplevel.__init__(self, parent.parent)
+        self.parent=parent
+        self.withdraw()
+        self.title('Statistical Noise')
+        self.img = tk.PhotoImage(file=SignalIntegrity.App.IconsBaseDir+'AppIcon2.gif')
+        self.tk.call('wm', 'iconphoto', self._w, self.img)
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
+
+        import matplotlib.pyplot
+        import matplotlib
+        if not 'matplotlib.backends' in sys.modules:
+            matplotlib.use('TkAgg')
+
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+
+        from matplotlib.figure import Figure
+
+        # the Doers - the holder of the commands, menu elements, toolbar elements, and key bindings
+        # ------
+        self.SelectionsDisplayAllDoer = Doer(self.onSelectionsDisplayAll).AddHelpElement('Control-Help:Display-All').AddToolTip('Display all waveforms')
+        self.SelectionsDisplayNoneDoer = Doer(self.onSelectionsDisplayNone).AddHelpElement('Control-Help:Display-None').AddToolTip('Turn off display of all waveforms')
+        self.SelectionsToggleAllDoer = Doer(self.onSelectionsToggle).AddHelpElement('Control-Help:Toggle-Selections').AddToolTip('Toggle all waveform display')
+        # ------
+        self.CalculationPropertiesDoer = Doer(self.onCalculationProperties).AddHelpElement('Control-Help:Calculation-Properties').AddToolTip('Edit calculation properties')
+        self.ExamineTransferMatricesDoer = Doer(self.onExamineTransferMatrices).AddHelpElement('Control-Help:View-Transfer-Parameters').AddToolTip('View transfer parameters')
+        self.SimulateDoer = Doer(self.parent.parent.onCalculate).AddHelpElement('Control-Help:Recalculate').AddToolTip('Recalculate simulation')
+        # ------
+        self.ShowGridsDoer = Doer(self.onShowGrids).AddHelpElement('Control-Help:Show-Grids').AddToolTip('Show grids in plots')
+        self.LogScaleDoer = Doer(self.onLogScale).AddHelpElement('Control-Help:Sim-Log-Scale').AddToolTip('Show frequency plots log scale')
+        # ------
+        self.HelpDoer = Doer(self.onHelp).AddHelpElement('Control-Help:Statistical-Noise-Open-Help-File').AddToolTip('Open the help system in a browser')
+        self.ControlHelpDoer = Doer(self.onControlHelp).AddHelpElement('Control-Help:Statistical-Noise-Control-Help').AddToolTip('Get help on a control')
+        # ------
+        self.EscapeDoer = Doer(self.onEscape).AddKeyBindElement(self,'<Escape>').DisableHelp()
+
+        # The menu system
+        TheMenu=tk.Menu(self)
+        self.TheMenu=TheMenu
+        self.config(menu=TheMenu)
+        # ------
+        self.SelectionMenu=tk.Menu(self)
+        TheMenu.add_cascade(label='Selection',menu=self.SelectionMenu,underline=0)
+        self.SelectionsDisplayAllDoer.AddMenuElement(self.SelectionMenu,label='Display All',underline=8)
+        self.SelectionsDisplayNoneDoer.AddMenuElement(self.SelectionMenu,label='Dispay None',underline=7)
+        self.SelectionsToggleAllDoer.AddMenuElement(self.SelectionMenu,label='Toggle All',underline=0)
+        self.SelectionMenu.add_separator()
+        # ------
+        CalcMenu=tk.Menu(self)
+        TheMenu.add_cascade(label='Calculate',menu=CalcMenu,underline=0)
+        self.CalculationPropertiesDoer.AddMenuElement(CalcMenu,label='Calculation Properties',underline=12)
+        self.ExamineTransferMatricesDoer.AddMenuElement(CalcMenu,label='View Transfer Parameters',underline=0)
+        CalcMenu.add_separator()
+        self.SimulateDoer.AddMenuElement(CalcMenu,label='Recalculate',underline=0)
+        # ------
+        ViewMenu=tk.Menu(self)
+        TheMenu.add_cascade(label='View',menu=ViewMenu,underline=0)
+        self.ShowGridsDoer.AddCheckButtonMenuElement(ViewMenu,label='Show Grids',underline=5)
+        self.ShowGridsDoer.Set(SignalIntegrity.App.Preferences['Appearance.GridsOnPlots'])
+        self.LogScaleDoer.AddCheckButtonMenuElement(ViewMenu,label='Log Frequency Scale',underline=0)
+        self.LogScaleDoer.Set(SignalIntegrity.App.Preferences['SParameterProperties.Plot.LogScale'])
+        # ------
+        HelpMenu=tk.Menu(self)
+        TheMenu.add_cascade(label='Help',menu=HelpMenu,underline=0)
+        self.HelpDoer.AddMenuElement(HelpMenu,label='Open Help File',underline=0)
+        self.ControlHelpDoer.AddMenuElement(HelpMenu,label='Control Help',underline=0)
+
+        # The Toolbar
+        ToolBarFrame = tk.Frame(self)
+        ToolBarFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        iconsdir=SignalIntegrity.App.IconsDir+''
+        self.HelpDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'help-contents-5.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+        self.ControlHelpDoer.AddToolBarElement(ToolBarFrame,iconfile=iconsdir+'help-3.gif').Pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+
+        self.statusbar=StatusBar(self)
+        self.statusbar.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        labelFrame = tk.Frame(self)
+        labelFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        self.plotLabel = tk.Label(labelFrame,fg='black')
+        self.plotLabel.pack(fill=tk.X)
+
+        plotWidth=SignalIntegrity.App.Preferences['Appearance.PlotWidth']
+        plotHeight=SignalIntegrity.App.Preferences['Appearance.PlotHeight']
+        plotDPI=SignalIntegrity.App.Preferences['Appearance.PlotDPI']
+
+        self.f = Figure(figsize=(plotWidth,plotHeight), dpi=plotDPI)
+
+        self.plt = self.f.add_subplot(111)
+        self.plt.set_xlabel('frequency')
+        self.plt.set_ylabel('magnitude')
+
+        self.canvas = FigureCanvasTkAgg(self.f, master=self)
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=tk.YES)
+
+        toolbar = NavigationToolbar2Tk( self.canvas, self )
+        toolbar.update()
+        toolbar.pan()
+        self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        controlsFrame = tk.Frame(self)
+        tk.Button(controlsFrame,text='autoscale',command=self.onAutoscale).pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
+        controlsFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+
+        self.ExamineTransferMatricesDoer.Activate(False)
+        self.SimulateDoer.Activate(False)
+        self.ZoomsInitialized=False
+
+        self.geometry("%+d%+d" % (self.parent.parent.root.winfo_x()+self.parent.parent.root.winfo_width()//2-self.winfo_width()//2,
+            self.parent.parent.root.winfo_y()+self.parent.parent.root.winfo_height()//2-self.winfo_height()//2))
+
+        self.lift()
+        self.attributes('-topmost',True)
+        self.after_idle(self.attributes,'-topmost',False)
+
+    def onXLimitChange(self,ax):
+        xlim=ax.get_xlim()
+        self.minx=xlim[0]
+        self.maxx=xlim[1]
+
+    def onYLimitChange(self,ax):
+        ylim=ax.get_ylim()
+        self.miny=ylim[0]
+        self.maxy=ylim[1]
+
+    def onClosing(self):
+        self.withdraw()
+        self.destroy()
+
+    def destroy(self):
+        tk.Toplevel.withdraw(self)
+        tk.Toplevel.destroy(self)
+
+    def onAutoscale(self):
+        self.plt.autoscale(True)
+        self.f.canvas.draw()
+
+    def onHelp(self):
+        if Doer.helpKeys is None:
+            messagebox.showerror('Help System','Cannot find or open this help element')
+            return
+        Doer.helpKeys.Open('sec:Statistical-Noise-Dialog')
+
+    def onControlHelp(self):
+        Doer.inHelp=True
+        self.config(cursor='question_arrow')
+
+    def onEscape(self):
+        Doer.inHelp=False
+        self.config(cursor='left_ptr')
+
+    def onPreferences(self):
+        if not hasattr(self, 'preferencesDialog'):
+            self.preferencesDialog = SParameterViewerPreferencesDialog(self,SignalIntegrity.App.Preferences)
+        if self.preferencesDialog == None:
+            self.preferencesDialog= SParameterViewerPreferencesDialog(self,SignalIntegrity.App.Preferences)
+        else:
+            if not self.preferencesDialog.winfo_exists():
+                self.preferencesDialog=SParameterViewerPreferencesDialog(self,SignalIntegrity.App.Preferences)
+
+    def PlotWaveformsFrequencyContent(self):
+        self.lift(self.parent.parent)
+        self.plt.cla()
+
+        if not SignalIntegrity.App.Preferences['Appearance.PlotCursorValues']:
+            self.plt.format_coord = lambda x, y: ''
+
+        if not self.waveformList == None:
+            self.plt.autoscale(False)
+
+        self.frequencyContentList=[wf for wf in self.waveformList]
+
+        minf=None
+        maxf=None
+        for wfi in range(len(self.waveformList)):
+            fc=self.frequencyContentList[wfi]
+            fcFrequencies=fc.Frequencies()
+            if len(fcFrequencies)==0:
+                continue
+            fcValues=fc.Values('dBm')
+            fcName=str(self.waveformNamesList[wfi])
+            minf=fcFrequencies[0] if minf is None else min(minf,fcFrequencies[0])
+            maxf=fcFrequencies[-1] if maxf is None else max(maxf,fcFrequencies[-1])
+
+        freqLabel='Hz'
+        freqLabelDivisor=1.
+        if not self.waveformList is None:
+            if (not minf is None) and (not maxf is None):
+                durLabelFrequency=(maxf-minf)
+                freqLabel=ToSI(durLabelFrequency,'Hz')[-3:]
+                freqLabelDivisor=FromSI('1. '+freqLabel,'Hz')
+                minf=minf/freqLabelDivisor
+                maxf=maxf/freqLabelDivisor
+
+            if not self.ZoomsInitialized:
+                self.minx=minf
+                self.maxx=maxf
+
+            if self.LogScaleDoer.Bool():
+                if self.minx <= 0.:
+                    if max(fcFrequencies)>0:
+                        for value in fcFrequencies:
+                            if value>0.:
+                                self.minx=value/freqLabelDivisor
+                                break
+
+            if self.minx != None:
+                self.plt.set_xlim(left=self.minx)
+
+            if self.maxx != None:
+                self.plt.set_xlim(right=self.maxx)
+
+        self.plotLabel.config(text='Spectral Density')
+        self.plt.set_ylabel('magnitude (dBm/'+freqLabel+')',fontsize=10)
+
+        minv=None
+        maxv=None
+        for wfi in range(len(self.frequencyContentList)):
+            fc=self.frequencyContentList[wfi]
+            fcFrequencies=fc.Frequencies(freqLabelDivisor)
+            if len(fcFrequencies)==0:
+                continue
+
+            adder=10.*math.log10(freqLabelDivisor)
+            fcValues=[v+adder for v in fc.Values('dBmPerHz')]
+
+            minv=min(fcValues) if minv is None else min(minv,min(fcValues))
+            maxv=max(fcValues) if maxv is None else max(maxv,max(fcValues))
+
+            fcName=str(self.waveformNamesList[wfi])
+            fcColor=self.waveformColorIndexList[wfi]
+
+            if self.LogScaleDoer.Bool():
+                self.plt.semilogx(fcFrequencies,fcValues,label=fcName,c=fcColor)
+            else:
+                self.plt.plot(fcFrequencies,fcValues,label=fcName,c=fcColor)
+
+        self.plt.set_xlabel('frequency ('+freqLabel+')',fontsize=10)
+        self.plt.legend(loc='upper right',labelspacing=0.1)
+
+        if not self.ZoomsInitialized:
+            self.miny=minv
+            self.maxy=maxv
+
+        if self.miny != None:
+            self.plt.set_ylim(bottom=self.miny)
+        if self.maxy != None:
+            self.plt.set_ylim(top=self.maxy)
+
+        if self.ShowGridsDoer.Bool():
+            self.plt.grid(True, 'both')
+
+        self.ZoomsInitialized=True
+        self.f.canvas.draw()
+
+        self.plt.callbacks.connect('xlim_changed', self.onXLimitChange)
+        self.plt.callbacks.connect('ylim_changed', self.onYLimitChange)
+
+        return self
+
+    def UpdateNoiseSpectralDensities(self,statistical_noise_analysis,waveformTypes=None):
+        # waveformTypes is either None, or a list of strings per waveform where each element is either 'dots' or 'lines'
+        self.statistical_noise_analysis=statistical_noise_analysis
+        self.totalwaveformTypesList=waveformTypes
+        # ------
+        self.SelectionDoerList = [Doer(lambda x=s: self.onSelection(x)) for s in range(len(self.statistical_noise_analysis['output_names']))]
+        # ------
+        # ------
+        self.SelectionMenu.delete(5, tk.END)
+        for s in range(len(self.statistical_noise_analysis['output_names'])):
+            self.SelectionDoerList[s].AddCheckButtonMenuElement(self.SelectionMenu,label=self.statistical_noise_analysis['output_names'][s])
+            self.SelectionDoerList[s].Set(True)
+        self.TheMenu.entryconfigure('Selection', state= tk.DISABLED if len(self.statistical_noise_analysis['output_names']) <= 1 else tk.ACTIVE)
+        # ------
+        self.onSelection()
+        return self
+
+    def onSelectionsDisplayAll(self):
+        for sd in self.SelectionDoerList:
+            sd.Set(True)
+        self.onSelection()
+
+    def onSelectionsDisplayNone(self):
+        for sd in self.SelectionDoerList:
+            sd.Set(False)
+        self.onSelection()
+
+    def onSelectionsToggle(self):
+        for sd in self.SelectionDoerList:
+            sd.Set(not sd.Bool())
+        self.onSelection()
+
+    def onSelection(self,x=None):
+        self.waveformList=[]
+        self.waveformNamesList=[]
+        self.waveformColorIndexList=[]
+        self.waveformTypesList=[]
+        import matplotlib
+        colors=matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
+        for seli in range(len(self.SelectionDoerList)):
+            if self.SelectionDoerList[seli].Bool():
+                self.waveformList.append(self.statistical_noise_analysis['output_noise_spectral_density_list'][seli])
+                self.waveformNamesList.append(self.statistical_noise_analysis['output_names'][seli])
+                self.waveformColorIndexList.append(colors[seli%len(colors)])
+                self.waveformTypesList.append(self.totalwaveformTypesList[seli] if self.totalwaveformTypesList != None else 'lines')
+
+        if len(self.waveformList) == 1:
+            fl = si.fd.FrequencyList(self.waveformList[0].Frequencies())
+            if fl.CheckEvenlySpaced():
+                sd = self.statistical_noise_analysis['output_noise_spectral_density'][self.waveformNamesList[0]]
+                integrated_noise_dBm = sd['dBm']
+                integrated_noise_Vrms = sd['Vrms']
+                noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}"
+                self.statusbar.set(f"{ToSI(fl.N,'Pts')} (+1) from DC to {ToSI(fl.Fe,'Hz')}, evenly spaced\n{noise_string}")
+            else:
+                self.statusbar.set(f"{ToSI(len(fl),'Pts')} from {ToSI(fl[0],'Hz')} to {ToSI(fl[-1],'Hz')}, unevenly spaced")
+        elif len(self.waveformList) == 0:
+            self.statusbar.set('No Waveforms')
+        else:
+            self.statusbar.set('Multiple Waveforms')
+
+        self.PlotWaveformsFrequencyContent()
+
+        return self
+
+    def onShowGrids(self):
+        SignalIntegrity.App.Preferences['Appearance.GridsOnPlots']=self.ShowGridsDoer.Bool()
+        SignalIntegrity.App.Preferences.SaveToFile()
+        self.onSelection()
+
+    def onLogScale(self):
+        SignalIntegrity.App.Preferences['SParameterProperties.Plot.LogScale']=self.LogScaleDoer.Bool()
+        SignalIntegrity.App.Preferences.SaveToFile()
+        self.onSelection()
+
+    def onCalculationProperties(self):
+        self.parent.parent.onCalculationProperties()
+
+    def onExamineTransferMatrices(self):
+        buttonLabelList=[[out+' due to '+inp for inp in self.statistical_noise_analysis['input_names']] for out in self.statistical_noise_analysis['output_names']]
+        maxLength=len(max([item for sublist in buttonLabelList for item in sublist],key=len))
+        buttonLabelList=[[item.ljust(maxLength) for item in sublist] for sublist in buttonLabelList]
+        sp=self.statistical_noise_analysis['transfer_matrices'].SParameters()
+        from SignalIntegrity.App.SParameterViewerWindow import SParametersDialog
+        SParametersDialog(self.parent.parent,sp,
+                          self.parent.parent.fileparts.FullFilePathExtension('s'+str(sp.m_P)+'p'),
+                          'Noise Transfer Parameters',buttonLabelList,showBottomPlots=False)
+
+

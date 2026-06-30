@@ -25,6 +25,7 @@ from SignalIntegrity.App.ProgressDialog import ProgressDialog
 from SignalIntegrity.App.EyeDiagramDialog import EyeDiagramDialog
 
 from SignalIntegrity.App.SimulatorDialog import SimulatorDialog
+from SignalIntegrity.App.StatisticalNoiseDialog import StatisticalNoiseDialog
 
 import SignalIntegrity.App.Project
 
@@ -39,6 +40,10 @@ class Simulator(object):
             for key in self.eyeDiagramDialogs.keys():
                 if self.eyeDiagramDialogs[key].winfo_exists():
                     self.eyeDiagramDialogs[key].destroy()
+        if hasattr(self,'noiseDialog'):
+            if self.noiseDialog.winfo_exists():
+                self.noiseDialog.destroy()
+
     def SimulatorDialog(self):
         if not hasattr(self,'simulatorDialog'):
             self.simulatorDialog=SimulatorDialog(self)
@@ -48,6 +53,17 @@ class Simulator(object):
             if not self.simulatorDialog.winfo_exists():
                 self.simulatorDialog=SimulatorDialog(self)
         return self.simulatorDialog
+
+    def NoiseDialog(self):
+        if not hasattr(self,'noiseDialog'):
+            self.noiseDialog=StatisticalNoiseDialog(self)
+        if self.noiseDialog == None:
+            self.noiseDialog=StatisticalNoiseDialog(self)
+        else:
+            if not self.noiseDialog.winfo_exists():
+                self.noiseDialog=StatisticalNoiseDialog(self)
+        return self.noiseDialog
+
     def EyeDiagramDialog(self,name):
         if not hasattr(self,'eyeDiagramDialogs'):
             self.eyeDiagramDialogs={}
@@ -59,8 +75,13 @@ class Simulator(object):
             if not self.eyeDiagramDialogs[name].winfo_exists():
                 self.eyeDiagramDialogs[name]=EyeDiagramDialog(self,name)
         return self.eyeDiagramDialogs[name]
+
     def UpdateWaveforms(self,outputWaveformList,outputWaveformLabels):
         self.SimulatorDialog().UpdateWaveforms(outputWaveformList,outputWaveformLabels).state('normal')
+
+    def UpdateNoise(self,statistical_noise_analysis):
+        self.NoiseDialog().UpdateNoiseSpectralDensities(statistical_noise_analysis).state('normal')
+
     def UpdateEyeDiagrams(self,eyeDiagramDict):
         import SignalIntegrity.Lib as si
         for eye in eyeDiagramDict:
@@ -96,10 +117,19 @@ class Simulator(object):
                 messagebox.showerror('Simulator',e.parameter+': '+e.message)
                 return
 
-            self.outputWaveformLabels=netList.OutputNames()
-            self.sourceNames=netList.SourceNames()
+            self.outputWaveformLabels = netList.OutputNames()
+            self.sourceNames = netList.SourceNames()
+            self.noiseSourceNames = netList.NoiseSourceNames()
 
             if TransferMatricesOnly:
+
+                self.outputWaveformLabels,self.sourceNames,self.transferMatrices = self.transferMatrices.Remove(
+                    self.outputWaveformLabels,  # outputs
+                    self.sourceNames,           # sources
+                    [],                         # outputs_to_remove
+                    self.noiseSourceNames       # sources_to_remove
+                    )
+
                 buttonLabelList=[[out+' due to '+inp for inp in self.sourceNames] for out in self.outputWaveformLabels]
                 maxLength=len(max([item for sublist in buttonLabelList for item in sublist],key=len))
                 buttonLabelList=[[item.ljust(maxLength) for item in sublist] for sublist in buttonLabelList]
@@ -227,6 +257,7 @@ class Simulator(object):
         outputWaveformLabels=self.outputWaveformLabels+otherWaveformLabels
         self.UpdateWaveforms(outputWaveformList, outputWaveformLabels)
         self.parent.root.update()
+
         # gather up the eye probes and create a dialog for each one
         eyeDiagramDict=[]
         for outputWaveformIndex in range(len(outputWaveformList)):
@@ -243,6 +274,24 @@ class Simulator(object):
                             eyeDiagramDict.append(eyeDict)
                         break
         self.UpdateEyeDiagrams(eyeDiagramDict)
+
+        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
+        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,self.transferMatrices)
+
+        if not (sna == None or sna == {}):
+            # buttonLabelList=[[out+' due to '+inp for inp in sna['input_names']] for out in sna['output_names']]
+            # maxLength=len(max([item for sublist in buttonLabelList for item in sublist],key=len))
+            # buttonLabelList=[[item.ljust(maxLength) for item in sublist] for sublist in buttonLabelList]
+            # sp=sna['transfer_matrices'].SParameters()
+            # SParametersDialog(self.parent,sp,
+            #                   self.parent.fileparts.FullFilePathExtension('s'+str(sp.m_P)+'p'),
+            #                   'Noise Transfer Parameters',buttonLabelList,showBottomPlots=False)
+    
+            self.NoiseDialog().title('Sim: '+self.parent.fileparts.FileNameTitle())
+            self.NoiseDialog().ExamineTransferMatricesDoer.Activate(True)
+            self.NoiseDialog().SimulateDoer.Activate(True)
+            self.UpdateNoise(sna)
+        self.parent.root.update()
 
     def VirtualProbe(self,TransferMatricesOnly=False):
         netList=self.parent.Drawing.schematic.NetList()

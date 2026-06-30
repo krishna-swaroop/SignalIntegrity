@@ -623,6 +623,8 @@ class TestWriteClass(unittest.TestCase,si.test.RoutineWriterTesterHelper):
         allfuncs=self.EntireListOfClassFunctions(fileName,className)
         allfuncs.remove(firstDef)
         allfuncs.remove('SParameters')
+        allfuncs.remove('Keep')
+        allfuncs.remove('Remove')
         defName=[firstDef]+allfuncs
         self.WriteClassCode(fileName,className,defName,lineDefs=True)
     def testWriteTransferMatricesProcessor(self):

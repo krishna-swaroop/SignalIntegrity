@@ -41,7 +41,7 @@ class WhiteNoiseConfiguration(XMLConfiguration):
         return DFTUtilities.ConvertSpectralDensity(
             value, spec_type, 'V/sqrt(Hz)', bw=self['NoiseBandwidth'])
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
-        from SignalIntegrity.Lib.Spectral.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         noiseDensity = self.NoiseDensity()
@@ -55,7 +55,7 @@ class SpectralDensityFileConfiguration(XMLConfiguration):
         super().__init__('SpectralDensityFile')
         self.Add(XMLPropertyDefaultFile('FileName',''))
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
-        from SignalIntegrity.Lib.Spectral.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         return SpectralDensity().ReadFromFile(self['FileName']).Resample(fl)
@@ -78,7 +78,7 @@ class NoiseConfiguration(XMLConfiguration):
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
-        from SignalIntegrity.Lib.Spectral.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         if not self['Enable']:
