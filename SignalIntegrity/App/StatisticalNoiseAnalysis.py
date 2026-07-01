@@ -64,3 +64,9 @@ class StatisticalNoiseAnalysis(dict):
                           )
         except Exception as e:
             raise Exception("Error in StatisticalNoiseAnalysis: "+str(e))
+
+    def Noise(self,reference):
+        try:
+            return self['output_noise_spectral_density'][reference]['Vrms']
+        except Exception as e:
+            return 0.0

@@ -397,8 +397,6 @@ class SignalIntegrityAppHeadless(object):
 
         from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
         sna = StatisticalNoiseAnalysis(self.Drawing.schematic,transferMatrices)
-        if sna == '{}':
-            sna = None
 
         if not EyeDiagrams:
             return Result('simulation',{'source names':sourceNames,
@@ -418,8 +416,9 @@ class SignalIntegrityAppHeadless(object):
                         if device['eyestate'].GetValue() == 'on':
                             eyeDict={'Name':outputWaveformLabel,
                                      'BaudRate':device['br'].GetValue(),
-                                     'Waveform':outputWaveformList[outputWaveformLabels.index(outputWaveformLabel)],
-                                     'Config':device.configuration}
+                                     'Waveform':(outputWaveformList)[(outputWaveformLabels).index(outputWaveformLabel)],
+                                     'Config':device.configuration,
+                                     'ExternalNoise':sna.Noise(outputWaveformLabel)}
                             eyeDiagramDict.append(eyeDict)
                         break
 
@@ -430,8 +429,12 @@ class SignalIntegrityAppHeadless(object):
             eyeDiagram.prbswf=eye['Waveform']
             eyeDiagram.baudrate=eye['BaudRate']
             eyeDiagram.config=eye['Config']
+            eyeDiagram.config.SetExternalNoise(eye['ExternalNoise'])
             eyeDiagram.CalculateEyeDiagram(self.fileparts.FileNameTitle())
             eyeDiagrams.append(eyeDiagram)
+
+        if sna == '{}':
+            sna = None
 
         return Result('simulation',{'source names':sourceNames,
                                     'output waveform labels':outputWaveformLabels,

@@ -258,6 +258,9 @@ class Simulator(object):
         self.UpdateWaveforms(outputWaveformList, outputWaveformLabels)
         self.parent.root.update()
 
+        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
+        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,self.transferMatrices)
+
         # gather up the eye probes and create a dialog for each one
         eyeDiagramDict=[]
         for outputWaveformIndex in range(len(outputWaveformList)):
@@ -270,13 +273,11 @@ class Simulator(object):
                             eyeDict={'Name':outputWaveformLabel,
                                      'BaudRate':device['br'].GetValue(),
                                      'Waveform':(outputWaveformList)[(outputWaveformLabels).index(outputWaveformLabel)],
-                                     'Config':device.configuration}
+                                     'Config':device.configuration,
+                                     'ExternalNoise':sna.Noise(outputWaveformLabel)}
                             eyeDiagramDict.append(eyeDict)
                         break
         self.UpdateEyeDiagrams(eyeDiagramDict)
-
-        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
-        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,self.transferMatrices)
 
         if not (sna == None or sna == {}):
             self.NoiseDialog().title('Sim: '+self.parent.fileparts.FileNameTitle())
