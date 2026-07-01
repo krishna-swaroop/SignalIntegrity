@@ -65,9 +65,11 @@ class NoiseWaveformFileConfiguration(XMLConfiguration):
         super().__init__('WaveformFile')
         self.Add(XMLPropertyDefaultFile('FileName',''))
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        from SignalIntegrity.Lib.TimeDomain.Waveform import Waveform
         fl  = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         wf = Waveform().ReadFromFile(self['FileName'])
-        return wf.SpectralDensity(fd)
+        return wf.SpectralDensity(fl)
 
 class NoiseConfiguration(XMLConfiguration):
     def __init__(self):

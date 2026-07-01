@@ -632,7 +632,15 @@ class DeviceProperties(tk.Frame):
         sim=self.parent.parent.simulator
         nd=sim.NoiseDialog()
         nd.title('Noise')
-        sim.UpdateNoise([sd],[referenceDesignator])
+        sim.UpdateNoise({'output_names':[referenceDesignator],
+                         'input_names':[],
+                         'transfer_matrices':None,
+                         'input_noise_spectral_density':{},
+                         'input_noise_spectral_density_list':[],
+                         'output_noise_spectral_density_list':[sd],
+                         'output_noise_spectral_density':{referenceDesignator:{'spectrum':sd,'Vrms':sd.TotalRMS(),'dBm':sd.TotaldBm()}},
+                         'contributions':None
+                         })
         #nd.wait_visibility(nd)
         try:
             import platform

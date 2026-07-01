@@ -124,7 +124,7 @@ class FrequencyContent(FrequencyDomain):
             Keven = DFTUtilities.Keven(self.td.K)
             Deltaf=self.m_f.Fe/self.m_f.N
             A = FrequencyDomain.Values(self,'mag')
-            rms = DFTUtilities.A_to_rms(A,Deltaf,Keven)
+            rms = DFTUtilities.A_to_rms(A,Keven)
             rho = DFTUtilities.rms_to_rho(rms,Deltaf,Keven)
             return rho
         # pragma: include
@@ -134,7 +134,7 @@ class FrequencyContent(FrequencyDomain):
         @return instance of class SpectralDensity containing the spectral density values in V/sqrt(Hz).
         @see SpectralDensity
         """
-        return SpectralDensity(self.m_f,self.Values('VPerRootHz'),self.Keven)
+        return SpectralDensity(self.m_f,self.Values('VPerRootHz'),DFTUtilities.Keven(self.td.K))
     def Waveform(self,td=None):
         """Computes the time-domain waveform using IDFT methods
         @param td (optional) instance of class TimeDescriptor declaring the time descriptor of the waveform to produce.
