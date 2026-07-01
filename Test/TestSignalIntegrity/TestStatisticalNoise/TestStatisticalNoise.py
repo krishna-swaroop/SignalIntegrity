@@ -63,9 +63,10 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         unittest.TestCase.__init__(self,methodName)
         si.test.SignalIntegrityAppTestHelper.__init__(self,os.path.dirname(os.path.realpath(__file__)))
         si.test.RoutineWriterTesterHelper.__init__(self)
-    def testSubProjectReferenceImpedance(self):
-        self.SimulationResultsChecker('StatisticalNoise.si')
-
+    def testStatisticalNoise(self):
+        self.SimulationResultsChecker('StatisticalNoise.si',checkNoise = True)
+    def testStatisticalNoiseAbove(self):
+        self.SimulationResultsChecker('StatisticalNoiseExternal.si',checkNoise = True)
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

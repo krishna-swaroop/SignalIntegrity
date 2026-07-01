@@ -291,8 +291,17 @@ class SignalIntegrityAppHeadless(object):
 
             outputWaveformLabels=netList.OutputNames()
             sourceNames=netList.SourceNames()
+            noiseSourceNames = netList.NoiseSourceNames()
 
             if TransferMatricesOnly:
+
+                outputWaveformLabels,sourceNames,transferMatrices = transferMatrices.Remove(
+                    outputWaveformLabels,  # outputs
+                    sourceNames,           # sources
+                    [],                    # outputs_to_remove
+                    noiseSourceNames       # sources_to_remove
+                    )
+
                 return Result('simulation',
                               {'source names':sourceNames,
                                'output waveform labels':outputWaveformLabels,
@@ -385,12 +394,19 @@ class SignalIntegrityAppHeadless(object):
             si.td.wf.TimeDescriptor(wf.td.H,int(wf.td.K*userSampleRate/wf.td.Fs),userSampleRate))
                 for wf in outputWaveformList[:len(outputWaveformLabels)]]+outputWaveformList[len(outputWaveformLabels):]
         outputWaveformLabels=outputWaveformLabels+otherWaveformLabels
+
+        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
+        sna = StatisticalNoiseAnalysis(self.Drawing.schematic,transferMatrices)
+        if sna == '{}':
+            sna = None
+
         if not EyeDiagrams:
             return Result('simulation',{'source names':sourceNames,
                           'output waveform labels':outputWaveformLabels,
                           'transfer matrices':transferMatrices,
                           'output waveforms':outputWaveformList,
-                          'variables':SignalIntegrity.App.Project['Variables'].Dictionary()})
+                          'variables':SignalIntegrity.App.Project['Variables'].Dictionary(),
+                          'noise':sna})
         # gather up the eye probes and create a dialog for each one
         eyeDiagramDict=[]
         for outputWaveformIndex in range(len(outputWaveformList)):
@@ -416,13 +432,15 @@ class SignalIntegrityAppHeadless(object):
             eyeDiagram.config=eye['Config']
             eyeDiagram.CalculateEyeDiagram(self.fileparts.FileNameTitle())
             eyeDiagrams.append(eyeDiagram)
+
         return Result('simulation',{'source names':sourceNames,
                                     'output waveform labels':outputWaveformLabels,
                                     'transfer matrices':transferMatrices,
                                     'output waveforms':outputWaveformList,
                                     'eye diagram labels':eyeDiagramLabels,
                                     'eye diagrams':eyeDiagrams,
-                                    'variables':SignalIntegrity.App.Project['Variables'].Dictionary()})
+                                    'variables':SignalIntegrity.App.Project['Variables'].Dictionary(),
+                                    'noise':sna})
 
     def VirtualProbe(self,callback=None,TransferMatricesOnly=False,EyeDiagrams=False):
         if not hasattr(self.Drawing,'canCalculate'):
@@ -997,6 +1015,31 @@ def ProjectWaveform(filename,wfname,callback,**kwargs):
         if not callback(0,'-'):
             return None
     return wf
+
+def ProjectNoise(filename,noise_name,callback,**kwargs):
+    if callback != None:
+        if not callback(0,'+'+FileParts(filename).FileNameTitle()):
+            return None
+    level=SignalIntegrityAppHeadless.projectStack.Push()
+    sd=None
+    try:
+        app=SignalIntegrityAppHeadless()
+        if app.OpenProjectFile(os.path.realpath(filename),kwargs):
+            app.Drawing.DrawSchematic()
+            result={}
+            if app.Drawing.canSimulate:
+                result=app.Simulate(callback)
+            elif app.Drawing.canVirtualProbe:
+                result=app.VirtualProbe(callback)
+            if result != {}:
+                sd = result['noise']['output_noise_spectral_density'][noise_name]['spectrum']
+    except:
+        pass
+    SignalIntegrityAppHeadless.projectStack.Pull(level)
+    if callback != None:
+        if not callback(0,'-'):
+            return None
+    return sd
 
 def ProjectCalibration(filename,callback,**kwargs):
     if callback != None:

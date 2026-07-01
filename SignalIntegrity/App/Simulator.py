@@ -279,14 +279,6 @@ class Simulator(object):
         sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,self.transferMatrices)
 
         if not (sna == None or sna == {}):
-            # buttonLabelList=[[out+' due to '+inp for inp in sna['input_names']] for out in sna['output_names']]
-            # maxLength=len(max([item for sublist in buttonLabelList for item in sublist],key=len))
-            # buttonLabelList=[[item.ljust(maxLength) for item in sublist] for sublist in buttonLabelList]
-            # sp=sna['transfer_matrices'].SParameters()
-            # SParametersDialog(self.parent,sp,
-            #                   self.parent.fileparts.FullFilePathExtension('s'+str(sp.m_P)+'p'),
-            #                   'Noise Transfer Parameters',buttonLabelList,showBottomPlots=False)
-    
             self.NoiseDialog().title('Sim: '+self.parent.fileparts.FileNameTitle())
             self.NoiseDialog().ExamineTransferMatricesDoer.Activate(True)
             self.NoiseDialog().SimulateDoer.Activate(True)

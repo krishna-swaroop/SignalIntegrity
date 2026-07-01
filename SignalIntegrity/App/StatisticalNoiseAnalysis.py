@@ -21,32 +21,46 @@ StatisticalNoiseAnalysis.py
 class StatisticalNoiseAnalysis(dict):
     def __init__(self, schematic, transferMatrices):
 
-        netlist = schematic.NetList()
+        dict.__init__(self)
 
-        outputWaveformLabels,sourceNames,transferMatrices = transferMatrices.Keep(
-            netlist.OutputNames(),         # outputs
-            netlist.SourceNames(),         # sources
-            netlist.OutputNames(),         # outputs to keep
-            netlist.NoiseSourceNames()     # sources to keep
-            )
+        try:
+            netlist = schematic.NetList()
 
-        inputNoiseSpectralDensityList = []
-        for noise_source_ref in netlist.NoiseSourceNames():
-            sd = None
-            for device in schematic.deviceList:
-                if device['partname'].GetValue() in ['VoltageStatisticaLNoiseSource']:
-                    if device['ref'].GetValue() == noise_source_ref:
-                        sd = device.SpectralDensity()
-                        inputNoiseSpectralDensityList.append(sd)
-                        break
+            if netlist is None:
+                return
 
-        from SignalIntegrity.Lib.Noise.NoiseAnalysis import NoiseAnalysis
+            if netlist.NoiseSourceNames() is None or len(netlist.NoiseSourceNames()) == 0:
+                return
 
-        dict.__init__(self,
-                      NoiseAnalysis(
-                          output_names = outputWaveformLabels,
-                          input_names = sourceNames,
-                          transfer_matrices = transferMatrices,
-                          input_noise_spectral_density = inputNoiseSpectralDensityList
+            outputWaveformLabels,sourceNames,transferMatrices = transferMatrices.Keep(
+                netlist.OutputNames(),         # outputs
+                netlist.SourceNames(),         # sources
+                netlist.OutputNames(),         # outputs to keep
+                netlist.NoiseSourceNames()     # sources to keep
+                )
+
+            from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+            fl = EvenlySpacedFrequencyList(transferMatrices.f[-1], len(transferMatrices.f)-1)
+
+            inputNoiseSpectralDensityList = []
+            for noise_source_ref in netlist.NoiseSourceNames():
+                sd = None
+                for device in schematic.deviceList:
+                    if device['partname'].GetValue() in ['VoltageStatisticaLNoiseSource','VoltageStatisticaLNoiseSourceProject']:
+                        if device['ref'].GetValue() == noise_source_ref:
+                            sd = device.SpectralDensity().Resample(fl)
+                            inputNoiseSpectralDensityList.append(sd)
+                            break
+
+            from SignalIntegrity.Lib.Noise.NoiseAnalysis import NoiseAnalysis
+
+            dict.__init__(self,
+                          NoiseAnalysis(
+                              output_names = outputWaveformLabels,
+                              input_names = sourceNames,
+                              transfer_matrices = transferMatrices,
+                              input_noise_spectral_density = inputNoiseSpectralDensityList
+                              )
                           )
-                      )
+        except Exception as e:
+            raise Exception("Error in StatisticalNoiseAnalysis: "+str(e))

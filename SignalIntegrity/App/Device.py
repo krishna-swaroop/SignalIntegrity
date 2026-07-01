@@ -1814,6 +1814,26 @@ class DeviceVoltageStatisticalNoiseSource(Device):
             SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
             SignalIntegrity.App.Project['CalculationProperties']['FrequencyPoints'])
 
+class DeviceVoltageStatisticalNoiseSourceProject(Device):
+    def __init__(self,propertiesList,partPicture):
+        netlist=DeviceNetListLine(devicename='voltagenoisesource')
+        Device.__init__(self,netlist,[
+            PartPropertyCategory('Statistical Noise Sources'),
+            PartPropertyPartName('VoltageStatisticaLNoiseSourceProject'),
+            PartPropertyHelp('device:Voltage-StatisticaL-Noise-Source-Project'),
+            PartPropertyDefaultReferenceDesignator('VN?'),
+            PartPropertyCalculationProperties(),
+            PartPropertyWaveformFileName(),
+            PartPropertyShow(),
+            PartPropertyWaveformType('statistical'),
+            PartPropertyWaveformProjectName('')]+propertiesList,partPicture)
+    def SpectralDensity(self):
+        from SignalIntegrity.App.SignalIntegrityAppHeadless import ProjectNoise
+        args=SignalIntegrity.App.Project['Variables'].Dictionary(self.variablesList)
+        if self['calcprop'].GetValue() == 'true':
+            args.update(SignalIntegrity.App.Project['CalculationProperties'].Dictionary())
+        return ProjectNoise(self['wffile']['Value'],self['wfprojname']['Value'],None,**args)
+
 class Devices(list):
     def __init__(self,devices):
         list.__init__(self,devices)
@@ -1935,9 +1955,9 @@ DeviceList=Devices([
                 DeviceIdealBalun(),
                 DeviceReference(),
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('One Port Voltage Statistical Noise Generator'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
-                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort())
-                ])
-
+                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
+                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('One Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
+                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),])
 
 DeviceListUnknown = Devices([
                 DeviceUnknown([PartPropertyDescription('One Port Unknown'),PartPropertyPorts(1)],PartPictureVariableUnknown(1)),

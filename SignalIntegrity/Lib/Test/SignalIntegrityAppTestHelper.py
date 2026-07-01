@@ -300,7 +300,11 @@ class SignalIntegrityAppTestHelper:
         cal=result['error terms']
         self.CalibrationRegressionChecker(cal,calfilename)
         return result
-    def SimulationResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True,args={}, archive=False, max_wf_error=0):
+    def NoiseResultsChecker(self,result,filename):
+        if 'noise' in result:
+            regression_filename = self.FileNameForTest(filename)+'.noise'
+            self.JsonDictRegressionChecker(result['noise'],regression_filename)
+    def SimulationResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True,args={}, archive=False, max_wf_error=0, checkNoise = False):
         pysi=self.Preliminary(filename, checkProject, checkPicture=checkPicture, checkNetlist=checkNetlist, args=args, archive=archive)
         result=pysi.Simulate()
         self.assertNotEqual(result,{},filename+' produced none')
@@ -322,6 +326,8 @@ class SignalIntegrityAppTestHelper:
             wf=outputWaveforms[i]
             wffilename=self.FileNameForTest(filename)+'_'+outputNames[i]+'.txt'
             self.WaveformRegressionChecker(wf, wffilename, max_wf_error)
+        if checkNoise:
+            self.NoiseResultsChecker(result, filename)
         self.ArchiveCleanup(filename,pysi,archive)
         return result
     def SimulationTransferMatricesResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True):
@@ -387,21 +393,34 @@ class SignalIntegrityAppTestHelper:
     def JsonDictRegressionChecker(self,meas,filename):
         import json
         import numpy as np
-        class CustomJSONizer(json.JSONEncoder):
+        class CustomJSONEncoder(json.JSONEncoder):
             def default(self, obj):
-                return super().encode(bool(obj)) \
-                    if isinstance(obj, np.bool_) \
-                    else super().default(obj)
+                if isinstance(obj,complex):
+                    return {'__complex__':True,'Re':obj.real,'Im':obj.imag}
+                if isinstance(obj, np.bool_):
+                    return super().encode(bool(obj))
+                return super().default(obj)
+
+        class CustomJSONDecoder(json.JSONDecoder):
+            def __init__(self, *args, **kwargs):
+                super().__init__(object_hook=self._object_hook, *args, **kwargs)
+
+            @staticmethod
+            def _object_hook(obj):
+                if '__complex__' in obj:
+                    return obj['Re'] + 1j * obj['Im']
+                return obj
+
         currentDirectory=os.getcwd()
         os.chdir(self.path)
         if not os.path.exists(filename):
             with open(filename,'w') as f:
-                json.dump(meas, f, cls=CustomJSONizer)
+                json.dump(meas, f, cls=CustomJSONEncoder)
             if not self.relearn:
                 self.assertTrue(False, filename + ' not found')
-        meas=json.loads(json.dumps(meas, cls=CustomJSONizer))
+        meas=json.loads(json.dumps(meas, cls=CustomJSONEncoder),cls=CustomJSONDecoder)
         with open(filename) as f:
-            regression = json.load(f)
+            regression = json.load(f,cls=CustomJSONDecoder)
 
         from typing import Optional, Union
         JsonType = Optional[Union[dict, list, str, float, int]]
@@ -442,6 +461,8 @@ class SignalIntegrityAppTestHelper:
                     #print(jsstring)
                     stringList.append(jsstring+'\n')
                     return jsstring
+                if type(js) is complex:
+                    return _float_to_str_in_json(js.real, stringList) + ' + ' + _float_to_str_in_json(js.imag, stringList) + 'j'
                 if type(js) is list:
                     return [_float_to_str_in_json(x,stringList) for x in js]
                 if type(js) is dict:
