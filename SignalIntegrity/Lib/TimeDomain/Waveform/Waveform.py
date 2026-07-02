@@ -480,7 +480,8 @@ class Waveform(list):
             f.writelines([f'{t} {v}\n' for t,v in zip(self.Times(),self.Values())])
         return self
     def rms(self):
-        return math.sqrt(sum([v**2 for v in self]))
+        import numpy as np
+        return np.sqrt(np.mean(np.square(self)))
     def dBm(self,P=1e-3,R=50):
         return 20*math.log10(self.rms())-10*math.log10(P*R)
 

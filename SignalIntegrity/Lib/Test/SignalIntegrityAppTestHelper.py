@@ -304,7 +304,7 @@ class SignalIntegrityAppTestHelper:
         if 'noise' in result:
             regression_filename = self.FileNameForTest(filename)+'.noise'
             self.JsonDictRegressionChecker(result['noise'],regression_filename)
-    def SimulationResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True,args={}, archive=False, max_wf_error=0, checkNoise = False):
+    def SimulationResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True,args={}, archive=False, max_wf_error=0, checkNoise = False, checkWaveforms = True):
         pysi=self.Preliminary(filename, checkProject, checkPicture=checkPicture, checkNetlist=checkNetlist, args=args, archive=archive)
         result=pysi.Simulate()
         self.assertNotEqual(result,{},filename+' produced none')
@@ -322,10 +322,11 @@ class SignalIntegrityAppTestHelper:
             self.assertTrue(False, filename + 'has no transfer matrices')
         spfilename=self.FileNameForTest(filename)+'.s'+str(ports)+'p'
         self.SParameterRegressionChecker(sp, spfilename)
-        for i in range(len(outputNames)):
-            wf=outputWaveforms[i]
-            wffilename=self.FileNameForTest(filename)+'_'+outputNames[i]+'.txt'
-            self.WaveformRegressionChecker(wf, wffilename, max_wf_error)
+        if checkWaveforms:
+            for i in range(len(outputNames)):
+                wf=outputWaveforms[i]
+                wffilename=self.FileNameForTest(filename)+'_'+outputNames[i]+'.txt'
+                self.WaveformRegressionChecker(wf, wffilename, max_wf_error)
         if checkNoise:
             self.NoiseResultsChecker(result, filename)
         self.ArchiveCleanup(filename,pysi,archive)

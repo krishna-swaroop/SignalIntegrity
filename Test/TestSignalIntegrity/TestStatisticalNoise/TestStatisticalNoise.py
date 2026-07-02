@@ -44,7 +44,7 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         import SignalIntegrity.App.Project
         pysi=SignalIntegrityAppHeadless()
         self.UseSinX=SignalIntegrity.App.Preferences['Calculation.UseSinX']
-        SignalIntegrity.App.Preferences['Calculation.UseSinX']=False
+        SignalIntegrity.App.Preferences['Calculation.UseSinX']=True
         SignalIntegrity.App.Preferences.SaveToFile()
         pysi=SignalIntegrityAppHeadless()
         SignalIntegrity.App.Preferences['Calculation'].ApplyPreferences()
@@ -67,6 +67,50 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.SimulationResultsChecker('StatisticalNoise.si',checkNoise = True)
     def testStatisticalNoiseAbove(self):
         self.SimulationResultsChecker('StatisticalNoiseExternal.si',checkNoise = True)
+    @unittest.expectedFailure
+    def testNoiseWaveform(self):
+        """
+        This simulation has four probes VO1-VO4.
+
+        The first is for an actual noise waveform specified: 10 mVrms of noise at 80 GS/s (to 40 GHz).
+        The second is a statistical noise source specified with 10 mVrms of noise to 40 GHz.
+        The third is a statistical noise source specified with a waveform generated in 1.
+
+        Therefore, VO1 and VO4 produce actual waveforms and zero noise spectral density.
+        VO2 and VO3 produce a 0V DC waveform with spectral density.
+        
+        """
+        results = self.SimulationResultsChecker('StatisticalNoiseWaveforms.si',checkNoise = True, checkWaveforms = False)
+        VO1_wf = results['output waveforms'][results['output waveform labels'].index('VO1')]
+        VO2_wf = results['output waveforms'][results['output waveform labels'].index('VO2')]
+        VO3_wf = results['output waveforms'][results['output waveform labels'].index('VO3')]
+        VO4_wf = results['output waveforms'][results['output waveform labels'].index('VO4')]
+        VO1_sd = results['noise']['output_noise_spectral_density']['VO1']
+        VO2_sd = results['noise']['output_noise_spectral_density']['VO2']
+        VO3_sd = results['noise']['output_noise_spectral_density']['VO3']
+        VO4_sd = results['noise']['output_noise_spectral_density']['VO4']
+        from SignalIntegrity.Lib.ToSI import ToSI
+
+        # VO1
+        self.assertEqual(ToSI(VO1_wf.rms(),'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO1_wf.SpectralDensity().TotalRMS(),'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO1_sd['Vrms'],'Vrms'),'0 Vrms')
+
+        # VO2
+        self.assertEqual(ToSI(VO2_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO2_wf.rms(),'Vrms'),'0 Vrms')
+
+        # VO3
+        # currently this fails as 14 mVrms -- this is the bug I need to fix.
+        self.assertEqual(ToSI(VO3_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO3_wf.rms(),'Vrms'),'0 Vrms')
+
+        # VO4
+        self.assertEqual(ToSI(VO4_wf.rms(),'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO4_wf.SpectralDensity().TotalRMS(),'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO4_sd['Vrms'],'Vrms'),'0 Vrms')
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -280,7 +280,7 @@ class Simulator(object):
         self.UpdateEyeDiagrams(eyeDiagramDict)
 
         if not (sna == None or sna == {}):
-            self.NoiseDialog().title('Sim: '+self.parent.fileparts.FileNameTitle())
+            self.NoiseDialog().title('Noise: '+self.parent.fileparts.FileNameTitle())
             self.NoiseDialog().ExamineTransferMatricesDoer.Activate(True)
             self.NoiseDialog().SimulateDoer.Activate(True)
             self.UpdateNoise(sna)
