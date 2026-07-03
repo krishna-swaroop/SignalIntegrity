@@ -204,13 +204,18 @@ class SpectralDensity(FrequencyDomain):
         @param other instance of class FrequencyResponse.
         @return instance of class SpectralDensity where each bin is |H(f)| * SD(f).
         """
+        if isinstance(other,(float,int)):
+            return SpectralDensity(self.FrequencyList(),
+                        [abs(h) * other for h in self.Values()],
+                        self.Keven)
+
         return SpectralDensity(self.FrequencyList(),
             [abs(h) * s for h, s in zip(list(other), self.Values())],
             self.Keven)
 
     def __rmul__(self, other):
         """Right-multiply: allows FrequencyResponse * SpectralDensity.
-        @param other instance of class FrequencyResponse.
+        @param other instance of class FrequencyResponse, int, or float
         @return instance of class SpectralDensity where each bin is |H(f)| * SD(f).
         """
         return self.__mul__(other)

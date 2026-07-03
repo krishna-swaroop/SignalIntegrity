@@ -79,17 +79,20 @@ class NoiseConfiguration(XMLConfiguration):
         self.SubDir(WhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
+        self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        import math
         fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         if not self['Enable']:
             return SpectralDensity(fl, [0.0 for _ in fl])
         noiseType = self['Type']
+        lanes = self['Lanes']
         if noiseType == 'WhiteNoise':
-            return self['WhiteNoise'].SpectralDensity(EndFrequency, FrequencyPoints)
+            return self['WhiteNoise'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'SpectralDensityFile':
-            return self['SpectralDensityFile'].SpectralDensity(EndFrequency, FrequencyPoints)
+            return self['SpectralDensityFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'WaveformFile':
-            return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)
+            return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         raise ValueError(f'Unknown noise type: {noiseType}')
