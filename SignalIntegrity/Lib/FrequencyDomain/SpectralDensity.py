@@ -142,6 +142,8 @@ class SpectralDensity(FrequencyDomain):
         @remark Resampling is performed on the magnitude in V/sqrt(Hz); points
         beyond self's end frequency are clamped to zero.
         """
+        if fdp is None:
+            return SpectralDensity(self.FrequencyList(),self.Values(),self.Keven)
         from numpy import interp
         fd=self.FrequencyList()
         old_f=list(fd)

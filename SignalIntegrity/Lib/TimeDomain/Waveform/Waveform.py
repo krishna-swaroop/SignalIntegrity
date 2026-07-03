@@ -409,7 +409,7 @@ class Waveform(list):
         # pragma: silent exclude
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         # pragma: include
-        return self.FrequencyContent(fd).SpectralDensity()
+        return self.FrequencyContent().SpectralDensity().Resample(fd)
     def Integral(self,c=0.,addPoint=True,scale=True):
         """integral of waveform  
         the integral is calculated using Riemann sums (as opposed to trapezoidal

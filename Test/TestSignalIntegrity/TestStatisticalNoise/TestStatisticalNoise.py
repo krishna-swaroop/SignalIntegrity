@@ -67,7 +67,6 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.SimulationResultsChecker('StatisticalNoise.si',checkNoise = True)
     def testStatisticalNoiseAbove(self):
         self.SimulationResultsChecker('StatisticalNoiseExternal.si',checkNoise = True)
-    @unittest.expectedFailure
     def testNoiseWaveform(self):
         """
         This simulation has four probes VO1-VO4.

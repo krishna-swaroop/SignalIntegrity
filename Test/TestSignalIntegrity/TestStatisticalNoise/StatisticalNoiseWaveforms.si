@@ -345,7 +345,7 @@
 						</SpectralDensityFile>
 						<Type>WaveformFile</Type>
 						<WaveformFile>
-							<FileName>StatisticalNoise_10mV_to_40GHz.txt</FileName>
+							<FileName>StatisticalNoise_10mV_to_40GHz_1us.txt</FileName>
 						</WaveformFile>
 						<WhiteNoise>
 							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
