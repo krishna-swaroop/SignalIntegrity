@@ -6,7 +6,7 @@
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>579x551+720+270</Geometry>
+			<Geometry>603x409+2445+249</Geometry>
 			<Grid>14</Grid>
 			<Originx>1</Originx>
 			<Originy>4</Originy>
@@ -77,6 +77,7 @@
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
+						<Lanes>1.0</Lanes>
 						<SpectralDensityFile>
 							<FileName></FileName>
 						</SpectralDensityFile>
@@ -271,7 +272,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(27, 3)</Origin>
+						<Origin>(32, 3)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -319,7 +320,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>270</Orientation>
-						<Origin>(25, 3)</Origin>
+						<Origin>(30, 3)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -340,6 +341,7 @@
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
+						<Lanes>1.0</Lanes>
 						<SpectralDensityFile>
 							<FileName></FileName>
 						</SpectralDensityFile>
@@ -360,7 +362,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(26, 4)</Origin>
+						<Origin>(31, 4)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -506,6 +508,126 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>O4</Value>
 							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceOutput</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(32, 13)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>gain</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>offset</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>td</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>VO5</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceOpen</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>270</Orientation>
+						<Origin>(30, 13)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>O5</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
+					<Noise>
+						<Enable>True</Enable>
+						<Lanes>10</Lanes>
+						<SpectralDensityFile>
+							<FileName>SpectralDensity_5mV_to_100GHz.txt</FileName>
+						</SpectralDensityFile>
+						<Type>SpectralDensityFile</Type>
+						<WaveformFile>
+							<FileName>StatisticalNoise_10mV_to_40GHz_1us.txt</FileName>
+						</WaveformFile>
+						<WhiteNoise>
+							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
+							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
+							<SpecificationType>Vrms</SpecificationType>
+							<VPerRootHz>5e-08</VPerRootHz>
+							<VRms>0.01</VRms>
+						</WhiteNoise>
+					</Noise>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(31, 14)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>wftype</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>statistical</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>VN3</Value>
+							<Visible>True</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>

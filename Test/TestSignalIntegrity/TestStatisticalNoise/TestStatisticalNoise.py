@@ -69,14 +69,16 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.SimulationResultsChecker('StatisticalNoiseExternal.si',checkNoise = True)
     def testNoiseWaveform(self):
         """
-        This simulation has four probes VO1-VO4.
+        This simulation has five probes VO1-VO5.
 
         The first is for an actual noise waveform specified: 10 mVrms of noise at 80 GS/s (to 40 GHz).
         The second is a statistical noise source specified with 10 mVrms of noise to 40 GHz.
         The third is a statistical noise source specified with a waveform generated in 1.
+        The fourth is the time domain waveform used for the third statistical noise source.
+        The fifth is a statistical noise source specified with a spectral density file with 15.81 nV/sqrt(Hz) to 100 GHz.
 
         Therefore, VO1 and VO4 produce actual waveforms and zero noise spectral density.
-        VO2 and VO3 produce a 0V DC waveform with spectral density.
+        VO2 and VO3 and V04 produce a 0V DC waveform with spectral density.
         
         """
         results = self.SimulationResultsChecker('StatisticalNoiseWaveforms.si',checkNoise = True, checkWaveforms = False)
@@ -84,10 +86,12 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         VO2_wf = results['output waveforms'][results['output waveform labels'].index('VO2')]
         VO3_wf = results['output waveforms'][results['output waveform labels'].index('VO3')]
         VO4_wf = results['output waveforms'][results['output waveform labels'].index('VO4')]
+        VO5_wf = results['output waveforms'][results['output waveform labels'].index('VO5')]
         VO1_sd = results['noise']['output_noise_spectral_density']['VO1']
         VO2_sd = results['noise']['output_noise_spectral_density']['VO2']
         VO3_sd = results['noise']['output_noise_spectral_density']['VO3']
         VO4_sd = results['noise']['output_noise_spectral_density']['VO4']
+        VO5_sd = results['noise']['output_noise_spectral_density']['VO5']
         from SignalIntegrity.Lib.ToSI import ToSI
 
         # VO1
@@ -100,7 +104,6 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(ToSI(VO2_wf.rms(),'Vrms'),'0 Vrms')
 
         # VO3
-        # currently this fails as 14 mVrms -- this is the bug I need to fix.
         self.assertEqual(ToSI(VO3_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO3_wf.rms(),'Vrms'),'0 Vrms')
 
@@ -108,6 +111,11 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(ToSI(VO4_wf.rms(),'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO4_wf.SpectralDensity().TotalRMS(),'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO4_sd['Vrms'],'Vrms'),'0 Vrms')
+
+        # VO5
+        # this generates 10 mVrms of total noise by having 10 lanes of noise
+        self.assertEqual(ToSI(VO5_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO5_wf.rms(),'Vrms'),'0 Vrms')
 
 
 if __name__ == "__main__":
