@@ -27,7 +27,7 @@ import SignalIntegrity.App.Project
 from SignalIntegrity.App.Files import FileParts
 
 class StatisticalNoisePropertiesDialog(PropertiesDialog):
-    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile')]
+    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Johnson','Johnson')]
     SpecificationTypeChoices=[('dBm/Hz','dBm/Hz'),('V/sqrt(Hz)','V/sqrt(Hz)'),('Vrms','Vrms')]
     def __init__(self,project,parent):
         PropertiesDialog.__init__(self,parent,project,parent.parent,'Statistical Noise Properties')
@@ -41,6 +41,8 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.SpectralDensityFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.WaveformFileFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
         self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        self.JohnsonNoiseFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
+        self.JohnsonNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.Enable=CalculationPropertyTrueFalseButton(self.GeneralFrame,'Enable Noise',self.onUpdateFromChanges,None,self.project,'Enable',tooltip='Enable noise generation for this device')
         self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip='The source/method used to generate the noise')
         self.Lanes=CalculationProperty(self.GeneralFrame,'Lanes',self.onUpdateFromChanges,None,self.project,'Lanes',tooltip='number of lanes of noise for this source')
@@ -57,6 +59,11 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WaveformFilePerLaneLabel = tk.Label(self.WaveformFileFrame, text='Per lane:')
         self.WaveformFilePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         self.WaveformFileName=CalculationPropertyFileName(self.WaveformFileFrame,'Waveform File',self.onUpdateFromChanges,None,fp,self.project,'WaveformFile.FileName',tooltip='Path to the waveform file describing the noise')
+        self.JohnsonNoisePerLaneLabel = tk.Label(self.JohnsonNoiseFrame, text='Per lane:')
+        self.JohnsonNoisePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
+        self.Temperature=CalculationPropertySI(self.JohnsonNoiseFrame,'Temperature (K)',self.onUpdateFromChanges,None,self.project,'Johnson.Temperature_Kelvin','K',round=3)
+        self.Resistance=CalculationPropertySI(self.JohnsonNoiseFrame,'Resistance (ohm)',self.onUpdateFromChanges,None,self.project,'Johnson.Resistance','ohm',round=3)
+        self.JohnsonNoiseBandwidth=CalculationPropertySI(self.JohnsonNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz')
         self.SaveToPreferencesFrame=tk.Frame(self.propertyListFrame,relief=tk.RIDGE, borderwidth=5)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesButton = tk.Button(self.SaveToPreferencesFrame,text='Save Properties to Global Preferences',command=self.onSaveToPreferences,width=CalculationProperty.labelWidth)
@@ -74,6 +81,7 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WhiteNoiseFrame.pack_forget()
         self.SpectralDensityFileFrame.pack_forget()
         self.WaveformFileFrame.pack_forget()
+        self.JohnsonNoiseFrame.pack_forget()
         self.SaveToPreferencesFrame.pack_forget()
         self.NoiseType.Show(enable)
         self.Lanes.Show(enable)
@@ -84,12 +92,14 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
                 self.SpectralDensityFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
             elif noiseType=='WaveformFile':
                 self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+            elif noiseType=='Johnson':
+                self.JohnsonNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SpecificationType.Show(True)
         self.NoisedBmPerHz.Show(specType=='dBm/Hz')
         self.VPerRootHz.Show(specType=='V/sqrt(Hz)')
         self.VRms.Show(specType=='Vrms')
-        self.NoiseBandwidth.Show(specType in ['dBm/Hz','V/sqrt(Hz)','Vrms'])
+        self.NoiseBandwidth.Show(specType in ['dBm/Hz','V/sqrt(Hz)','Vrms','Johnson'])
     def onSaveToPreferences(self):
         self.parent.device.configuration.SaveToPreferences()
     def _propagateFrom(self, source_units):

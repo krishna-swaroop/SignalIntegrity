@@ -17,7 +17,7 @@ NoiseAnalysis.py
 #
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
-
+import math
 
 class NoiseAnalysis(dict):
     def __init__(self, output_names, input_names, transfer_matrices, input_noise_spectral_density):
@@ -39,5 +39,14 @@ class NoiseAnalysis(dict):
 
         self['output_noise_spectral_density_list'] = outputNoiseSpectralDensityList
         self['output_noise_spectral_density'] = {key: {'spectrum': sd, 'dBm': sd.TotaldBm(), 'Vrms': sd.TotalRMS() } for key, sd in zip(output_names, outputNoiseSpectralDensityList)}
+
+        endFrequencyList = [sd.Frequencies('GHz')[-1] for sd in outputNoiseSpectralDensityList]
+        for key,fe in zip(self['output_noise_spectral_density'].keys(),endFrequencyList):
+            sdv = self['output_noise_spectral_density'][key]
+            sdv['Vrms/sqrt(Hz)'] = sdv['Vrms']/math.sqrt(fe*1e9)
+            sdv['Vrms/sqrt(GHz)'] = sdv['Vrms']/math.sqrt(fe)
+            sdv['dBm/Hz'] = sdv['dBm'] - 10.*math.log10(fe*1e9)
+            sdv['dBm/GHz'] = sdv['dBm'] - 10.*math.log10(fe)
+
         contributions = noiseTransferMatricesProcessor.Contributions
         self['contributions'] = {key: {input_names[i]: {'spectrum': contributions[o][i], 'dBm': contributions[o][i].TotaldBm(), 'Vrms': contributions[o][i].TotalRMS() } for i in range(len(input_names))} for o, key in enumerate(output_names)}

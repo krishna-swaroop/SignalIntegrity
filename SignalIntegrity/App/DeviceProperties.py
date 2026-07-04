@@ -632,7 +632,8 @@ class DeviceProperties(tk.Frame):
         sim=self.parent.parent.simulator
         nd=sim.NoiseDialog()
         nd.title('Noise')
-        sim.UpdateNoise({'output_names':[referenceDesignator],
+
+        noise_dict = {'output_names':[referenceDesignator],
                          'input_names':[],
                          'transfer_matrices':None,
                          'input_noise_spectral_density':{},
@@ -640,7 +641,20 @@ class DeviceProperties(tk.Frame):
                          'output_noise_spectral_density_list':[sd],
                          'output_noise_spectral_density':{referenceDesignator:{'spectrum':sd,'Vrms':sd.TotalRMS(),'dBm':sd.TotaldBm()}},
                          'contributions':None
-                         })
+                         }
+
+        import math
+
+        sdv = noise_dict['output_noise_spectral_density'][referenceDesignator]
+
+        fe = sdv['spectrum'].Frequencies('GHz')[-1]
+
+        sdv['Vrms/sqrt(Hz)'] = sdv['Vrms']/math.sqrt(fe*1e9)
+        sdv['Vrms/sqrt(GHz)'] = sdv['Vrms']/math.sqrt(fe)
+        sdv['dBm/Hz'] = sdv['dBm'] - 10.*math.log10(fe*1e9)
+        sdv['dBm/GHz'] = sdv['dBm'] - 10.*math.log10(fe)
+
+        sim.UpdateNoise(noise_dict)
         #nd.wait_visibility(nd)
         try:
             import platform

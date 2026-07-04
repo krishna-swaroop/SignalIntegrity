@@ -117,6 +117,8 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(ToSI(VO5_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO5_wf.rms(),'Vrms'),'0 Vrms')
 
+    def testAttenuator(self):
+        self.SimulationResultsChecker('Attenuator.si',checkNoise = True)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

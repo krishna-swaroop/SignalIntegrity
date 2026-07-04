@@ -22,7 +22,7 @@ from SignalIntegrity.App.ProjectFileBase import XMLConfiguration,XMLPropertyDefa
 class WhiteNoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('WhiteNoise')
-        self.Add(XMLPropertyDefaultString('SpecificationType','V/sqrt(Hz)')) # 'dBm/Hz', 'V/sqrt(Hz)', or 'Vrms'
+        self.Add(XMLPropertyDefaultString('SpecificationType','V/sqrt(Hz)')) # 'dBm/Hz', 'V/sqrt(Hz)', or 'Vrms', or 'R'
         self.Add(XMLPropertyDefaultFloat('NoisedBmPerHz',0.0))
         self.Add(XMLPropertyDefaultFloat('VPerRootHz',0.0))
         self.Add(XMLPropertyDefaultFloat('VRms',0.0))
@@ -71,6 +71,25 @@ class NoiseWaveformFileConfiguration(XMLConfiguration):
         wf = Waveform().ReadFromFile(self['FileName'])
         return wf.SpectralDensity(fl)
 
+class JohnsonNoiseConfiguration(XMLConfiguration):
+    def __init__(self):
+        super().__init__('Johnson')
+        self.Add(XMLPropertyDefaultFloat('Temperature_Kelvin',298.15))
+        self.Add(XMLPropertyDefaultFloat('Resistance',50.0))
+    def SpectralDensity(self, EndFrequency, FrequencyPoints):
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        import scipy.constants as const
+        import math
+        # Boltzmann constant in Joules per Kelvin
+        k_B = const.k
+        noiseDensity = math.sqrt(4.*k_B*self['Temperature_Kelvin']*self['Resistance'])
+        noiseBandwidth = self.wn_property['NoiseBandwidth']
+        return SpectralDensity(
+            fl,
+            [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
+
 class NoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('Noise')
@@ -79,6 +98,8 @@ class NoiseConfiguration(XMLConfiguration):
         self.SubDir(WhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
+        self.SubDir(JohnsonNoiseConfiguration())
+        self['Johnson'].wn_property = self['WhiteNoise']
         self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
@@ -95,4 +116,6 @@ class NoiseConfiguration(XMLConfiguration):
             return self['SpectralDensityFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'WaveformFile':
             return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+        if noiseType == 'Johnson':
+            return self['Johnson'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         raise ValueError(f'Unknown noise type: {noiseType}')

@@ -346,7 +346,16 @@ class StatisticalNoiseDialog(tk.Toplevel):
                 sd = self.statistical_noise_analysis['output_noise_spectral_density'][self.waveformNamesList[0]]
                 integrated_noise_dBm = sd['dBm']
                 integrated_noise_Vrms = sd['Vrms']
-                noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}"
+                noise_density_dBmPerHz = sd['dBm/Hz']
+                noise_density_dBmPerGHz = sd['dBm/GHz']
+                noise_density_VrmsPerRootHz = sd['Vrms/sqrt(Hz)']
+                noise_density_VrmsPerRootGHz = sd['Vrms/sqrt(GHz)']
+                noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}\n"
+                noise_string += f"Average noise density: {ToSI(noise_density_VrmsPerRootGHz,'Vrms/sqrt(GHz)',round=3)}, "
+                noise_string += f"{ToSI(noise_density_dBmPerGHz,'dBm/GHz',round=3)}\n"
+                noise_string += 'or:\n'
+                noise_string += f"{ToSI(noise_density_VrmsPerRootHz,'Vrms/sqrt(Hz)',round=3)}, "
+                noise_string += f"{ToSI(noise_density_dBmPerHz,'dBm/Hz',round=3)}"
                 self.statusbar.set(f"{ToSI(fl.N,'Pts')} (+1) from DC to {ToSI(fl.Fe,'Hz')}, evenly spaced\n{noise_string}")
             else:
                 self.statusbar.set(f"{ToSI(len(fl),'Pts')} from {ToSI(fl[0],'Hz')} to {ToSI(fl[-1],'Hz')}, unevenly spaced")
