@@ -52,4 +52,11 @@ class NoiseAnalysis(dict):
             sdv['dBm/GHz'] = sdv['dBm'] - 10.*math.log10(fe)
 
         contributions = noiseTransferMatricesProcessor.Contributions
-        self['contributions'] = {key: {input_names[i]: {'spectrum': contributions[o][i], 'dBm': contributions[o][i].TotaldBm(), 'Vrms': contributions[o][i].TotalRMS() } for i in range(len(input_names))} for o, key in enumerate(output_names)}
+        self['contributions'] = {key: {input_names[i]:
+                                       {'spectrum': contributions[o][i],
+                                        'dBm': contributions[o][i].TotaldBm(),
+                                        'Vrms': contributions[o][i].TotalRMS()
+                                        } for i in range(len(input_names))} for o, key in enumerate(output_names)}
+
+        for key in self['contributions'].keys():
+            self['contributions'][key]['SNR'] = self['signal_noise_spectral_density'][key]['dBm'] - self['output_noise_spectral_density'][key]['dBm']
