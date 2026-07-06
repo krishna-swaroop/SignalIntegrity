@@ -1,0 +1,16 @@
+device R5 2 R 50.0
+device R7 1 R 50.0
+voltagesource VG1 1
+voltagenoisesource VN1 2
+device F1 2 gaussianrisetimefilter 18.2e-12 rt_type 1090
+device F2 2 ffe -0.1,0.8,-0.1 td 18.868e-12 pre 1
+device O1 1 open
+voltagenoisesource VN2 2
+connect VN1 2 R5 1
+voltageoutput Unequalized R5 2
+connect R5 2 VN2 2 F2 1
+connect R7 1 VN2 1
+connect F1 1 VG1 1
+connect VN1 1 F1 2
+eyeprobe Equalized F2 2
+connect F2 2 O1 1

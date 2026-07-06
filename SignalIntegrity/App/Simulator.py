@@ -259,7 +259,11 @@ class Simulator(object):
         self.parent.root.update()
 
         from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
-        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,self.transferMatrices)
+        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,
+                                       self.transferMatrices,
+                                       outputWaveformList,
+                                       outputWaveformLabels
+                                       )
 
         # gather up the eye probes and create a dialog for each one
         eyeDiagramDict=[]

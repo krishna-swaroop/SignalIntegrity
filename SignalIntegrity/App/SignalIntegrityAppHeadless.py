@@ -396,7 +396,10 @@ class SignalIntegrityAppHeadless(object):
         outputWaveformLabels=outputWaveformLabels+otherWaveformLabels
 
         from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
-        sna = StatisticalNoiseAnalysis(self.Drawing.schematic,transferMatrices)
+        sna = StatisticalNoiseAnalysis(self.Drawing.schematic,
+                                       transferMatrices,
+                                       outputWaveformList,
+                                       outputWaveformLabels)
 
         if not EyeDiagrams:
             return Result('simulation',{'source names':sourceNames,
@@ -1035,7 +1038,10 @@ def ProjectNoise(filename,noise_name,callback,**kwargs):
             elif app.Drawing.canVirtualProbe:
                 result=app.VirtualProbe(callback)
             if result != {}:
-                sd = result['noise']['output_noise_spectral_density'][noise_name]['spectrum']
+                try:
+                    sd = result['noise']['output_noise_spectral_density'][noise_name]['spectrum']
+                except:
+                    sd = result['output waveforms'][result['output waveform labels'].index(noise_name)].SpectralDensity()
     except:
         pass
     SignalIntegrityAppHeadless.projectStack.Pull(level)

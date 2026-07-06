@@ -120,6 +120,9 @@ class TestStatisticalNoiseTest(unittest.TestCase,
     def testAttenuator(self):
         self.SimulationResultsChecker('Attenuator.si',checkNoise = True)
 
+    def testCrosstalk(self):
+        self.SimulationResultsChecker('CrosstalkAnalysis.si',checkNoise = True)
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

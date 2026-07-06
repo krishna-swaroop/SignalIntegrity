@@ -20,7 +20,7 @@ NoiseAnalysis.py
 import math
 
 class NoiseAnalysis(dict):
-    def __init__(self, output_names, input_names, transfer_matrices, input_noise_spectral_density):
+    def __init__(self, output_names, output_waveforms, input_names, transfer_matrices, input_noise_spectral_density):
         dict.__init__(self)
 
         if len(input_names) == 0:
@@ -39,6 +39,9 @@ class NoiseAnalysis(dict):
 
         self['output_noise_spectral_density_list'] = outputNoiseSpectralDensityList
         self['output_noise_spectral_density'] = {key: {'spectrum': sd, 'dBm': sd.TotaldBm(), 'Vrms': sd.TotalRMS() } for key, sd in zip(output_names, outputNoiseSpectralDensityList)}
+
+        self['signal_noise_spectral_density_list'] = [signal.SpectralDensity() for signal in output_waveforms]
+        self['signal_noise_spectral_density'] = {key: {'spectrum': sd, 'dBm': sd.TotaldBm(), 'Vrms': sd.TotalRMS() } for key,sd in zip(output_names,self['signal_noise_spectral_density_list'])}
 
         endFrequencyList = [sd.Frequencies('GHz')[-1] for sd in outputNoiseSpectralDensityList]
         for key,fe in zip(self['output_noise_spectral_density'].keys(),endFrequencyList):

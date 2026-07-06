@@ -19,7 +19,10 @@ StatisticalNoiseAnalysis.py
 # If not, see <https://www.gnu.org/licenses/>
 
 class StatisticalNoiseAnalysis(dict):
-    def __init__(self, schematic, transferMatrices):
+    def __init__(self, schematic,
+                 transferMatrices,
+                 output_waveforms,
+                 output_waveform_names):
 
         dict.__init__(self)
 
@@ -57,6 +60,7 @@ class StatisticalNoiseAnalysis(dict):
             dict.__init__(self,
                           NoiseAnalysis(
                               output_names = outputWaveformLabels,
+                              output_waveforms = output_waveforms,
                               input_names = sourceNames,
                               transfer_matrices = transferMatrices,
                               input_noise_spectral_density = inputNoiseSpectralDensityList

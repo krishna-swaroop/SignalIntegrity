@@ -1,26 +1,134 @@
 <Project>
 	<CalculationProperties>
-		<EndFrequency>40000000000.0</EndFrequency>
-		<FrequencyPoints>4000</FrequencyPoints>
-		<UserSampleRate>80000000000.0</UserSampleRate>
+		<EndFrequency>160000000000.0</EndFrequency>
+		<FrequencyPoints>160</FrequencyPoints>
+		<UserSampleRate>160000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>603x409+104+104</Geometry>
+			<Geometry>692x322+182+182</Geometry>
 			<Grid>14</Grid>
-			<Originx>1</Originx>
-			<Originy>4</Originy>
+			<Originx>2</Originx>
+			<Originy>8</Originy>
 		</DrawingProperties>
 		<Schematic>
 			<Devices>
 				<Device>
-					<ClassName>DeviceVoltageNoiseSource</ClassName>
+					<ClassName>DeviceResistor</ClassName>
 					<PartPicture>
 						<Index>0</Index>
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(5, 4)</Origin>
+						<Origin>(19, -1)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>r</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>50.0</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>R5</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceResistor</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>True</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(29, 4)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>r</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>50.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>R7</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceOutput</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(23, -1)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>gain</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>offset</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>td</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>Unequalized</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceVoltageLevelsMultiLevelWaveformGenerator</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(2, 0)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -32,31 +140,67 @@
 						<PartProperty>
 							<Keyword>ho</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
+							<Value>-1.0000000000000001e-07</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>dur</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>9.999999999999999e-06</Value>
+							<Value>2.0000000000000002e-07</Value>
 							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>t0</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>br</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>53000000000.0</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>rt</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>0.0</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>prbs</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>31</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>lvl</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>4</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>sym</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>2</Value>
+							<Visible>True</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>fs</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>80000000000.0</Value>
+							<Value>320000000000.0</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
-							<Keyword>vrms</Keyword>
+							<Keyword>a</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>0.01</Value>
+							<Value>1.0</Value>
 							<Visible>True</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>wftype</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>noise</Value>
+							<Value>lmlw</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -69,46 +213,36 @@
 							<Keyword>ref</Keyword>
 							<KeywordVisible>False</KeywordVisible>
 							<Value>VG1</Value>
-							<Visible>True</Visible>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
 				<Device>
-					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
-					<Noise>
-						<Enable>True</Enable>
-						<Johnson>
-							<Resistance>50.0</Resistance>
-							<Temperature_Kelvin>298.15</Temperature_Kelvin>
-						</Johnson>
-						<Lanes>1.0</Lanes>
-						<SpectralDensityFile>
-							<FileName></FileName>
-						</SpectralDensityFile>
-						<Type>WhiteNoise</Type>
-						<WaveformFile>
-							<FileName></FileName>
-						</WaveformFile>
-						<WhiteNoise>
-							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
-							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
-							<SpecificationType>Vrms</SpecificationType>
-							<VPerRootHz>5e-08</VPerRootHz>
-							<VRms>0.01</VRms>
-						</WhiteNoise>
-					</Noise>
+					<ClassName>DeviceVoltageStatisticalNoiseSourceProject</ClassName>
 					<PartPicture>
 						<Index>0</Index>
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(18, 4)</Origin>
+						<Orientation>270</Orientation>
+						<Origin>(16, -2)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
-							<Keyword>ports</Keyword>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>wffile</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
+							<Value>CrosstalkNoise.si</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>show</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -118,26 +252,152 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>wfprojname</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>VO1</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>ref</Keyword>
 							<KeywordVisible>False</KeywordVisible>
 							<Value>VN1</Value>
-							<Visible>True</Visible>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
 				<Device>
-					<ClassName>DeviceOutput</ClassName>
+					<ClassName>DeviceGaussianRisetimeFilter</ClassName>
 					<PartPicture>
 						<Index>0</Index>
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(6, 3)</Origin>
+						<Origin>(7, -1)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>rt</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1.82e-11</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>rt_type</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1090</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>F1</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+				</Device>
+				<Device>
+					<ClassName>DeviceEyeProbe</ClassName>
+					<EyeDiagram>
+						<Alignment>
+							<AutoAlign>True</AutoAlign>
+							<BERForAlignment>-3</BERForAlignment>
+							<Horizontal>Middle</Horizontal>
+							<Levels>4</Levels>
+							<Mode>Horizontal</Mode>
+							<Vertical>MaxMin</Vertical>
+						</Alignment>
+						<Annotation>
+							<Annotate>False</Annotate>
+							<Color>#ffffff</Color>
+							<Contours>
+								<Show>False</Show>
+								<Which>Eye</Which>
+							</Contours>
+							<EyeHeight>True</EyeHeight>
+							<EyeWidth>True</EyeWidth>
+							<LabelMeanLevels>False</LabelMeanLevels>
+							<LevelExtents>False</LevelExtents>
+							<MeanLevels>True</MeanLevels>
+						</Annotation>
+						<Bathtub>
+							<DecadesFromJoinForFit>0.5</DecadesFromJoinForFit>
+							<Measure>True</Measure>
+							<MinPointsForFit>6</MinPointsForFit>
+						</Bathtub>
+						<ClockRecovery>
+							<Recover>False</Recover>
+							<TrimLeftRight>20</TrimLeftRight>
+						</ClockRecovery>
+						<Color>#fcfff2</Color>
+						<Columns>200</Columns>
+						<Decision>
+							<Mode>Mid</Mode>
+						</Decision>
+						<EnhancedPrecision>
+							<FixedEnhancement>10</FixedEnhancement>
+							<Mode>Auto</Mode>
+						</EnhancedPrecision>
+						<Invert>True</Invert>
+						<JitterNoise>
+							<JitterDeterministicPkS>0</JitterDeterministicPkS>
+							<JitterS>0</JitterS>
+							<LogIntensity>
+								<LogIntensity>False</LogIntensity>
+								<MaxExponent>0</MaxExponent>
+								<MinExponent>-12</MinExponent>
+							</LogIntensity>
+							<MaxKernelPixels>100000</MaxKernelPixels>
+							<Noise>0.0</Noise>
+						</JitterNoise>
+						<Measure>
+							<BERForMeasure>-6</BERForMeasure>
+							<Measure>True</Measure>
+							<RxTx>Rx</RxTx>
+							<TxInputPowerAvailable>False</TxInputPowerAvailable>
+							<TxInputPowerW>0</TxInputPowerW>
+							<WaveformType>V</WaveformType>
+						</Measure>
+						<Mode>JitterNoise</Mode>
+						<Rows>1000</Rows>
+						<Saturation>20</Saturation>
+						<ScaleX>75.0</ScaleX>
+						<ScaleY>30.0</ScaleY>
+						<UI>3</UI>
+						<YAxis>
+							<Max>1.0</Max>
+							<Min>0.0</Min>
+							<Mode>Auto</Mode>
+						</YAxis>
+					</EyeDiagram>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(38, -1)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>eyestate</Keyword>
+							<KeywordVisible>False</KeywordVisible>
 							<Value>on</Value>
 							<Visible>False</Visible>
 						</PartProperty>
@@ -163,61 +423,67 @@
 							<Keyword>td</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>0.0</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>br</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>53000000000.0</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>1</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>ref</Keyword>
 							<KeywordVisible>False</KeywordVisible>
-							<Value>VO1</Value>
+							<Value>Equalized</Value>
 							<Visible>True</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
 				<Device>
-					<ClassName>DeviceOutput</ClassName>
+					<ClassName>DeviceFFE</ClassName>
 					<PartPicture>
 						<Index>0</Index>
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(19, 3)</Origin>
+						<Origin>(30, -1)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
-							<Keyword>state</Keyword>
+							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>on</Value>
+							<Value>2</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
-							<Keyword>ac_coupled</Keyword>
+							<Keyword>taps</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>false</Value>
-							<Visible>False</Visible>
+							<Value>-0.1,0.8,-0.1</Value>
+							<Visible>True</Visible>
 						</PartProperty>
 						<PartProperty>
-							<Keyword>gain</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>offset</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
+							<Keyword>pre</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>1</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>td</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
+							<Value>1.8867999999999998e-11</Value>
+							<Visible>True</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>ref</Keyword>
 							<KeywordVisible>False</KeywordVisible>
-							<Value>VO2</Value>
-							<Visible>True</Visible>
+							<Value>F2</Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -228,7 +494,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>270</Orientation>
-						<Origin>(4, 3)</Origin>
+						<Origin>(35, -1)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -246,102 +512,6 @@
 					</PartProperties>
 				</Device>
 				<Device>
-					<ClassName>DeviceOpen</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>270</Orientation>
-						<Origin>(17, 3)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>O2</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOutput</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(32, 3)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>state</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>on</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ac_coupled</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>false</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>gain</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>offset</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>td</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>VO3</Value>
-							<Visible>True</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOpen</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>270</Orientation>
-						<Origin>(30, 3)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>O3</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
@@ -353,16 +523,16 @@
 						<SpectralDensityFile>
 							<FileName></FileName>
 						</SpectralDensityFile>
-						<Type>WaveformFile</Type>
+						<Type>Johnson</Type>
 						<WaveformFile>
-							<FileName>StatisticalNoise_10mV_to_40GHz_1us.txt</FileName>
+							<FileName></FileName>
 						</WaveformFile>
 						<WhiteNoise>
-							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
-							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
-							<SpecificationType>Vrms</SpecificationType>
-							<VPerRootHz>5e-08</VPerRootHz>
-							<VRms>0.01</VRms>
+							<NoiseBandwidth>100000000000.0</NoiseBandwidth>
+							<NoisedBmPerHz>-143.0102999566398</NoisedBmPerHz>
+							<SpecificationType>dBm/Hz</SpecificationType>
+							<VPerRootHz>1.58113883008419e-08</VPerRootHz>
+							<VRms>0.005</VRms>
 						</WhiteNoise>
 					</Noise>
 					<PartPicture>
@@ -370,13 +540,13 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(31, 4)</Origin>
+						<Origin>(29, 0)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
+							<Value>2</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -389,261 +559,63 @@
 							<Keyword>ref</Keyword>
 							<KeywordVisible>False</KeywordVisible>
 							<Value>VN2</Value>
-							<Visible>True</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceVoltageSource</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(5, 14)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>calcprop</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>false</Value>
 							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>wffile</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>StatisticalNoise_10mV_to_40GHz_1us.txt</Value>
-							<Visible>True</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>show</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>false</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>wftype</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>file</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>wfprojname</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>None</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>VS1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOutput</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(6, 13)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>state</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>on</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ac_coupled</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>false</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>gain</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>offset</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>td</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>VO4</Value>
-							<Visible>True</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOpen</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>270</Orientation>
-						<Origin>(4, 13)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>O4</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOutput</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(32, 13)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>state</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>on</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ac_coupled</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>false</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>gain</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>offset</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>td</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>0.0</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>VO5</Value>
-							<Visible>True</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceOpen</ClassName>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>270</Orientation>
-						<Origin>(30, 13)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>O5</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-					</PartProperties>
-				</Device>
-				<Device>
-					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
-					<Noise>
-						<Enable>True</Enable>
-						<Johnson>
-							<Resistance>50.0</Resistance>
-							<Temperature_Kelvin>298.15</Temperature_Kelvin>
-						</Johnson>
-						<Lanes>10</Lanes>
-						<SpectralDensityFile>
-							<FileName>SpectralDensity_5mV_to_100GHz.txt</FileName>
-						</SpectralDensityFile>
-						<Type>SpectralDensityFile</Type>
-						<WaveformFile>
-							<FileName>StatisticalNoise_10mV_to_40GHz_1us.txt</FileName>
-						</WaveformFile>
-						<WhiteNoise>
-							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
-							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
-							<SpecificationType>Vrms</SpecificationType>
-							<VPerRootHz>5e-08</VPerRootHz>
-							<VRms>0.01</VRms>
-						</WhiteNoise>
-					</Noise>
-					<PartPicture>
-						<Index>0</Index>
-						<MirroredHorizontally>False</MirroredHorizontally>
-						<MirroredVertically>False</MirroredVertically>
-						<Orientation>0</Orientation>
-						<Origin>(31, 14)</Origin>
-					</PartPicture>
-					<PartProperties>
-						<PartProperty>
-							<Keyword>ports</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>1</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>wftype</Keyword>
-							<KeywordVisible>True</KeywordVisible>
-							<Value>statistical</Value>
-							<Visible>False</Visible>
-						</PartProperty>
-						<PartProperty>
-							<Keyword>ref</Keyword>
-							<KeywordVisible>False</KeywordVisible>
-							<Value>VN3</Value>
-							<Visible>True</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
 			</Devices>
+			<Wires>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(23, 0)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(30, 0)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(15, 0)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(11, 0)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(7, 0)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(3, 0)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(34, 0)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(37, 0)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(37, 0)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(38, 0)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+			</Wires>
 		</Schematic>
 	</Drawing>
 	<Equations>

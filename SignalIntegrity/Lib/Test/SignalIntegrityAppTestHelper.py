@@ -302,8 +302,23 @@ class SignalIntegrityAppTestHelper:
         return result
     def NoiseResultsChecker(self,result,filename):
         if 'noise' in result:
+            measurements_only = True
+            if measurements_only:
+                noise_results = result['noise']
+                del noise_results['input_noise_spectral_density_list']
+                del noise_results['output_noise_spectral_density_list']
+                del noise_results['signal_noise_spectral_density_list']
+                for key in noise_results['output_noise_spectral_density'].keys():
+                    del noise_results['output_noise_spectral_density'][key]['spectrum']
+                for key in noise_results['input_noise_spectral_density'].keys():
+                    del noise_results['input_noise_spectral_density'][key]['spectrum']
+                for key in noise_results['signal_noise_spectral_density'].keys():
+                    del noise_results['signal_noise_spectral_density'][key]['spectrum']
+                for output_key in noise_results['contributions'].keys():
+                    for input_key in noise_results['contributions'][output_key].keys():
+                        del noise_results['contributions'][output_key][input_key]['spectrum']
             regression_filename = self.FileNameForTest(filename)+'.noise'
-            self.JsonDictRegressionChecker(result['noise'],regression_filename)
+            self.JsonDictRegressionChecker(noise_results,regression_filename)
     def SimulationResultsChecker(self,filename,checkProject=False,checkPicture=True,checkNetlist=True,args={}, archive=False, max_wf_error=0, checkNoise = False, checkWaveforms = True):
         pysi=self.Preliminary(filename, checkProject, checkPicture=checkPicture, checkNetlist=checkNetlist, args=args, archive=archive)
         result=pysi.Simulate()

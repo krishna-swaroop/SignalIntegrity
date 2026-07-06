@@ -25,6 +25,7 @@ from tkinter import messagebox
 
 from SignalIntegrity.App.MenuSystemHelpers import Doer,StatusBar
 from SignalIntegrity.App.SParameterViewerPreferencesDialog import SParameterViewerPreferencesDialog
+from SignalIntegrity.App.StatisticalNoiseMeasurementsDialog import StatisticalNoiseMeasurementsDialog
 from SignalIntegrity.Lib.ToSI import FromSI,ToSI
 
 import SignalIntegrity.App.Project
@@ -65,6 +66,7 @@ class StatisticalNoiseDialog(tk.Toplevel):
         # ------
         self.ShowGridsDoer = Doer(self.onShowGrids).AddHelpElement('Control-Help:Show-Grids').AddToolTip('Show grids in plots')
         self.LogScaleDoer = Doer(self.onLogScale).AddHelpElement('Control-Help:Sim-Log-Scale').AddToolTip('Show frequency plots log scale')
+        self.NoiseMeasurementsDoer = Doer(self.onNoiseMeasurements).AddHelpElement('Control-Help:Noise-Measurements').AddToolTip('View the noise measurements')
         # ------
         self.HelpDoer = Doer(self.onHelp).AddHelpElement('Control-Help:Statistical-Noise-Open-Help-File').AddToolTip('Open the help system in a browser')
         self.ControlHelpDoer = Doer(self.onControlHelp).AddHelpElement('Control-Help:Statistical-Noise-Control-Help').AddToolTip('Get help on a control')
@@ -96,6 +98,7 @@ class StatisticalNoiseDialog(tk.Toplevel):
         self.ShowGridsDoer.Set(SignalIntegrity.App.Preferences['Appearance.GridsOnPlots'])
         self.LogScaleDoer.AddCheckButtonMenuElement(ViewMenu,label='Log Frequency Scale',underline=0)
         self.LogScaleDoer.Set(SignalIntegrity.App.Preferences['SParameterProperties.Plot.LogScale'])
+        self.NoiseMeasurementsDoer.AddMenuElement(ViewMenu,label='Noise Measurements',underline=0)
         # ------
         HelpMenu=tk.Menu(self)
         TheMenu.add_cascade(label='Help',menu=HelpMenu,underline=0)
@@ -140,6 +143,7 @@ class StatisticalNoiseDialog(tk.Toplevel):
 
         self.ExamineTransferMatricesDoer.Activate(False)
         self.SimulateDoer.Activate(False)
+        self.NoiseMeasurementsDoer.Activate(False)
         self.ZoomsInitialized=False
 
         self.geometry("%+d%+d" % (self.parent.parent.root.winfo_x()+self.parent.parent.root.winfo_width()//2-self.winfo_width()//2,
@@ -342,8 +346,13 @@ class StatisticalNoiseDialog(tk.Toplevel):
             self.SelectionDoerList[s].AddCheckButtonMenuElement(self.SelectionMenu,label=self.statistical_noise_analysis['output_names'][s])
             self.SelectionDoerList[s].Set(True)
         self.TheMenu.entryconfigure('Selection', state= tk.DISABLED if len(self.statistical_noise_analysis['output_names']) <= 1 else tk.ACTIVE)
+        self.NoiseMeasurementsDoer.Activate(len(self.statistical_noise_analysis['output_names']) > 0)
         # ------
         self.onSelection()
+        if hasattr(self,'noiseMeasurementsDialog'):
+            if self.noiseMeasurementsDialog != None:
+                if self.noiseMeasurementsDialog.winfo_exists():
+                    self.StatisticalNoiseMeasurementsDialog().UpdateMeasurements(self.statistical_noise_analysis)
         return self
 
     def onSelectionsDisplayAll(self):
@@ -385,7 +394,15 @@ class StatisticalNoiseDialog(tk.Toplevel):
                 noise_density_dBmPerGHz = sd['dBm/GHz']
                 noise_density_VrmsPerRootHz = sd['Vrms/sqrt(Hz)']
                 noise_density_VrmsPerRootGHz = sd['Vrms/sqrt(GHz)']
+                try:
+                    signal_spectral_density = self.statistical_noise_analysis['signal_noise_spectral_density'][self.waveformNamesList[0]]
+                    integrated_signal_noise_dBm = signal_spectral_density['dBm']
+                    integrated_signal_noise_Vrms = signal_spectral_density['Vrms']
+                    signal_noise_string = f"Signal power:  {ToSI(integrated_signal_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_signal_noise_dBm,'dBm',round=3)}, SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}\n"
+                except:
+                    signal_noise_string = ''
                 noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}\n"
+                noise_string += signal_noise_string
                 noise_string += f"Average noise density: {ToSI(noise_density_VrmsPerRootGHz,'Vrms/sqrt(GHz)',round=3)}, "
                 noise_string += f"{ToSI(noise_density_dBmPerGHz,'dBm/GHz',round=3)}\n"
                 noise_string += 'or:\n'
@@ -425,5 +442,23 @@ class StatisticalNoiseDialog(tk.Toplevel):
         SParametersDialog(self.parent.parent,sp,
                           self.parent.parent.fileparts.FullFilePathExtension('s'+str(sp.m_P)+'p'),
                           'Noise Transfer Parameters',buttonLabelList,showBottomPlots=False)
+
+    def StatisticalNoiseMeasurementsDialog(self):
+        if not hasattr(self,'noiseMeasurementsDialog'):
+            self.noiseMeasurementsDialog=StatisticalNoiseMeasurementsDialog(self)
+        if self.noiseMeasurementsDialog == None:
+            self.noiseMeasurementsDialog=StatisticalNoiseMeasurementsDialog(self)
+        else:
+            if not self.noiseMeasurementsDialog.winfo_exists():
+                self.noiseMeasurementsDialog=StatisticalNoiseMeasurementsDialog(self)
+        return self.noiseMeasurementsDialog
+
+    def onNoiseMeasurements(self):
+        windowOpen=hasattr(self,'noiseMeasurementsDialog')\
+            and (self.noiseMeasurementsDialog != None)\
+            and bool(self.noiseMeasurementsDialog.winfo_exists())
+        if not windowOpen:
+            self.StatisticalNoiseMeasurementsDialog().UpdateMeasurements(self.statistical_noise_analysis)
+        self.StatisticalNoiseMeasurementsDialog().lift()
 
 
