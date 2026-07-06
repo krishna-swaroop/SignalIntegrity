@@ -206,6 +206,9 @@ class StatisticalNoiseDialog(tk.Toplevel):
 
         self.frequencyContentList=[wf for wf in self.waveformList]
 
+        minv=None
+        maxv=None
+        # frequency range placeholders
         minf=None
         maxf=None
         for wfi in range(len(self.waveformList)):
@@ -249,8 +252,18 @@ class StatisticalNoiseDialog(tk.Toplevel):
         self.plotLabel.config(text='Spectral Density')
         self.plt.set_ylabel('magnitude (dBm/'+freqLabel+')',fontsize=10)
 
-        minv=None
-        maxv=None
+        # Fixed thresholds for display range calculation
+        # LowerLimit: only consider spectral density values above this limit (dBm/Hz)
+        # DisplayAbout: add this margin (in dB) above and below the measured min/max
+        LowerLimit = -200.0
+        DisplayAbout = 1.0
+
+        # We'll compute both filtered (values > LowerLimit) min/max and overall min/max
+        minv_filtered = None
+        maxv_filtered = None
+        minv_all = None
+        maxv_all = None
+
         for wfi in range(len(self.frequencyContentList)):
             fc=self.frequencyContentList[wfi]
             fcFrequencies=fc.Frequencies(freqLabelDivisor)
@@ -260,8 +273,15 @@ class StatisticalNoiseDialog(tk.Toplevel):
             adder=10.*math.log10(freqLabelDivisor)
             fcValues=[v+adder for v in fc.Values('dBmPerHz')]
 
-            minv=min(fcValues) if minv is None else min(minv,min(fcValues))
-            maxv=max(fcValues) if maxv is None else max(maxv,max(fcValues))
+            # update overall min/max
+            minv_all = min(fcValues) if minv_all is None else min(minv_all, min(fcValues))
+            maxv_all = max(fcValues) if maxv_all is None else max(maxv_all, max(fcValues))
+
+            # update filtered min/max considering only values above LowerLimit
+            filtered = [v for v in fcValues if v > LowerLimit]
+            if len(filtered) > 0:
+                minv_filtered = min(filtered) if minv_filtered is None else min(minv_filtered, min(filtered))
+                maxv_filtered = max(filtered) if maxv_filtered is None else max(maxv_filtered, max(filtered))
 
             fcName=str(self.waveformNamesList[wfi])
             fcColor=self.waveformColorIndexList[wfi]
@@ -274,9 +294,24 @@ class StatisticalNoiseDialog(tk.Toplevel):
         self.plt.set_xlabel('frequency ('+freqLabel+')',fontsize=10)
         self.plt.legend(loc='upper right',labelspacing=0.1)
 
+        # Choose filtered min/max if available, otherwise fall back to overall min/max
+        if minv_filtered is not None and maxv_filtered is not None:
+            minv = minv_filtered
+            maxv = maxv_filtered
+        else:
+            minv = minv_all
+            maxv = maxv_all
+
+        # Apply display margin
         if not self.ZoomsInitialized:
-            self.miny=minv
-            self.maxy=maxv
+            if minv is not None:
+                self.miny = minv - DisplayAbout
+            else:
+                self.miny = None
+            if maxv is not None:
+                self.maxy = maxv + DisplayAbout
+            else:
+                self.maxy = None
 
         if self.miny != None:
             self.plt.set_ylim(bottom=self.miny)
