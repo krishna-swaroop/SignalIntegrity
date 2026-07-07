@@ -87,12 +87,17 @@ class TestOpticalCalculatorTest(unittest.TestCase):
     def testOpticalCalculatorPicture(self):
         picture = si.opt.OpticalCalculator.Picture()
         import matplotlib.pyplot as plt
-        plt.axis('off')
-        plt.imshow(picture)
+        fig, ax = plt.subplots()
+        try:
+            ax.axis('off')
+            ax.imshow(picture)
 
-        showit=False
-        if showit:
-            plt.show()
+            showit=True
+            if showit:
+                plt.show(block=False)
+                plt.pause(1.0)
+        finally:
+            plt.close(fig)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

@@ -81,7 +81,14 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         VO2 and VO3 and V04 produce a 0V DC waveform with spectral density.
         
         """
-        results = self.SimulationResultsChecker('StatisticalNoiseWaveforms.si',checkNoise = True, checkWaveforms = False)
+        from SignalIntegrity.Lib.TimeDomain.Waveform.NoiseWaveform import NoiseWaveform
+
+        old_seed = NoiseWaveform.seed
+        NoiseWaveform.seed = 0
+        try:
+            results = self.SimulationResultsChecker('StatisticalNoiseWaveforms.si',checkNoise = True, checkWaveforms = False)
+        finally:
+            NoiseWaveform.seed = old_seed
         VO1_wf = results['output waveforms'][results['output waveform labels'].index('VO1')]
         VO2_wf = results['output waveforms'][results['output waveform labels'].index('VO2')]
         VO3_wf = results['output waveforms'][results['output waveform labels'].index('VO3')]

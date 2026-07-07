@@ -24,6 +24,7 @@ import numpy
 
 class NoiseWaveform(Waveform):
     """noise waveform"""
+    seed=None
     def __init__(self,td,sigma,mean=0.0):
         """Constructor  
         constructs a waveform with mean and normally distributed noise.
@@ -31,4 +32,9 @@ class NoiseWaveform(Waveform):
         @param sigma float non-zero value of the rms value of the noise
         @param mean (optional) float containing the mean value of the waveform
         """
-        Waveform.__init__(self,td,numpy.random.normal(mean,sigma,int(td.K)).tolist())
+        if NoiseWaveform.seed is None:
+            values=numpy.random.normal(mean,sigma,int(td.K))
+        else:
+            # Use a dedicated seeded generator to keep tests deterministic.
+            values=numpy.random.RandomState(NoiseWaveform.seed).normal(mean,sigma,int(td.K))
+        Waveform.__init__(self,td,values.tolist())
