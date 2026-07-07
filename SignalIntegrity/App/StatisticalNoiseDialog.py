@@ -398,7 +398,8 @@ class StatisticalNoiseDialog(tk.Toplevel):
                     signal_spectral_density = self.statistical_noise_analysis['signal_noise_spectral_density'][self.waveformNamesList[0]]
                     integrated_signal_noise_dBm = signal_spectral_density['dBm']
                     integrated_signal_noise_Vrms = signal_spectral_density['Vrms']
-                    signal_noise_string = f"Signal power:  {ToSI(integrated_signal_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_signal_noise_dBm,'dBm',round=3)}, SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}\n"
+                    signal_noise_string = f"Signal power:  {ToSI(integrated_signal_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_signal_noise_dBm,'dBm',round=3)}\n"
+                    signal_noise_string+= f"SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}, SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}\n"
                 except:
                     signal_noise_string = ''
                 noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}\n"

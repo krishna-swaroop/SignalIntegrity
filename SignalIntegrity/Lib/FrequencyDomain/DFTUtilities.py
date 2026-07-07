@@ -309,18 +309,19 @@ class DFTUtilities(object):
         Supported units:
             - 'dBm/Hz'      power spectral density (50 ohm, 1 mW reference)
             - 'V/sqrt(Hz)'  amplitude spectral density
+            - 'V^2/GHz'     voltage power spectral density per GHz
             - 'Vrms'        integrated rms voltage over bandwidth @a bw
                             (assumes a flat/white spectrum across @a bw)
 
         @param value      float value to convert.
-        @param from_units one of 'dBm/Hz', 'V/sqrt(Hz)', 'Vrms'.
-        @param to_units   one of 'dBm/Hz', 'V/sqrt(Hz)', 'Vrms'.
+        @param from_units one of 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms'.
+        @param to_units   one of 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms'.
         @param bw         float bandwidth in Hz; required only when 'Vrms'
                           appears as input or output.
         @return           converted value in @a to_units.
         @throws ValueError on unknown units, or missing @a bw when needed.
         """
-        valid = ('dBm/Hz', 'V/sqrt(Hz)', 'Vrms')
+        valid = ('dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms')
         if from_units not in valid:
             raise ValueError(f'Unknown spectral density unit: {from_units}')
         if to_units not in valid:
@@ -335,12 +336,16 @@ class DFTUtilities(object):
             asd = value
         elif from_units == 'dBm/Hz':
             asd = math.sqrt(50. * 1e-3 * 10. ** (value / 10.))
+        elif from_units == 'V^2/GHz':
+            asd = 0. if value <= 0. else math.sqrt(value / 1e9)
         else:  # 'Vrms'
             asd = value / math.sqrt(bw)
 
         # Step 2: convert V/sqrt(Hz) to requested output
         if to_units == 'V/sqrt(Hz)':
             return asd
+        if to_units == 'V^2/GHz':
+            return asd * asd * 1e9
         if to_units == 'dBm/Hz':
             if asd <= 0.:
                 return -3000.

@@ -21,6 +21,7 @@ StatisticalNoiseMeasurementsDialog.py
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkfont
+import re
 
 from SignalIntegrity.App.MenuSystemHelpers import StatusBar
 from SignalIntegrity.Lib.ToSI import ToSI
@@ -87,9 +88,14 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         if value is None:
             return '-'
         try:
-            return ToSI(value, units, round=3)
+            return self._normalizedUnitText(ToSI(value, units, round=3))
         except Exception:
-            return str(value)
+            return self._normalizedUnitText(str(value))
+
+    def _normalizedUnitText(self, text):
+        if not isinstance(text, str):
+            return text
+        return re.sub(r'sqrt\(([^)]+)\)', r'√\1', text)
 
     def _dictValue(self, measurements, output_name, section_name, key_name):
         section = measurements.get(section_name, {})
@@ -97,31 +103,35 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         return output_entry.get(key_name, None)
 
     def _snrDb(self, measurements, output_name):
-        signal_dbm = self._dictValue(measurements, output_name, 'signal_noise_spectral_density', 'dBm')
-        noise_dbm = self._dictValue(measurements, output_name, 'output_noise_spectral_density', 'dBm')
-        if signal_dbm is None or noise_dbm is None:
-            return None
-        return signal_dbm - noise_dbm
+        return self._dictValue(measurements, output_name, 'signal_to_noise_ratio', 'SNR')
+
+    def _salzSnrDb(self, measurements, output_name):
+        return self._dictValue(measurements, output_name, 'signal_to_noise_ratio', 'SalzSNR')
+
+    def _contributionsDict(self, measurements):
+        contributions = measurements.get('contributions', None)
+        return contributions if isinstance(contributions, dict) else {}
 
     def _contributorValue(self, measurements, output_name, contributor_name):
-        contributions = measurements.get('contributions', {})
+        contributions = self._contributionsDict(measurements)
         output_contrib = contributions.get(output_name, {})
         contributor = output_contrib.get(contributor_name, {})
         vrms = self._formatValue(contributor.get('Vrms', None), 'Vrms')
         dbm = self._formatValue(contributor.get('dBm', None), 'dBm')
 
-        signal_dbm = self._dictValue(measurements, output_name, 'signal_noise_spectral_density', 'dBm')
-        contributor_dbm = contributor.get('dBm', None)
-        snr_db = None if signal_dbm is None or contributor_dbm is None else signal_dbm - contributor_dbm
-        snr = self._formatValue(snr_db, 'dB')
+        snr = self._formatValue(contributor.get('SNR', None), 'dB')
 
         return f'{vrms}, {dbm}, {snr}'
 
     def _contributorNames(self, measurements):
+        contributions = self._contributionsDict(measurements)
+        if len(contributions) == 0:
+            return []
+
         input_names = measurements.get('input_names', [])
         if len(input_names) > 0:
             return list(input_names)
-        contributions = measurements.get('contributions', {})
+
         ordered = []
         for output_name in measurements.get('output_names', []):
             for contributor_name, contributor_value in contributions.get(output_name, {}).items():
@@ -241,10 +251,15 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
             output_names,
             lambda out: self._snrDb(measurements, out),
             'dB')
+        self._insertMeasurementRow(
+            'Salz SNR (dB)',
+            output_names,
+            lambda out: self._salzSnrDb(measurements, out),
+            'dB')
 
         self._insertGroupRow('Average Noise Density (Hz)', column_count)
         self._insertMeasurementRow(
-            'Average noise density (V/sqrt(Hz))',
+            'Average noise density (V/√Hz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'Vrms/sqrt(Hz)'),
             'Vrms/sqrt(Hz)')
@@ -256,7 +271,7 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         self._insertGroupRow('Average Noise Density (GHz)', column_count)
         self._insertMeasurementRow(
-            'Average noise density (V/sqrt(GHz))',
+            'Average noise density (V/√GHz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'Vrms/sqrt(GHz)'),
             'Vrms/sqrt(GHz)')
@@ -268,7 +283,7 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         contributor_names = self._contributorNames(measurements)
         if len(contributor_names) > 0:
-            self._insertGroupRow('Noise Contributors (Vrms, dBm, SNR)', column_count)
+            self._insertGroupRow('Noise Contributors (Vrms, dBm, SNR (dB))', column_count)
             for contributor_name in contributor_names:
                 row = [contributor_name]
                 for output_name in output_names:

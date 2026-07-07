@@ -1,8 +1,6 @@
-
 """
-Spectral Density
+SpectralDensity.py
 """
-
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
 # All rights reserved worldwide.
@@ -104,6 +102,86 @@ class SpectralDensity(FrequencyDomain):
                 DFTUtilities.rho_to_rms(
                     self.Values(),
                     deltaf)))
+    def SNRdB(self, other, other_is_signal_or_noise):
+        """Calculates SNR in dB from integrated spectral-density powers.
+        @param other instance of class SpectralDensity.
+        @param other_is_signal_or_noise string either 'signal' or 'noise'.
+        When set to 'signal', other is treated as signal and self as noise.
+        When set to 'noise', other is treated as noise and self as signal.
+        @return float SNR in dB computed as signal_dBm - noise_dBm.
+        """
+        if not isinstance(other, SpectralDensity):
+            raise TypeError('other must be an instance of SpectralDensity')
+
+        if other_is_signal_or_noise not in ['signal', 'noise']:
+            raise ValueError("other_is_signal_or_noise must be 'signal' or 'noise'")
+
+        if other_is_signal_or_noise == 'signal':
+            signal_dbm = other.TotaldBm()
+            noise_dbm = self.TotaldBm()
+        else:
+            signal_dbm = self.TotaldBm()
+            noise_dbm = other.TotaldBm()
+
+        return signal_dbm - noise_dbm
+    def SalzSNRdB(self, other, other_is_signal_or_noise, noise_floor=1e-300):
+        """Calculates Salz SNR in dB using bin-wise PSD ratios.
+        @param other instance of class SpectralDensity.
+        @param other_is_signal_or_noise string either 'signal' or 'noise'.
+        When set to 'signal', other is treated as signal and self as noise.
+        When set to 'noise', other is treated as noise and self as signal.
+        @param noise_floor (optional) minimum linear noise PSD required for a
+        bin to be included in the average. Defaults to 1e-300 (effectively no filtering).
+        @return float Salz SNR in dB.
+        @remark
+        other is resampled to self's frequency list before the computation.
+        The implemented definition is:
+        SalzSNR = 10*log10(mean(PSD_signal[n]/PSD_noise[n]))
+        where PSD = rho^2 and rho is in V/sqrt(Hz).
+        Bins whose noise PSD is below noise_floor are excluded from the mean.
+        """
+        if not isinstance(other, SpectralDensity):
+            raise TypeError('other must be an instance of SpectralDensity')
+
+        if other_is_signal_or_noise not in ['signal', 'noise']:
+            raise ValueError("other_is_signal_or_noise must be 'signal' or 'noise'")
+
+        if noise_floor <= 0:
+            raise ValueError('noise_floor must be positive')
+
+        other_on_self = other.Resample(self.FrequencyList())
+
+        if other_is_signal_or_noise == 'signal':
+            signal_rho = other_on_self.Values('V/sqrt(Hz)')
+            noise_rho = self.Values('V/sqrt(Hz)')
+        else:
+            signal_rho = self.Values('V/sqrt(Hz)')
+            noise_rho = other_on_self.Values('V/sqrt(Hz)')
+
+        # Compute PSD ratios, filtering by noise floor and excluding zero noise values
+        psd_ratios = []
+        for s, n in zip(signal_rho, noise_rho):
+            n_psd = n * n
+            if n_psd >= noise_floor and n_psd > 0:
+                psd_ratios.append((s*s) / n_psd)
+        
+        if len(psd_ratios) == 0:
+            # If no bins pass the noise floor filter, try without floor (excluding only zero noise).
+            # This handles cases where noise spectral density is extremely small
+            # (near machine epsilon) across the entire spectrum.
+            for s, n in zip(signal_rho, noise_rho):
+                n_psd = n * n
+                if n_psd > 0:
+                    psd_ratios.append((s*s) / n_psd)
+        
+        if len(psd_ratios) == 0:
+            # If still no valid ratios, all noise is zero or undefined.
+            # This represents infinite SNR, represented as very large dB value.
+            return 3000.0  # Represent infinite SNR as very large positive dB
+        
+        salz_linear = sum(psd_ratios) / float(len(psd_ratios))
+
+        return -3000. if salz_linear < 1e-300 else 10.*math.log10(salz_linear)
     def NoiseWaveform(self,td=None):
         """Generates a random time-domain noise realization from the spectral density.
         @param td (optional) instance of class TimeDescriptor describing the time

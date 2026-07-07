@@ -1,8 +1,6 @@
-
 """
 NoiseTransferMatricesProcessor.py
 """
-
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
 # All rights reserved worldwide.

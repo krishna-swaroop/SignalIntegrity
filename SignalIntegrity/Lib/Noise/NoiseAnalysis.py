@@ -40,9 +40,14 @@ class NoiseAnalysis(dict):
         self['output_noise_spectral_density_list'] = outputNoiseSpectralDensityList
         self['output_noise_spectral_density'] = {key: {'spectrum': sd, 'dBm': sd.TotaldBm(), 'Vrms': sd.TotalRMS() } for key, sd in zip(output_names, outputNoiseSpectralDensityList)}
 
+
         self['signal_noise_spectral_density_list'] = [signal.SpectralDensity() for signal in output_waveforms]
         self['signal_noise_spectral_density'] = {key: {'spectrum': sd, 'dBm': sd.TotaldBm(), 'Vrms': sd.TotalRMS() } for key,sd in zip(output_names,self['signal_noise_spectral_density_list'])}
 
+        self['signal_to_noise_ratio'] = {key: {'SNR': self['output_noise_spectral_density'][key]['spectrum'].SNRdB(self['signal_noise_spectral_density'][key]['spectrum'],other_is_signal_or_noise='signal'),
+                                               'SalzSNR': self['output_noise_spectral_density'][key]['spectrum'].SalzSNRdB(self['signal_noise_spectral_density'][key]['spectrum'],other_is_signal_or_noise='signal')
+                                               } for key in output_names}
+        
         endFrequencyList = [sd.Frequencies('GHz')[-1] for sd in outputNoiseSpectralDensityList]
         for key,fe in zip(self['output_noise_spectral_density'].keys(),endFrequencyList):
             sdv = self['output_noise_spectral_density'][key]
@@ -58,5 +63,8 @@ class NoiseAnalysis(dict):
                                         'Vrms': contributions[o][i].TotalRMS()
                                         } for i in range(len(input_names))} for o, key in enumerate(output_names)}
 
-        for key in self['contributions'].keys():
-            self['contributions'][key]['SNR'] = self['signal_noise_spectral_density'][key]['dBm'] - self['output_noise_spectral_density'][key]['dBm']
+        for o in self['contributions'].keys():
+            for i in self['contributions'][o].keys():
+                self['contributions'][o][i]['SNR'] = self['signal_noise_spectral_density'][o]['dBm'] - self['contributions'][o][i]['dBm']
+                self['contributions'][o][i]['SalzSNR'] = self['contributions'][o][i]['spectrum'].SalzSNRdB(self['signal_noise_spectral_density'][o]['spectrum'],other_is_signal_or_noise='signal')
+        pass

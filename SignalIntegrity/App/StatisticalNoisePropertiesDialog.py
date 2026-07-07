@@ -21,6 +21,7 @@ StatisticalNoisePropertiesDialog.py
 
 import tkinter as tk
 import os
+import math
 
 from SignalIntegrity.App.CalculationPropertiesProject import PropertiesDialog,CalculationPropertyTrueFalseButton,CalculationPropertyChoices,CalculationPropertySI,CalculationProperty,CalculationPropertyFileName
 import SignalIntegrity.App.Project
@@ -28,7 +29,7 @@ from SignalIntegrity.App.Files import FileParts
 
 class StatisticalNoisePropertiesDialog(PropertiesDialog):
     NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Johnson','Johnson')]
-    SpecificationTypeChoices=[('dBm/Hz','dBm/Hz'),('V/sqrt(Hz)','V/sqrt(Hz)'),('Vrms','Vrms')]
+    SpecificationTypeChoices=[('dBm/Hz','dBm/Hz'),('V/sqrt(Hz)','V/sqrt(Hz)'),('V^2/GHz (η0)','V^2/GHz'),('Vrms','Vrms'),('ENOB','ENOB'),('COM TX','COM TX')]
     def __init__(self,project,parent):
         PropertiesDialog.__init__(self,parent,project,parent.parent,'Statistical Noise Properties')
         self.transient(parent)
@@ -44,15 +45,21 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.JohnsonNoiseFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
         self.JohnsonNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.Enable=CalculationPropertyTrueFalseButton(self.GeneralFrame,'Enable Noise',self.onUpdateFromChanges,None,self.project,'Enable',tooltip='Enable noise generation for this device')
-        self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip='The source/method used to generate the noise')
+        self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip="Allowed values: 'WhiteNoise', 'SpectralDensityFile', or 'WaveformFile'.")
         self.Lanes=CalculationProperty(self.GeneralFrame,'Lanes',self.onUpdateFromChanges,None,self.project,'Lanes',tooltip='number of lanes of noise for this source')
         self.WhiteNoisePerLaneLabel = tk.Label(self.WhiteNoiseFrame, text='Per lane:')
         self.WhiteNoisePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
-        self.SpecificationType=CalculationPropertyChoices(self.WhiteNoiseFrame,'Specification Type',self.onUpdateFromChanges,None,self.SpecificationTypeChoices,self.project,'WhiteNoise.SpecificationType',tooltip='Units in which the white noise level is specified')
-        self.NoisedBmPerHz=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (dBm/Hz)',self.onNoisedBmPerHzChanged,None,self.project,'WhiteNoise.NoisedBmPerHz','dBm/Hz',round=3)
-        self.VPerRootHz=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (V/sqrt(Hz))',self.onVPerRootHzChanged,None,self.project,'WhiteNoise.VPerRootHz','V/sqrt(Hz)',round=3)
-        self.VRms=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (Vrms)',self.onVRmsChanged,None,self.project,'WhiteNoise.VRms','Vrms',round=3)
-        self.NoiseBandwidth=CalculationPropertySI(self.WhiteNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz')
+        self.SpecificationType=CalculationPropertyChoices(self.WhiteNoiseFrame,'Specification Type',self.onUpdateFromChanges,None,self.SpecificationTypeChoices,self.project,'WhiteNoise.SpecificationType',tooltip="Allowed values: 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms', 'ENOB', or 'COM TX'.")
+        self.NoisedBmPerHz=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (dBm/Hz)',self.onNoisedBmPerHzChanged,None,self.project,'WhiteNoise.NoisedBmPerHz','dBm/Hz',round=3,tooltip='Noise density in dBm/Hz.')
+        self.VPerRootHz=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (V/sqrt(Hz))',self.onVPerRootHzChanged,None,self.project,'WhiteNoise.VPerRootHz','V/sqrt(Hz)',round=3,tooltip='Noise density in V/sqrt(Hz).')
+        self.VSquaredPerGHz=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (V^2/GHz (η0))',self.onVSquaredPerGHzChanged,None,self.project,'WhiteNoise.VSquaredPerGHz','V^2/GHz',round=3,tooltip='Noise density in V^2/GHz.')
+        self.VRms=CalculationPropertySI(self.WhiteNoiseFrame,'Noise (Vrms)',self.onVRmsChanged,None,self.project,'WhiteNoise.VRms','Vrms',round=3,tooltip='Total noise in Vrms integrated over NoiseBandwidth (i.e., density in V/sqrt(Hz) * sqrt(NoiseBandwidth)).')
+        self.ENOB=CalculationPropertySI(self.WhiteNoiseFrame,'ENOB',self.onENOBChanged,None,self.project,'WhiteNoise.ENOB',round=6,tooltip='Effective number of bits used for COM RX noise specification.')
+        self.Vpp=CalculationPropertySI(self.WhiteNoiseFrame,'Vpp',self.onVppChanged,None,self.project,'WhiteNoise.Vpp','V',round=6,tooltip='Peak-to-peak voltage used for COM TX/COM RX derived-noise calculations.')
+        self.H0=CalculationPropertySI(self.WhiteNoiseFrame,'h0',self.onComTxParameterChanged,None,self.project,'WhiteNoise.h0',round=6,tooltip='COM TX FFE cursor tap height used to scale noise density.')
+        self.SNRdB=CalculationPropertySI(self.WhiteNoiseFrame,'SNR',self.onComTxParameterChanged,None,self.project,'WhiteNoise.SNRdB','dB',round=6,tooltip='COM TX signal-to-noise ratio in dB used to derive noise.')
+        self.Risetime=CalculationPropertySI(self.WhiteNoiseFrame,'Risetime (20-80)',self.onUpdateFromChanges,None,self.project,'WhiteNoise.Risetime','s',tooltip='COM TX transmitter 20-80 risetime in seconds used for Gaussian spectral shaping.')
+        self.NoiseBandwidth=CalculationPropertySI(self.WhiteNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz',tooltip='Noise bandwidth in Hz used for Vrms integration and white-noise support.')
         self.SpectralDensityFilePerLaneLabel = tk.Label(self.SpectralDensityFileFrame, text='Per lane:')
         self.SpectralDensityFilePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         self.SpectralDensityFileName=CalculationPropertyFileName(self.SpectralDensityFileFrame,'Spectral Density File',self.onUpdateFromChanges,None,fp,self.project,'SpectralDensityFile.FileName',tooltip='Path to the spectral density file describing the noise')
@@ -61,8 +68,8 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WaveformFileName=CalculationPropertyFileName(self.WaveformFileFrame,'Waveform File',self.onUpdateFromChanges,None,fp,self.project,'WaveformFile.FileName',tooltip='Path to the waveform file describing the noise')
         self.JohnsonNoisePerLaneLabel = tk.Label(self.JohnsonNoiseFrame, text='Per lane:')
         self.JohnsonNoisePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
-        self.Temperature=CalculationPropertySI(self.JohnsonNoiseFrame,'Temperature (K)',self.onUpdateFromChanges,None,self.project,'Johnson.Temperature_Kelvin','K',round=3)
-        self.Resistance=CalculationPropertySI(self.JohnsonNoiseFrame,'Resistance (ohm)',self.onUpdateFromChanges,None,self.project,'Johnson.Resistance','ohm',round=3)
+        self.Temperature=CalculationPropertySI(self.JohnsonNoiseFrame,'Temperature (K)',self.onUpdateFromChanges,None,self.project,'Johnson.Temperature_Kelvin','K',round=3,tooltip='Temperature in Kelvin (default: 25 C).')
+        self.Resistance=CalculationPropertySI(self.JohnsonNoiseFrame,'Resistance (ohm)',self.onUpdateFromChanges,None,self.project,'Johnson.Resistance','ohm',round=3,tooltip='Resistance in ohms (default: 50 ohms).')
         self.JohnsonNoiseBandwidth=CalculationPropertySI(self.JohnsonNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz')
         self.SaveToPreferencesFrame=tk.Frame(self.propertyListFrame,relief=tk.RIDGE, borderwidth=5)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
@@ -77,7 +84,8 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
     def UpdateStrings(self):
         enable=self.project['Enable']
         noiseType=self.project['Type']
-        specType=self.project['WhiteNoise.SpecificationType']
+        specType=self._canonicalSpecType(self.project['WhiteNoise.SpecificationType'])
+        self.project['WhiteNoise.SpecificationType']=specType
         self.WhiteNoiseFrame.pack_forget()
         self.SpectralDensityFileFrame.pack_forget()
         self.WaveformFileFrame.pack_forget()
@@ -98,20 +106,81 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.SpecificationType.Show(True)
         self.NoisedBmPerHz.Show(specType=='dBm/Hz')
         self.VPerRootHz.Show(specType=='V/sqrt(Hz)')
+        self.VSquaredPerGHz.Show(specType=='V^2/GHz')
         self.VRms.Show(specType=='Vrms')
-        self.NoiseBandwidth.Show(specType in ['dBm/Hz','V/sqrt(Hz)','Vrms','Johnson'])
+        self.ENOB.Show(specType=='ENOB')
+        self.Vpp.Show(specType in ['ENOB','COM TX'])
+        self.H0.Show(specType=='COM TX')
+        self.SNRdB.Show(specType=='COM TX')
+        self.Risetime.Show(specType=='COM TX')
+        self.NoiseBandwidth.Show(specType in ['dBm/Hz','V/sqrt(Hz)','V^2/GHz','Vrms','ENOB','COM TX','Johnson'])
     def onSaveToPreferences(self):
         self.parent.device.configuration.SaveToPreferences()
+    def _canonicalSpecType(self, spec_type):
+        return spec_type
+    def _noiseVrmsFromENOB(self):
+        bw = self.project['WhiteNoise.NoiseBandwidth']
+        if bw is None or bw <= 0:
+            return None
+        vpp = self.project['WhiteNoise.Vpp']
+        if vpp is None or vpp <= 0:
+            return None
+        enob = self.project['WhiteNoise.ENOB']
+        snr_db = 6.02 * enob + 1.76
+        signal_vrms = vpp / (2.0 * math.sqrt(2.0))
+        return signal_vrms / (10.0 ** (snr_db / 20.0))
+
+    def _updateENOBFromVrms(self, noise_vrms):
+        vpp = self.project['WhiteNoise.Vpp']
+        if noise_vrms is None or noise_vrms <= 0 or vpp is None or vpp <= 0:
+            return
+        signal_vrms = vpp / (2.0 * math.sqrt(2.0))
+        if signal_vrms <= 0:
+            return
+        snr_db = 20.0 * math.log10(signal_vrms / noise_vrms)
+        self.project['WhiteNoise.ENOB'] = (snr_db - 1.76) / 6.02
+        self.ENOB.UpdateStrings()
+
+    def _noiseVrmsFromComTx(self):
+        return self.project['WhiteNoise.h0'] * self.project['WhiteNoise.Vpp'] / 2.0 * (
+            10.0 ** (-self.project['WhiteNoise.SNRdB'] / 20.0)
+        )
+
+    def _updateComTxFromVrms(self, noise_vrms):
+        h0 = self.project['WhiteNoise.h0']
+        vpp = self.project['WhiteNoise.Vpp']
+        if noise_vrms is None or noise_vrms <= 0 or h0 is None or h0 <= 0 or vpp is None or vpp <= 0:
+            return
+        full_scale = h0 * vpp / 2.0
+        if full_scale <= 0:
+            return
+        self.project['WhiteNoise.SNRdB'] = 20.0 * math.log10(full_scale / noise_vrms)
+        self.SNRdB.UpdateStrings()
+
     def _propagateFrom(self, source_units):
         """Recompute the two non-source noise-level fields from the source field
         using DFTUtilities.ConvertSpectralDensity. Conversions involving 'Vrms'
         are skipped if NoiseBandwidth is not a positive number."""
         from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
+        source_units = self._canonicalSpecType(source_units)
         fields = {
             'dBm/Hz':     ('WhiteNoise.NoisedBmPerHz', self.NoisedBmPerHz),
             'V/sqrt(Hz)': ('WhiteNoise.VPerRootHz',    self.VPerRootHz),
+            'V^2/GHz':    ('WhiteNoise.VSquaredPerGHz',self.VSquaredPerGHz),
             'Vrms':       ('WhiteNoise.VRms',          self.VRms),
         }
+        if source_units == 'ENOB':
+            value = self._noiseVrmsFromENOB()
+            if value is None:
+                return
+            self.project['WhiteNoise.VRms'] = value
+            self.VRms.UpdateStrings()
+            source_units = 'Vrms'
+        if source_units == 'COM TX':
+            value = self._noiseVrmsFromComTx()
+            self.project['WhiteNoise.VRms'] = value
+            self.VRms.UpdateStrings()
+            source_units = 'Vrms'
         src_key, _ = fields[source_units]
         value = self.project[src_key]
         bw = self.project['WhiteNoise.NoiseBandwidth']
@@ -128,6 +197,8 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
                 continue  # leave stale value rather than crash the UI
             self.project[key] = converted
             widget.UpdateStrings()
+        self._updateENOBFromVrms(self.project['WhiteNoise.VRms'])
+        self._updateComTxFromVrms(self.project['WhiteNoise.VRms'])
 
     def onNoisedBmPerHzChanged(self, _):
         self._propagateFrom('dBm/Hz')
@@ -141,10 +212,31 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self._propagateFrom('Vrms')
         self.UpdateStrings()
 
+    def onVSquaredPerGHzChanged(self, _):
+        self._propagateFrom('V^2/GHz')
+        self.UpdateStrings()
+
+    def onENOBChanged(self, _):
+        self._propagateFrom('ENOB')
+        self.UpdateStrings()
+
+    def onVppChanged(self, _):
+        spec_type = self._canonicalSpecType(self.project['WhiteNoise.SpecificationType'])
+        if spec_type == 'COM TX':
+            self._propagateFrom('COM TX')
+        else:
+            self._propagateFrom('ENOB')
+        self.UpdateStrings()
+
+    def onComTxParameterChanged(self, _):
+        self._propagateFrom('COM TX')
+        self.UpdateStrings()
+
     def onNoiseBandwidthChanged(self, _):
         # Treat NoiseBandwidth as an input; rebuild the other two level fields
         # from whichever level is currently selected as the specification.
-        spec_type = self.project['WhiteNoise.SpecificationType']
-        if spec_type in ('dBm/Hz', 'V/sqrt(Hz)', 'Vrms'):
+        spec_type = self._canonicalSpecType(self.project['WhiteNoise.SpecificationType'])
+        self.project['WhiteNoise.SpecificationType'] = spec_type
+        if spec_type in ('dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms', 'ENOB', 'COM TX'):
             self._propagateFrom(spec_type)
         self.UpdateStrings()
