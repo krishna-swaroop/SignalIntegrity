@@ -7,12 +7,18 @@ device F2 2 ffe -0.1,0.8,-0.1 td 18.868e-12 pre 1
 device O1 1 open
 voltagenoisesource COM-RX 2
 voltagenoisesource RX-ADC 2
+device T1 2 tlinecom gamma0 0 a1 382.06e-6 a2 95.909e-6 tau 5.79e-3 zc 100.0 d 100.0e-3
+device F3 2 ctle gdc -4.0 gdc2 -1.0 fz 21.2e9 flf 662.5e6 fp1 21.2e9 fp2 53.0e9
+voltagenoisesource COM-TX 2
 connect F1 2 R5 1
-connect R5 2 R7 1 XTALK 1
+connect R5 2 COM-TX 1
+connect R7 1 XTALK 1 T1 2
 voltageoutput Unequalized F2 1
 connect F2 1 RX-ADC 2
 connect F1 1 VG1 1
 connect XTALK 2 COM-RX 1
 eyeprobe Equalized F2 2
 connect F2 2 O1 1
-connect COM-RX 2 RX-ADC 1
+connect COM-RX 2 F3 1
+connect F3 2 RX-ADC 1
+connect COM-TX 2 T1 1
