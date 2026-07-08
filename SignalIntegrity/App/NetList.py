@@ -61,8 +61,18 @@ class NetList(object):
                     new_deviceList.append(device)
                 else:
                     new_deviceList.append(device)
-        deviceList = new_deviceList
+
+        deviceList = copy.deepcopy(new_deviceList)
+
         # done filtering out disabled devices
+
+        # change all differential noise source references to that have _$D$ appended to them.
+        # This referencing will be applied to the 'differential noise source inserter' device, and the
+        # original reference supplied will be used for the actual two-port noise source used.
+        for device in deviceList:
+            if device.netlist['DeviceName'] in ['voltagenoisesource']:
+                if device['ports']['Value'] == '4':
+                    device['ref']['Value'] = device['ref']['Value'] + '_$D$'
 
         equiPotentialWireList=wires_list.EquiPotentialWireList()
         # put in system variables
@@ -72,9 +82,17 @@ class NetList(object):
             if not device['partname'].GetValue() in ['Port','Measure','Output','Stim','NetName','EyeProbe']:
                 self.textToShow.append(device.NetListLine())
                 if device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource','voltagenoisesource']:
-                    self.sourceNames.append(device['ref'].GetValue())
+                    ref_name=device['ref'].GetValue()
                     if device.netlist['DeviceName'] in ['voltagenoisesource']:
-                        self.noiseSourceNames.append(device['ref'].GetValue())
+                        if device['ports']['Value'] == '4':
+                            # this is a four-port voltage noise source.  It has presumably had a '_$D$' appended to its reference,
+                            # so we need to remove that for the source name, as the actual source name will have the original reference.
+                            assert ref_name.endswith('_$D$')
+                            ref_name=ref_name[:-4]
+                        self.noiseSourceNames.append(ref_name)
+                        self.sourceNames.append(ref_name)
+                    else:
+                        self.sourceNames.append(ref_name)
                     if not device['show'] == None:
                         if device['show']['Value'] == 'true':
                             self.sourceNamesToShow.append(device['ref'].GetValue())
@@ -371,6 +389,19 @@ class NetList(object):
                 else:
                     if tokens[0] in ['differentialvoltageoutput','differentialeyeprobe','eyewaveform','waveform']:
                         line = None
+            elif tokens[0] in ['voltagenoisesource']:
+                if (len(tokens) >= 3) and tokens[2] == '4':
+                    # this is a differential noise source. It has already had its reference postpended with '_$D$'.
+                    # We need to replace the four port noise source with a six port noise inserter element, then
+                    # connect a two-port noise souce to the other, unconnected two ports of the noise inserter.
+                    # FYI, the noise inserter is a six-port element formed by placing two voltage mixed-mode converters
+                    # back to back, placing ports 1-4 on the left +, left -, right +, and right - ports, respectively,
+                    # connecting the common-modes together, and exposing the left and right D ports as ports 5 and 6.
+                    assert(tokens[1].endswith('_$D$'))
+                    line = 'device '+tokens[1]+' 6 diffnoiseinserter'
+                    endinglines.append('voltagenoisesource '+tokens[1][:-4]+' 2')
+                    endinglines.append('connect '+tokens[1][:-4]+' 1 '+tokens[1]+' 5')
+                    endinglines.append('connect '+tokens[1][:-4]+' 2 '+tokens[1]+' 6')
             if not line == None:
                 textToShow.append(line)
         self.textToShow=textToShow+endinglines+SignalIntegrity.App.Project['PostProcessing'].NetListLines()

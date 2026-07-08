@@ -108,6 +108,7 @@ class DeviceFactory(list):
         |gaussianrisetimefilter                 |2    |True     |rt=None rt_type=1090                                                                           | True                |sp.dev.GaussianRisetimeFilter(f,rt,is1090,Z0)                                                    |
         |balun                                  |3    |False    |                                                                                               | False               |dev.IdealBalun()                                                                                 |
         |reference                              |3    |False    |                                                                                               | False               |dev.Reference()                                                                                  |
+        |diffnoiseinserter                      |6    |False    |                                                                                               | False               |dev.DiffNoiseInserter()                                                                          |
         @note ports any mean None supplied. comma or dash separated ports are supplied as a string.
         @note arginname means the argument is supplied without a keyword.  The first default argument has the actual name of the argument.
         @note frequency dependent devices usually come from 'sp.dev' meaning SParameters.Devices package.  Devices that are not frequency dependent
@@ -275,7 +276,8 @@ class DeviceFactory(list):
         ParserDevice('voltagetovoltageconverter',3,False,{},False,
                      "IdealVoltageToVoltageConverter()"),
         ParserDevice('balun',3,False,{},False,"IdealBalun()"),
-        ParserDevice('reference',3,False,{},False,"Reference()")
+        ParserDevice('reference',3,False,{},False,"Reference()"),
+        ParserDevice('diffnoiseinserter',6,False,{},False,"DiffNoiseInserter()")
         ]))
     def MakeDevice(self,ports,callback, argsList, f, Z0=50.):
         """makes a device from a set of arguments
@@ -353,6 +355,7 @@ class DeviceFactory(list):
         from SignalIntegrity.Lib.SParameters.Devices.RaisedCosineRisetimeFilter import RaisedCosineRisetimeFilter
         from SignalIntegrity.Lib.Devices.IdealBalun import IdealBalun
         from SignalIntegrity.Lib.Devices.Reference import Reference
+        from SignalIntegrity.Lib.Devices.DiffNoiseInserter import DiffNoiseInserter
         # pragma: include
         self.dev=None
         if len(argsList) == 0:

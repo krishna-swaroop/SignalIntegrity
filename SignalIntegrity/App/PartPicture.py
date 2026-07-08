@@ -2058,7 +2058,6 @@ class PartPictureVariableUnknown(PartPictureVariable):
     def __init__(self,ports=4):
         PartPictureVariable.__init__(self,['PartPictureUnknown','PartPictureUnknownAcross','PartPictureUnknownDownAndUp','PartPictureUnknownSide'],ports)
 
-
 class PartPictureVoltageProbe(PartPictureBox):
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
         PartPictureBox.__init__(self,origin,[PartPin(1,(1,4),'b',False,True,True),PartPin(2,(1,0),'t',False,True,True)],[(0.5,1),(1.5,3)],[(0.5,0),(1.5,4)],(0,2),orientation,mirroredHorizontally,mirroredVertically)
@@ -2195,7 +2194,6 @@ class PartPictureSpecifiedPortsTextSide(PartPictureSpecifiedPortsSide):
     def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
         self.DrawCharacterInMiddle(canvas,grid,drawingOrigin,self.text)
         PartPictureSpecifiedPortsSide.DrawDevice(self,device,canvas,grid,drawingOrigin,connected)
-
 
 class PartPictureNetworkAnalyzer(PartPictureSpecifiedPortsText):
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
@@ -2506,3 +2504,27 @@ class PartPictureVariableReference(PartPictureVariable):
     def __init__(self):
         PartPictureVariable.__init__(self,['PartPictureReference'],4)
 
+class PartPictureDifferentialNoiseSource(PartPictureBox):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPictureBox.__init__(self,origin,[PartPin(1,(0,1),'l',False,True,True),PartPin(2,(0,3),'l',False,True,True),PartPin(3,(4,1),'r',False,True,True),PartPin(4,(4,3),'r',False,True,True)],[(1,0),(3,4)],[(0,0),(4,4)],(2,-0.5),orientation,mirroredHorizontally,mirroredVertically)
+    def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
+        lx=(drawingOrigin[0]+self.origin[0]+1)*grid+grid/2
+        ty=(drawingOrigin[1]+self.origin[1]+1)*grid
+        rx=(drawingOrigin[0]+self.origin[0]+3)*grid-grid/2
+        by=(drawingOrigin[1]+self.origin[1]+3)*grid
+        ct=self.CoordinateTranslater(grid,drawingOrigin)
+        p=[ct.Translate((lx,ty)),
+           ct.Translate((lx,by)),
+           ct.Translate((rx,ty)),
+           ct.Translate((rx,by)),
+           ct.Translate(((lx+rx)/2,(ty+by)/2))]
+        canvas.create_text(p[0][0],p[0][1],text='+',fill=self.color)
+        canvas.create_text(p[1][0],p[1][1],text='-',fill=self.color)
+        canvas.create_text(p[2][0],p[2][1],text='+',fill=self.color)
+        canvas.create_text(p[3][0],p[3][1],text='-',fill=self.color)
+        canvas.create_text(p[4][0],p[4][1],text=u"\u03C3",fill=self.color)
+        PartPictureBox.DrawDevice(self,device,canvas,grid,drawingOrigin,connected)
+
+class PartPictureVariableDifferentialNoiseSource(PartPictureVariable):
+    def __init__(self):
+        PartPictureVariable.__init__(self,['PartPictureDifferentialNoiseSource'],4)

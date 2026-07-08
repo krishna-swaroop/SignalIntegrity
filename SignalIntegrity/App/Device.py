@@ -1957,8 +1957,10 @@ DeviceList=Devices([
                 DeviceReference(),
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('One Port Voltage Statistical Noise Generator'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
+                DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Differential Voltage Statistical Noise Generator'),PartPropertyPorts(4)],PartPictureVariableDifferentialNoiseSource()),
                 DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('One Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
-                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),])
+                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
+                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Differential Voltage Statistical Noise Generator Project'),PartPropertyPorts(4)],PartPictureVariableDifferentialNoiseSource()),])
 DeviceListUnknown = Devices([
                 DeviceUnknown([PartPropertyDescription('One Port Unknown'),PartPropertyPorts(1)],PartPictureVariableUnknown(1)),
                 DeviceUnknown([PartPropertyDescription('Two Port Unknown'),PartPropertyPorts(2)],PartPictureVariableUnknown(2)),
