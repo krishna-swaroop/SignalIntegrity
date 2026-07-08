@@ -126,6 +126,30 @@ class CalculationPropertyFileName(CalculationProperty):
             self.project[self.projectPath]=filename
             self.UpdateStrings()
 
+class CalculationPropertySpectralDensityFileName(CalculationProperty):
+    def __init__(self,parentFrame,textLabel,enteredCallback,updateStringsCallback,fileparts,project=None,projectPath=None,tooltip=None):
+        self.fileparts=fileparts
+        CalculationProperty.__init__(self,parentFrame,textLabel,enteredCallback,updateStringsCallback,project,projectPath,tooltip)
+    def onTouched(self,event):
+        if not self.readonly:
+            import os
+            try:
+                fp=FileParts(os.path.join(self.fileparts.AbsoluteFilePath(),self.project[self.projectPath]))
+            except:
+                try:
+                    fp=FileParts(self.project[self.projectPath])
+                except:
+                    fp=FileParts(self.fileparts.AbsoluteFilePath())
+            filename=AskOpenFileName(parent=self.parentFrame,
+                                     filetypes=[('txt', '.txt'),('csv', '.csv'),('json', '.json')],
+                                     initialdir=fp.AbsoluteFilePath(),
+                                     initialfile=fp.FileNameWithExtension(fp.fileext if fp.fileext in ['.txt','.csv','.json'] else 'txt'))
+            if filename is None:
+                return
+            filename=ConvertFileNameToRelativePath(filename)
+            self.project[self.projectPath]=filename
+            self.UpdateStrings()
+
 class CalculationPropertyFileNameSaveAs(CalculationProperty):
     def __init__(self,parentFrame,textLabel,enteredCallback,updateStringsCallback,fileparts,project=None,projectPath=None,tooltip=None):
         self.fileparts=fileparts

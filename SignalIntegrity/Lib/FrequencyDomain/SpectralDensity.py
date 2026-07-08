@@ -19,10 +19,15 @@ SpectralDensity.py
 # If not, see <https://www.gnu.org/licenses/>
 
 import math
+import csv
+import json
+import sys
+import os
 from numpy import fft
 
 from SignalIntegrity.Lib.FrequencyDomain.FrequencyDomain import FrequencyDomain
 from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
+from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import FrequencyList
 
 class SpectralDensity(FrequencyDomain):
     """SpectralDensity
@@ -59,6 +64,147 @@ class SpectralDensity(FrequencyDomain):
         @see Values() for valid units.
         """
         return self.Values(unit)
+    def ReadFromFile(self,fileName):
+        """reads a spectral density from a file
+        @param fileName string file name to read
+        @return self
+        @remark
+        Supported extensions:
+        - '.csv' via ReadFromCSV()
+        - '.json' via ReadFromJson()
+        - '.txt' via FrequencyDomain.ReadFromFile()
+        Other extensions fall back to FrequencyDomain.ReadFromFile().
+        """
+        _,file_extension=os.path.splitext(fileName)
+        extension=file_extension.lower()
+        if extension == '.csv':
+            return self.ReadFromCSV(fileName)
+        if extension == '.json':
+            return self.ReadFromJson(fileName)
+        return FrequencyDomain.ReadFromFile(self,fileName)
+    def ReadFromCSV(self,fileName):
+        """reads a spectral density from a CSV file
+        @param fileName string name of file to read
+        @return self
+        @remark
+        The CSV file is assumed to contain frequency in Hz in the first column
+        and spectral density in V/sqrt(Hz) in the second column.  Any
+        non-numeric lines before or within the data are skipped until valid
+        comma-separated frequency,density pairs are found.
+        """
+        frequencies=[]
+        density=[]
+        with open(fileName,'rU' if sys.version_info.major < 3 else 'r') as f:
+            for row in csv.reader(f):
+                if len(row) < 2:
+                    continue
+                try:
+                    frequency=float(row[0].strip())
+                    value=float(row[1].strip())
+                except (TypeError,ValueError):
+                    continue
+                if not math.isfinite(frequency) or not math.isfinite(value):
+                    continue
+                frequencies.append(frequency)
+                density.append(value)
+        if len(frequencies) == 0:
+            raise ValueError('no spectral density data found in '+str(fileName))
+        fd=FrequencyList(frequencies)
+        fd.CheckEvenlySpaced()
+        SpectralDensity.__init__(self,fd,density,getattr(self,'Keven',True))
+        return self
+    def ReadFromJson(self,fileName):
+        """reads a spectral density from a JSON file
+        @param fileName string name of file to read
+        @return self
+        @remark
+        The JSON data is assumed to contain frequency in Hz and spectral density
+        in V/sqrt(Hz), typically as arrays keyed by 'x' and 'y'.
+        """
+        with open(fileName,'rU' if sys.version_info.major < 3 else 'r') as f:
+            text=f.read()
+
+        decoder=json.JSONDecoder()
+        index=0
+        while index < len(text) and text[index].isspace():
+            index=index+1
+        data,_=decoder.raw_decode(text,index)
+
+        if not isinstance(data,dict):
+            raise ValueError('spectral density json must decode to a dictionary')
+
+        if 'x' in data and 'y' in data:
+            frequencies=data['x']
+            density=data['y']
+        elif 'frequency' in data and 'density' in data:
+            frequencies=data['frequency']
+            density=data['density']
+        elif 'frequencies' in data and 'densities' in data:
+            frequencies=data['frequencies']
+            density=data['densities']
+        else:
+            raise ValueError('spectral density json must contain x/y arrays')
+
+        if len(frequencies) != len(density):
+            raise ValueError('frequency and density arrays must be the same length')
+        if len(frequencies) == 0:
+            raise ValueError('no spectral density data found in '+str(fileName))
+
+        parsed_frequencies=[]
+        parsed_density=[]
+        for frequency,value in zip(frequencies,density):
+            f_hz=float(frequency)
+            rho=float(value)
+            if not math.isfinite(f_hz) or not math.isfinite(rho):
+                raise ValueError('spectral density json contains non-finite values')
+            parsed_frequencies.append(f_hz)
+            parsed_density.append(rho)
+
+        fd=FrequencyList(parsed_frequencies)
+        fd.CheckEvenlySpaced()
+        SpectralDensity.__init__(self,fd,parsed_density,getattr(self,'Keven',True))
+        return self
+    def WriteToCSV(self,fileName):
+        """writes a spectral density to a CSV file
+        @param fileName string name of file to write
+        @return self
+        @remark
+        The CSV file contains frequency in Hz in the first column and spectral
+        density in V/sqrt(Hz) in the second column.
+        """
+        with open(fileName,'w') as f:
+            for frequency,value in zip(self.Frequencies(),self.Values('V/sqrt(Hz)')):
+                f.write(str(frequency)+','+str(value)+'\n')
+        return self
+    def WriteToJson(self,fileName):
+        """writes a spectral density to a JSON file
+        @param fileName string name of file to write
+        @return self
+        @remark
+        The JSON data contains frequency in Hz in 'x' and spectral density in
+        V/sqrt(Hz) in 'y'.
+        """
+        with open(fileName,'w') as f:
+            json.dump({'x':self.Frequencies(),'y':self.Values('V/sqrt(Hz)')},f,indent=4)
+        return self
+    def WriteToFile(self,fileName):
+        """writes a spectral density to a file
+        @param fileName string file name to write
+        @return self
+        @remark
+        Supported extensions:
+        - '.csv' via WriteToCSV()
+        - '.json' via WriteToJson()
+        - '.txt' via FrequencyDomain.WriteToFile()
+        Other extensions fall back to FrequencyDomain.WriteToFile().
+        """
+        _,file_extension=os.path.splitext(fileName)
+        extension=file_extension.lower()
+        if extension == '.csv':
+            return self.WriteToCSV(fileName)
+        if extension == '.json':
+            return self.WriteToJson(fileName)
+        return FrequencyDomain.WriteToFile(self,fileName)
     def Values(self,unit=None):
         """spectral density values
         @param unit (optional) string containing the unit for the values desired.

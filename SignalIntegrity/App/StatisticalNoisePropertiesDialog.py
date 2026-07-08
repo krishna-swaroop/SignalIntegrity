@@ -23,7 +23,7 @@ import tkinter as tk
 import os
 import math
 
-from SignalIntegrity.App.CalculationPropertiesProject import PropertiesDialog,CalculationPropertyTrueFalseButton,CalculationPropertyChoices,CalculationPropertySI,CalculationProperty,CalculationPropertyFileName
+from SignalIntegrity.App.CalculationPropertiesProject import PropertiesDialog,CalculationPropertyTrueFalseButton,CalculationPropertyChoices,CalculationPropertySI,CalculationProperty,CalculationPropertyFileName,CalculationPropertySpectralDensityFileName
 import SignalIntegrity.App.Project
 from SignalIntegrity.App.Files import FileParts
 
@@ -62,7 +62,7 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.NoiseBandwidth=CalculationPropertySI(self.WhiteNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz',tooltip='Noise bandwidth in Hz used for Vrms integration and white-noise support.')
         self.SpectralDensityFilePerLaneLabel = tk.Label(self.SpectralDensityFileFrame, text='Per lane:')
         self.SpectralDensityFilePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
-        self.SpectralDensityFileName=CalculationPropertyFileName(self.SpectralDensityFileFrame,'Spectral Density File',self.onUpdateFromChanges,None,fp,self.project,'SpectralDensityFile.FileName',tooltip='Path to the spectral density file describing the noise')
+        self.SpectralDensityFileName=CalculationPropertySpectralDensityFileName(self.SpectralDensityFileFrame,'Spectral Density File',self.onUpdateFromChanges,None,fp,self.project,'SpectralDensityFile.FileName',tooltip='Path to the spectral density file describing the noise')
         self.WaveformFilePerLaneLabel = tk.Label(self.WaveformFileFrame, text='Per lane:')
         self.WaveformFilePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         self.WaveformFileName=CalculationPropertyFileName(self.WaveformFileFrame,'Waveform File',self.onUpdateFromChanges,None,fp,self.project,'WaveformFile.FileName',tooltip='Path to the waveform file describing the noise')

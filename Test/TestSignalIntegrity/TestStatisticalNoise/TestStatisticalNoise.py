@@ -24,6 +24,8 @@ import SignalIntegrity.Lib as si
 import SignalIntegrity.App.SignalIntegrityAppHeadless as siapp
 import os
 import math
+import tempfile
+import json
 import SignalIntegrity.App.Project as proj
 from SignalIntegrity.Lib.Test.SignalIntegrityAppTestHelper import SignalIntegrityAppTestHelper
 
@@ -69,16 +71,18 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.SimulationResultsChecker('StatisticalNoiseExternal.si',checkNoise = True)
     def testNoiseWaveform(self):
         """
-        This simulation has five probes VO1-VO5.
+        This simulation has five probes VO1-VO7.
 
         The first is for an actual noise waveform specified: 10 mVrms of noise at 80 GS/s (to 40 GHz).
         The second is a statistical noise source specified with 10 mVrms of noise to 40 GHz.
         The third is a statistical noise source specified with a waveform generated in 1.
         The fourth is the time domain waveform used for the third statistical noise source.
-        The fifth is a statistical noise source specified with a spectral density file with 15.81 nV/sqrt(Hz) to 100 GHz.
+        The fifth is a statistical noise source specified with a spectral density file with 15.81 nV/sqrt(Hz) to 100 GHz.  It is a .txt file.
+        The sixth is a statistical noise source specified with a spectral density csv file to 40 GHz.
+        The fifth is a statistical noise source specified with a spectral density json file to 40 GHz.
 
         Therefore, VO1 and VO4 produce actual waveforms and zero noise spectral density.
-        VO2 and VO3 and V04 produce a 0V DC waveform with spectral density.
+        VO2 and VO3,V04,V05,V06,V07 produce a 0V DC waveform with spectral density.
         
         """
         from SignalIntegrity.Lib.TimeDomain.Waveform.NoiseWaveform import NoiseWaveform
@@ -94,11 +98,15 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         VO3_wf = results['output waveforms'][results['output waveform labels'].index('VO3')]
         VO4_wf = results['output waveforms'][results['output waveform labels'].index('VO4')]
         VO5_wf = results['output waveforms'][results['output waveform labels'].index('VO5')]
+        VO6_wf = results['output waveforms'][results['output waveform labels'].index('VO6')]
+        VO7_wf = results['output waveforms'][results['output waveform labels'].index('VO7')]
         VO1_sd = results['noise']['output_noise_spectral_density']['VO1']
         VO2_sd = results['noise']['output_noise_spectral_density']['VO2']
         VO3_sd = results['noise']['output_noise_spectral_density']['VO3']
         VO4_sd = results['noise']['output_noise_spectral_density']['VO4']
         VO5_sd = results['noise']['output_noise_spectral_density']['VO5']
+        VO6_sd = results['noise']['output_noise_spectral_density']['VO6']
+        VO7_sd = results['noise']['output_noise_spectral_density']['VO7']
         from SignalIntegrity.Lib.ToSI import ToSI
 
         # VO1
@@ -123,6 +131,16 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         # this generates 10 mVrms of total noise by having 10 lanes of noise
         self.assertEqual(ToSI(VO5_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO5_wf.rms(),'Vrms'),'0 Vrms')
+
+        # VO6
+        # from .csv file.
+        self.assertEqual(ToSI(VO6_sd['Vrms'],'Vrms',round=2),'26.0 uVrms')
+        self.assertEqual(ToSI(VO6_wf.rms(),'Vrms'),'0 Vrms')
+
+        # VO7
+        # from .json file.
+        self.assertEqual(ToSI(VO7_sd['Vrms'],'Vrms',round=2),'2.5 mVrms')
+        self.assertEqual(ToSI(VO7_wf.rms(),'Vrms'),'0 Vrms')
 
     def testAttenuator(self):
         self.SimulationResultsChecker('Attenuator.si',checkNoise = True)
@@ -162,6 +180,165 @@ class TestStatisticalNoiseTest(unittest.TestCase,
 
         with self.assertRaises(ValueError):
             signal_sd.SalzSNRdB(noise_sd, 'noise', noise_floor=0.0)
+
+    def testSpectralDensityReadFromCSVSkipsExtraneousText(self):
+        fd, fileName = tempfile.mkstemp(suffix='.csv')
+        try:
+            with os.fdopen(fd,'w') as f:
+                f.write('some tool-specific header text\n')
+                f.write('frequency,density\n')
+                f.write('\n')
+                f.write('1.0,2.0e-9\n')
+                f.write('ignore this line entirely\n')
+                f.write('2.0,3.0e-9,extra column\n')
+                f.write('three,4.0e-9\n')
+                f.write('3.0,4.0e-9\n')
+            sd=si.fd.SpectralDensity(Keven=False).ReadFromCSV(fileName)
+            self.assertEqual(sd.Frequencies(),[1.0,2.0,3.0])
+            self.assertEqual(sd.Values('V/sqrt(Hz)'),[2.0e-9,3.0e-9,4.0e-9])
+            self.assertFalse(sd.Keven)
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityReadFromCSVCadenceNoiseFile(self):
+        fileName=os.path.join(os.path.dirname(os.path.realpath(__file__)),'InputNoise_80C_3p3V_tt_gainID_0.csv')
+        sd=si.fd.SpectralDensity().ReadFromCSV(fileName)
+        self.assertTrue(len(sd) > 1000)
+        self.assertAlmostEqual(sd.Frequencies()[0],100000.0)
+        self.assertAlmostEqual(sd.Values('V/sqrt(Hz)')[0],5.935415921178399e-09)
+
+    def testSpectralDensityWriteToCSVWritesFrequencyAndDensityColumns(self):
+        fd, fileName = tempfile.mkstemp(suffix='.csv')
+        try:
+            os.close(fd)
+            sd=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9])
+            sd.WriteToCSV(fileName)
+            with open(fileName,'r') as f:
+                lines=f.readlines()
+            self.assertEqual(lines,['1.0,2e-09\n','2.0,3e-09\n','3.0,4e-09\n'])
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToCSVRoundTrip(self):
+        fd, fileName = tempfile.mkstemp(suffix='.csv')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9],Keven=False)
+            original.WriteToCSV(fileName)
+            readback=si.fd.SpectralDensity(Keven=False).ReadFromCSV(fileName)
+            self.assertEqual(readback,original)
+            self.assertFalse(readback.Keven)
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityReadFromJsonNoiseDensityFile(self):
+        fileName=os.path.join(os.path.dirname(os.path.realpath(__file__)),'noise_density.json')
+        sd=si.fd.SpectralDensity().ReadFromJson(fileName)
+        self.assertEqual(len(sd),6501)
+        self.assertAlmostEqual(sd.Frequencies()[0],1.0e7)
+        self.assertAlmostEqual(sd.Values('V/sqrt(Hz)')[0],9.148053e-09)
+        self.assertAlmostEqual(sd.Frequencies()[-1],1.3e11)
+        self.assertAlmostEqual(sd.Values('V/sqrt(Hz)')[-1],2.760135e-09)
+
+    def testSpectralDensityReadFromJsonAllowsTrailingData(self):
+        fd, fileName = tempfile.mkstemp(suffix='.json')
+        try:
+            with os.fdopen(fd,'w') as f:
+                f.write('{"x":[1.0,2.0,3.0],"y":[2.0e-9,3.0e-9,4.0e-9]}\n}\n')
+            sd=si.fd.SpectralDensity(Keven=False).ReadFromJson(fileName)
+            self.assertEqual(sd.Frequencies(),[1.0,2.0,3.0])
+            self.assertEqual(sd.Values('V/sqrt(Hz)'),[2.0e-9,3.0e-9,4.0e-9])
+            self.assertFalse(sd.Keven)
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToJsonWritesXYArrays(self):
+        fd, fileName = tempfile.mkstemp(suffix='.json')
+        try:
+            os.close(fd)
+            sd=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9])
+            sd.WriteToJson(fileName)
+            with open(fileName,'r') as f:
+                data=json.load(f)
+            self.assertEqual(data['x'],[1.0,2.0,3.0])
+            self.assertEqual(data['y'],[2.0e-9,3.0e-9,4.0e-9])
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToJsonRoundTrip(self):
+        fd, fileName = tempfile.mkstemp(suffix='.json')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9],Keven=False)
+            original.WriteToJson(fileName)
+            readback=si.fd.SpectralDensity(Keven=False).ReadFromJson(fileName)
+            self.assertEqual(readback,original)
+            self.assertFalse(readback.Keven)
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityReadFromFileDispatchCsv(self):
+        fileName=os.path.join(os.path.dirname(os.path.realpath(__file__)),'InputNoise_80C_3p3V_tt_gainID_0.csv')
+        sd=si.fd.SpectralDensity().ReadFromFile(fileName)
+        self.assertTrue(len(sd) > 1000)
+        self.assertAlmostEqual(sd.Frequencies()[0],100000.0)
+        self.assertAlmostEqual(sd.Values('V/sqrt(Hz)')[0],5.935415921178399e-09)
+
+    def testSpectralDensityReadFromFileDispatchJson(self):
+        fileName=os.path.join(os.path.dirname(os.path.realpath(__file__)),'noise_density.json')
+        sd=si.fd.SpectralDensity().ReadFromFile(fileName)
+        self.assertEqual(len(sd),6501)
+        self.assertAlmostEqual(sd.Frequencies()[0],1.0e7)
+        self.assertAlmostEqual(sd.Values('V/sqrt(Hz)')[0],9.148053e-09)
+
+    def testSpectralDensityReadFromFileDispatchTxt(self):
+        fd, fileName = tempfile.mkstemp(suffix='.txt')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9],Keven=False)
+            si.fd.FrequencyDomain.WriteToFile(original,fileName)
+            readback=si.fd.SpectralDensity(Keven=False).ReadFromFile(fileName)
+            self.assertEqual(readback,original)
+            self.assertFalse(readback.Keven)
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToFileDispatchCsv(self):
+        fd, fileName = tempfile.mkstemp(suffix='.csv')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9])
+            original.WriteToFile(fileName)
+            with open(fileName,'r') as f:
+                lines=f.readlines()
+            self.assertEqual(lines,['1.0,2e-09\n','2.0,3e-09\n','3.0,4e-09\n'])
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToFileDispatchJson(self):
+        fd, fileName = tempfile.mkstemp(suffix='.json')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9])
+            original.WriteToFile(fileName)
+            with open(fileName,'r') as f:
+                data=json.load(f)
+            self.assertEqual(data['x'],[1.0,2.0,3.0])
+            self.assertEqual(data['y'],[2.0e-9,3.0e-9,4.0e-9])
+        finally:
+            os.remove(fileName)
+
+    def testSpectralDensityWriteToFileDispatchTxt(self):
+        fd, fileName = tempfile.mkstemp(suffix='.txt')
+        try:
+            os.close(fd)
+            original=si.fd.SpectralDensity([1.0,2.0,3.0],[2.0e-9,3.0e-9,4.0e-9],Keven=False)
+            original.WriteToFile(fileName)
+            readback=si.fd.SpectralDensity(Keven=False).ReadFromFile(fileName)
+            self.assertEqual(readback,original)
+            self.assertFalse(readback.Keven)
+        finally:
+            os.remove(fileName)
 
     def testWhiteNoiseConfigurationVSquaredUnits(self):
         from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration

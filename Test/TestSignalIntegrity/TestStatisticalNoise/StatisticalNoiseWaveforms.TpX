@@ -74,7 +74,39 @@
 %  <polygon fill="black">113.167,-77 117.833,-77 115.5,-79.333 113.167,-77</polygon>
 %  <polyline lc="black">115.5,-63 115.5,-66.5</polyline>
 %  <text x="120.75" y="-71" t="VN3" h="3" halign="l" lc="black"/>
+%  <polyline lw="3" lc="black">147,-59.5 145.25,-61.25</polyline>
+%  <polyline lc="black">145.25,-61.25 143.5,-63</polyline>
+%  <text x="147" y="-58.5" t="VO6" h="3" halign="l" lc="black"/>
+%  <polyline lc="black">144.375,-58.625 142.625,-60.375</polyline>
+%  <polyline lc="black">144.375,-60.375 142.625,-58.625</polyline>
+%  <polyline lc="black">143.5,-63 143.5,-59.5</polyline>
+%  <text x="143.5" y="-71" t="" tex="$\sigma$" h="3" halign="c" lc="black"/>
+%  <ellipse x="143.5" y="-70" dx="7" dy="-7" lc="black"/>
+%  <polyline lc="black">142.844,-67.812 144.156,-67.812</polyline>
+%  <polyline lc="black">143.5,-67.156 143.5,-68.469</polyline>
+%  <polyline lc="black">142.844,-72.188 144.156,-72.188</polyline>
+%  <polyline lc="black">143.5,-73.5 143.5,-77</polyline>
+%  <polygon fill="black">141.167,-77 145.833,-77 143.5,-79.333 141.167,-77</polygon>
+%  <polyline lc="black">143.5,-63 143.5,-66.5</polyline>
+%  <text x="148.75" y="-71" t="VN4" h="3" halign="l" lc="black"/>
+%  <polyline lw="3" lc="black">171.5,-59.5 169.75,-61.25</polyline>
+%  <polyline lc="black">169.75,-61.25 168,-63</polyline>
+%  <text x="171.5" y="-58.5" t="VO7" h="3" halign="l" lc="black"/>
+%  <polyline lc="black">168.875,-58.625 167.125,-60.375</polyline>
+%  <polyline lc="black">168.875,-60.375 167.125,-58.625</polyline>
+%  <polyline lc="black">168,-63 168,-59.5</polyline>
+%  <text x="168" y="-71" t="" tex="$\sigma$" h="3" halign="c" lc="black"/>
+%  <ellipse x="168" y="-70" dx="7" dy="-7" lc="black"/>
+%  <polyline lc="black">167.344,-67.812 168.656,-67.812</polyline>
+%  <polyline lc="black">168,-67.156 168,-68.469</polyline>
+%  <polyline lc="black">167.344,-72.188 168.656,-72.188</polyline>
+%  <polyline lc="black">168,-73.5 168,-77</polyline>
+%  <polygon fill="black">165.667,-77 170.333,-77 168,-79.333 165.667,-77</polygon>
+%  <polyline lc="black">168,-63 168,-66.5</polyline>
+%  <text x="173.25" y="-71" t="VN5" h="3" halign="l" lc="black"/>
+%  <ellipse x="143.5" y="-63" dx="0.875" dy="-0.875" lc="black" fill="black"/>
 %  <ellipse x="70" y="-28" dx="0.875" dy="-0.875" lc="black" fill="black"/>
+%  <ellipse x="168" y="-63" dx="0.875" dy="-0.875" lc="black" fill="black"/>
 %  <ellipse x="115.5" y="-63" dx="0.875" dy="-0.875" lc="black" fill="black"/>
 %  <ellipse x="115.5" y="-28" dx="0.875" dy="-0.875" lc="black" fill="black"/>
 %  <ellipse x="24.5" y="-63" dx="0.875" dy="-0.875" lc="black" fill="black"/>
@@ -157,7 +189,39 @@
 \path[line width=0.30mm, fill=black] (113.167,-77) -- (117.833,-77) -- (115.5,-79.333) -- (113.167,-77) -- cycle;
 \path[line width=0.30mm, draw=black] (115.5,-63) -- (115.5,-66.5);
 \draw[black] (120.75,-71) node[anchor=base west]{VN3};
+\path[line width=0.9mm, draw=black] (147,-59.5) -- (145.25,-61.25);
+\path[line width=0.30mm, draw=black] (145.25,-61.25) -- (143.5,-63);
+\draw[black] (147,-58.5) node[anchor=base west]{VO6};
+\path[line width=0.30mm, draw=black] (144.375,-58.625) -- (142.625,-60.375);
+\path[line width=0.30mm, draw=black] (144.375,-60.375) -- (142.625,-58.625);
+\path[line width=0.30mm, draw=black] (143.5,-63) -- (143.5,-59.5);
+\draw[black] (143.5,-71) node[anchor=base]{$\sigma$};
+\path[line width=0.30mm, draw=black] (143.5,-70) ellipse (3.5mm and -3.5mm);
+\path[line width=0.30mm, draw=black] (142.844,-67.812) -- (144.156,-67.812);
+\path[line width=0.30mm, draw=black] (143.5,-67.156) -- (143.5,-68.469);
+\path[line width=0.30mm, draw=black] (142.844,-72.188) -- (144.156,-72.188);
+\path[line width=0.30mm, draw=black] (143.5,-73.5) -- (143.5,-77);
+\path[line width=0.30mm, fill=black] (141.167,-77) -- (145.833,-77) -- (143.5,-79.333) -- (141.167,-77) -- cycle;
+\path[line width=0.30mm, draw=black] (143.5,-63) -- (143.5,-66.5);
+\draw[black] (148.75,-71) node[anchor=base west]{VN4};
+\path[line width=0.9mm, draw=black] (171.5,-59.5) -- (169.75,-61.25);
+\path[line width=0.30mm, draw=black] (169.75,-61.25) -- (168,-63);
+\draw[black] (171.5,-58.5) node[anchor=base west]{VO7};
+\path[line width=0.30mm, draw=black] (168.875,-58.625) -- (167.125,-60.375);
+\path[line width=0.30mm, draw=black] (168.875,-60.375) -- (167.125,-58.625);
+\path[line width=0.30mm, draw=black] (168,-63) -- (168,-59.5);
+\draw[black] (168,-71) node[anchor=base]{$\sigma$};
+\path[line width=0.30mm, draw=black] (168,-70) ellipse (3.5mm and -3.5mm);
+\path[line width=0.30mm, draw=black] (167.344,-67.812) -- (168.656,-67.812);
+\path[line width=0.30mm, draw=black] (168,-67.156) -- (168,-68.469);
+\path[line width=0.30mm, draw=black] (167.344,-72.188) -- (168.656,-72.188);
+\path[line width=0.30mm, draw=black] (168,-73.5) -- (168,-77);
+\path[line width=0.30mm, fill=black] (165.667,-77) -- (170.333,-77) -- (168,-79.333) -- (165.667,-77) -- cycle;
+\path[line width=0.30mm, draw=black] (168,-63) -- (168,-66.5);
+\draw[black] (173.25,-71) node[anchor=base west]{VN5};
+\path[line width=0.30mm, draw=black, fill=black] (143.5,-63) ellipse (0.438mm and -0.438mm);
 \path[line width=0.30mm, draw=black, fill=black] (70,-28) ellipse (0.438mm and -0.438mm);
+\path[line width=0.30mm, draw=black, fill=black] (168,-63) ellipse (0.438mm and -0.438mm);
 \path[line width=0.30mm, draw=black, fill=black] (115.5,-63) ellipse (0.438mm and -0.438mm);
 \path[line width=0.30mm, draw=black, fill=black] (115.5,-28) ellipse (0.438mm and -0.438mm);
 \path[line width=0.30mm, draw=black, fill=black] (24.5,-63) ellipse (0.438mm and -0.438mm);
