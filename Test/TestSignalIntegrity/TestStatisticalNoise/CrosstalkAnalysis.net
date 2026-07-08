@@ -1,16 +1,18 @@
 device R5 2 R 50.0
 device R7 1 R 50.0
 voltagesource VG1 1
-voltagenoisesource VN1 2
+voltagenoisesource XTALK 2
 device F1 2 gaussianrisetimefilter 18.2e-12 rt_type 1090
 device F2 2 ffe -0.1,0.8,-0.1 td 18.868e-12 pre 1
 device O1 1 open
-voltagenoisesource VN2 2
+voltagenoisesource COM-RX 2
+voltagenoisesource RX-ADC 2
 connect F1 2 R5 1
-connect R5 2 R7 1 VN1 1
-voltageoutput Unequalized VN2 2
-connect VN2 2 F2 1
+connect R5 2 R7 1 XTALK 1
+voltageoutput Unequalized F2 1
+connect F2 1 RX-ADC 2
 connect F1 1 VG1 1
-connect VN1 2 VN2 1
+connect XTALK 2 COM-RX 1
 eyeprobe Equalized F2 2
 connect F2 2 O1 1
+connect COM-RX 2 RX-ADC 1

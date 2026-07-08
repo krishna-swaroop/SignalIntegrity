@@ -342,6 +342,10 @@ class PartPropertySections(PartProperty):
     def __init__(self,sections=1.):
         PartProperty.__init__(self,'sections',type='float',unit='',keyword='sect',description='sections',value=sections,visible=True,keywordVisible=False)
 
+class PartPropertyLanes(PartProperty):
+    def __init__(self,lanes=1.):
+        PartProperty.__init__(self,'lanes',type='float',unit='',keyword='lanes',description='number of lanes',value=lanes,visible=True,keywordVisible=False)
+
 class PartPropertyScale(PartProperty):
     def __init__(self,scale=1):
         PartProperty.__init__(self,'scale',type='float',unit='',keyword='scale',description='scale',value=scale,visible=False,keywordVisible=True)

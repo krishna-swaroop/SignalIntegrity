@@ -465,9 +465,11 @@ class DeviceProperties(tk.Frame):
             else:
                 if self.device.netlist['DeviceName']=='device':
                     self.partViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
-                elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource','voltagenoisesource']:
+                elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource']:
                     if not self.device['wftype'].GetValue() == 'DC':
                         self.waveformViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
+                elif self.device.netlist['DeviceName'] == 'voltagenoisesource':
+                    self.noiseViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
         if self.isAProjectDevice:
             self.variablesButton.pack(side=tk.TOP,expand=tk.NO,fill=tk.X)
         try:

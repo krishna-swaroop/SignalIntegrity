@@ -1826,13 +1826,14 @@ class DeviceVoltageStatisticalNoiseSourceProject(Device):
             PartPropertyWaveformFileName(),
             PartPropertyShow(),
             PartPropertyWaveformType('statistical'),
-            PartPropertyWaveformProjectName('')]+propertiesList,partPicture)
+            PartPropertyWaveformProjectName(''),
+            PartPropertyLanes(1.)]+propertiesList,partPicture)
     def SpectralDensity(self):
         from SignalIntegrity.App.SignalIntegrityAppHeadless import ProjectNoise
         args=SignalIntegrity.App.Project['Variables'].Dictionary(self.variablesList)
         if self['calcprop'].GetValue() == 'true':
             args.update(SignalIntegrity.App.Project['CalculationProperties'].Dictionary())
-        return ProjectNoise(self['wffile']['Value'],self['wfprojname']['Value'],None,**args)
+        return ProjectNoise(self['wffile']['Value'],self['wfprojname']['Value'],None,lanes=self['lanes'].GetValue(),**args)
 
 class Devices(list):
     def __init__(self,devices):
@@ -1958,7 +1959,6 @@ DeviceList=Devices([
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Two Port Voltage Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
                 DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('One Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
                 DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),])
-
 DeviceListUnknown = Devices([
                 DeviceUnknown([PartPropertyDescription('One Port Unknown'),PartPropertyPorts(1)],PartPictureVariableUnknown(1)),
                 DeviceUnknown([PartPropertyDescription('Two Port Unknown'),PartPropertyPorts(2)],PartPictureVariableUnknown(2)),
@@ -1966,7 +1966,6 @@ DeviceListUnknown = Devices([
                 DeviceUnknown([PartPropertyDescription('Four Port Unknown'),PartPropertyPorts(4)],PartPictureVariableUnknown(4)),
                 DeviceUnknown([PartPropertyDescription('Variable Port Unknown'),PartPropertyPorts(4,False)],PartPictureVariableUnknown()),
                 ])
-
 DeviceListSystem = Devices([
                 DeviceSystem([PartPropertyDescription('One Port System'),PartPropertyPorts(1)],PartPictureVariableSystem(1)),
                 DeviceSystem([PartPropertyDescription('Two Port System'),PartPropertyPorts(2)],PartPictureVariableSystem(2)),
@@ -1974,4 +1973,3 @@ DeviceListSystem = Devices([
                 DeviceSystem([PartPropertyDescription('Four Port System'),PartPropertyPorts(4)],PartPictureVariableSystem(4)),
                 DeviceSystem([PartPropertyDescription('Variable Port System'),PartPropertyPorts(4,False)],PartPictureVariableSystem()),
                 ])
-

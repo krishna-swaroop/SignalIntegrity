@@ -19,6 +19,7 @@ SignalIntegrityAppHeadless.py
 # If not, see <https://www.gnu.org/licenses/>
 import sys
 import os
+import math
 
 from SignalIntegrity.App.Files import FileParts
 from SignalIntegrity.App.Schematic import Schematic
@@ -1022,7 +1023,7 @@ def ProjectWaveform(filename,wfname,callback,**kwargs):
             return None
     return wf
 
-def ProjectNoise(filename,noise_name,callback,**kwargs):
+def ProjectNoise(filename,noise_name,callback,lanes=1.,**kwargs):
     if callback != None:
         if not callback(0,'+'+FileParts(filename).FileNameTitle()):
             return None
@@ -1042,6 +1043,12 @@ def ProjectNoise(filename,noise_name,callback,**kwargs):
                     sd = result['noise']['output_noise_spectral_density'][noise_name]['spectrum']
                 except:
                     sd = result['output waveforms'][result['output waveform labels'].index(noise_name)].SpectralDensity()
+                lane_scale = math.sqrt(max(float(lanes),0.))
+                if lane_scale != 1. and not sd is None:
+                    try:
+                        sd = type(sd)(sd.FrequencyList(),[value*lane_scale for value in sd.Values()],sd.Keven)
+                    except:
+                        sd = type(sd)(sd.FrequencyList(),[value*lane_scale for value in sd.Values()])
     except:
         pass
     SignalIntegrityAppHeadless.projectStack.Pull(level)
@@ -1150,4 +1157,3 @@ def ProjectModificationTime(modificationTimeDict,fileName,args=None):
             return result
     modificationTimeDict[[file['name'] for file in modificationTimeDict].index(os.path.abspath(fileName))]['traversed']=True
     return modificationTimeDict
-
