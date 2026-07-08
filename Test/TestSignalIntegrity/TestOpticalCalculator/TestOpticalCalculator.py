@@ -95,9 +95,14 @@ class TestOpticalCalculatorTest(unittest.TestCase):
             showit=True
             if showit:
                 plt.show(block=False)
-                plt.pause(1.0)
+                plt.pause(5.0)
         finally:
             plt.close(fig)
+            del fig
+            del ax
+            del picture
+            del plt
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

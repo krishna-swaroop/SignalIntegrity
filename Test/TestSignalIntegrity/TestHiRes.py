@@ -30,6 +30,9 @@ class TestHiRes(unittest.TestCase,si.test.RoutineWriterTesterHelper,
         si.test.RoutineWriterTesterHelper.__init__(self)
         si.test.SignalIntegrityAppTestHelper.__init__(self,os.path.dirname(os.path.realpath(__file__)))
         unittest.TestCase.__init__(self,methodName)
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
     def testHiRes2(self):
         # pragma: exclude
         os.chdir(os.path.dirname(os.path.realpath(__file__)))

@@ -35,6 +35,9 @@ class TestRLGCLevMar(unittest.TestCase,si.test.SignalIntegrityAppTestHelper,
         si.test.RoutineWriterTesterHelper.__init__(self)
     def setUp(self):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
     def testWriteRLGCFit(self):
         import os
         self.WriteCode(os.path.basename(__file__).split('.')[0]+'.py', 'TlineFit', [], printFuncName=True)

@@ -59,36 +59,40 @@ class TestSplines(unittest.TestCase):
         self.assertTrue(maxError<1e-10,'spline polynomial read/write wrong')
 
         import matplotlib.pyplot as plt
-        K=100
-        x2=[float(k)/K*32. for k in range(100)]
-        y2=[P.Evaluate(x2i) for x2i in x2]
-        plt.plot(x,y)
-        plt.plot(x2,y2)
-        plt.title('TestSplines')
-        #plt.show()
+        fig = plt.figure(1)
+        try:
+            K=100
+            x2=[float(k)/K*32. for k in range(100)]
+            y2=[P.Evaluate(x2i) for x2i in x2]
+            plt.plot(x,y)
+            plt.plot(x2,y2)
+            plt.title('TestSplines')
+            #plt.show()
 
-        epsilon = 0.000000001
-        plt.cla()
-        y3=[P.EvaluateDerivative(x2i) for x2i in x2]
-        y3approx=[(P.Evaluate(x2i+epsilon)-P.Evaluate(x2i))/epsilon for x2i in x2]
-        plt.plot(x2,y3)
-        plt.plot(x2,y3approx)
-        plt.title('TestSplines')
-        #plt.show()
+            epsilon = 0.000000001
+            plt.cla()
+            y3=[P.EvaluateDerivative(x2i) for x2i in x2]
+            y3approx=[(P.Evaluate(x2i+epsilon)-P.Evaluate(x2i))/epsilon for x2i in x2]
+            plt.plot(x2,y3)
+            plt.plot(x2,y3approx)
+            plt.title('TestSplines')
+            #plt.show()
 
-        maxError=max([absolute(y3approxi-y3i) for (y3approxi,y3i) in zip(y3approx,y3)])
-        self.assertTrue(maxError<1e-4,'spline polynomial derivative wrong')
+            maxError=max([absolute(y3approxi-y3i) for (y3approxi,y3i) in zip(y3approx,y3)])
+            self.assertTrue(maxError<1e-4,'spline polynomial derivative wrong')
 
-        plt.cla()
-        y4=[P.EvaluateSecondDerivative(x2i) for x2i in x2]
-        y4approx=[(P.EvaluateDerivative(x2i+epsilon)-P.EvaluateDerivative(x2i))/epsilon for x2i in x2]
-        plt.plot(x2,y4)
-        plt.plot(x2,y4approx)
-        plt.title('TestSplines')
-        #plt.show()
+            plt.cla()
+            y4=[P.EvaluateSecondDerivative(x2i) for x2i in x2]
+            y4approx=[(P.EvaluateDerivative(x2i+epsilon)-P.EvaluateDerivative(x2i))/epsilon for x2i in x2]
+            plt.plot(x2,y4)
+            plt.plot(x2,y4approx)
+            plt.title('TestSplines')
+            #plt.show()
 
-        maxError=max([absolute(y4approxi-y4i) for (y4approxi,y4i) in zip(y4approx,y4)])
-        self.assertTrue(maxError<1e-4,'spline polynomial second derivative wrong')
+            maxError=max([absolute(y4approxi-y4i) for (y4approxi,y4i) in zip(y4approx,y4)])
+            self.assertTrue(maxError<1e-4,'spline polynomial second derivative wrong')
+        finally:
+            plt.close(fig)
 
 if __name__ == '__main__':
     unittest.main()

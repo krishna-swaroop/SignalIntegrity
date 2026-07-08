@@ -42,6 +42,7 @@ class TestDwellTimeTest(unittest.TestCase,si.test.SParameterCompareHelper,
         #self.forceWritePictures=True
     def tearDown(self):
         os.chdir(self.cwd)
+        plt.close('all')
         unittest.TestCase.tearDown(self)
     def testDwellTime(self):
         filename='DwellTime.si'

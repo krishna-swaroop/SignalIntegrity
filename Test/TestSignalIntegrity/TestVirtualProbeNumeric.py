@@ -32,6 +32,7 @@ class TestVirtualProbeNumeric(unittest.TestCase,si.test.ResponseTesterHelper):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
     def tearDown(self):
         si.td.wf.Waveform.adaptionStrategy='SinX'
+        plt.close('all')
     def testVirtualProbeDC2008(self):
         si.td.wf.Waveform.adaptionStrategy='SinX'
         fileNameBase=self.id().split('.')[0]+'_'+self.id().split('.')[2]

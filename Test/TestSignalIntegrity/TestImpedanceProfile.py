@@ -34,6 +34,8 @@ class TestImpedanceProfile(unittest.TestCase,si.test.SParameterCompareHelper,
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
     def tearDown(self):
         si.td.wf.Waveform.adaptionStrategy='SinX'
+        import matplotlib.pyplot as plt
+        plt.close('all')
     def __init__(self, methodName='runTest'):
         si.test.SParameterCompareHelper.__init__(self)
         unittest.TestCase.__init__(self,methodName)

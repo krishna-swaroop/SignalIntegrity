@@ -25,6 +25,9 @@ import SignalIntegrity.Lib as si
 from numpy import array
 
 class TestNewtonsMethodTests(unittest.TestCase,si.test.RoutineWriterTesterHelper):
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
     def fsqrt(self,y,x):
         return 0.5*(x*x+y)/x
     def newtonSqrtIterate(self,y,x,I):

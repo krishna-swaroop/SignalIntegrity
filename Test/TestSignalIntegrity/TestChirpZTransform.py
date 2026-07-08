@@ -30,6 +30,9 @@ class TestChirpZTransform(unittest.TestCase,si.test.SParameterCompareHelper):
         unittest.TestCase.__init__(self,methodName)
     def setUp(self):
         os.chdir(self.path)
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
     def testCZTResampleSame(self):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         sf=si.sp.SParameterFile('TestDut.s4p',50.)

@@ -50,6 +50,10 @@ def hex_to_int(h):
     return eval('0x'+h)
    
 class TestWavelets(unittest.TestCase):
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
+
     def testDWT(self):
         K=16
         x=[k for k in range(K)]
