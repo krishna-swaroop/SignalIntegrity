@@ -32,6 +32,19 @@ def DiffNoiseInserter():
     The device passes the differential signal from ports 1-2 through to
     ports 3-4 and simultaneously injects the differential noise from
     ports 5-6 into the output.
+
+    It is formed by placing two voltage mixed-mode converters back-to-back,
+    connecting the common-mode ports together.  The statistical noise source
+    is then connected between the differential ports, having the final effect
+    of adding the noise to the differential signal.
+
+             +--------+                 +--------+
+      1 >----+ +    D +---< 5     6 >---+ D    + +----< 3
+             |        |                 |        |
+             |    V   |                 |    V   |
+             |        |                 |        |
+      2 >----+ -    C +-----------------+ C    - +----< 4
+             +--------+                 +--------+
     """
     return [[ 0. ,  0. ,  0.5,  0.5,  0.5,  0. ],
             [ 0. ,  0. ,  0.5,  0.5, -0.5,  0. ],

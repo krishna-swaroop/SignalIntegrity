@@ -273,6 +273,7 @@ class Simulator(object):
             for device in self.parent.Drawing.schematic.deviceList:
                 if device['partname'].GetValue() in ['EyeProbe','DifferentialEyeProbe','EyeWaveform']:
                     if device['ref'].GetValue() == outputWaveformLabel:
+                        device.configuration.SetExternalNoise(sna.Noise(outputWaveformLabel))
                         if device['eyestate'].GetValue() == 'on':
                             eyeDict={'Name':outputWaveformLabel,
                                      'BaudRate':device['br'].GetValue(),
