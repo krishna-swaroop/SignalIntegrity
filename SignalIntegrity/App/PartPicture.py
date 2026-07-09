@@ -2508,11 +2508,58 @@ class PartPictureDifferentialNoiseSource(PartPictureBox):
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
         PartPictureBox.__init__(self,origin,[PartPin(1,(0,1),'l',False,True,True),PartPin(2,(0,3),'l',False,True,True),PartPin(3,(4,1),'r',False,True,True),PartPin(4,(4,3),'r',False,True,True)],[(1,0),(3,4)],[(0,0),(4,4)],(2,-0.5),orientation,mirroredHorizontally,mirroredVertically)
     def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
+        # draw rounded rectangle for the device body and then the usual symbols
+        ct=self.CoordinateTranslater(grid,drawingOrigin)
+        # inner box coordinates (matching constructor: [(1,0),(3,4)])
+        left=(drawingOrigin[0]+self.origin[0]+1)*grid
+        right=(drawingOrigin[0]+self.origin[0]+3)*grid
+        top=(drawingOrigin[1]+self.origin[1]+0)*grid
+        bottom=(drawingOrigin[1]+self.origin[1]+4)*grid
+        # corner radius (use half a grid for a gentle rounding)
+        r=grid/2.0
+
+        # bounding boxes for quarter-circle arcs at each corner
+        tl_bbox=(left, top, left+2*r, top+2*r)
+        tr_bbox=(right-2*r, top, right, top+2*r)
+        br_bbox=(right-2*r, bottom-2*r, right, bottom)
+        bl_bbox=(left, bottom-2*r, left+2*r, bottom)
+
+        # convert arc start/extent for orientation/mirroring
+        r_tl=self.ArcConverter(90,90,int(ct.rotationAngle),ct.mirroredVertically,ct.mirroredHorizontally)
+        r_tr=self.ArcConverter(0,90,int(ct.rotationAngle),ct.mirroredVertically,ct.mirroredHorizontally)
+        r_br=self.ArcConverter(270,90,int(ct.rotationAngle),ct.mirroredVertically,ct.mirroredHorizontally)
+        r_bl=self.ArcConverter(180,90,int(ct.rotationAngle),ct.mirroredVertically,ct.mirroredHorizontally)
+
+        # draw corner arcs
+        p0=ct.Translate((tl_bbox[0],tl_bbox[1])); p1=ct.Translate((tl_bbox[2],tl_bbox[3]))
+        canvas.create_arc(p0[0],p0[1],p1[0],p1[1],start=r_tl[0],extent=r_tl[1],style='arc',outline=self.color)
+        p0=ct.Translate((tr_bbox[0],tr_bbox[1])); p1=ct.Translate((tr_bbox[2],tr_bbox[3]))
+        canvas.create_arc(p0[0],p0[1],p1[0],p1[1],start=r_tr[0],extent=r_tr[1],style='arc',outline=self.color)
+        p0=ct.Translate((br_bbox[0],br_bbox[1])); p1=ct.Translate((br_bbox[2],br_bbox[3]))
+        canvas.create_arc(p0[0],p0[1],p1[0],p1[1],start=r_br[0],extent=r_br[1],style='arc',outline=self.color)
+        p0=ct.Translate((bl_bbox[0],bl_bbox[1])); p1=ct.Translate((bl_bbox[2],bl_bbox[3]))
+        canvas.create_arc(p0[0],p0[1],p1[0],p1[1],start=r_bl[0],extent=r_bl[1],style='arc',outline=self.color)
+
+        # draw straight edges between the arcs
+        top_l=ct.Translate((left+r, top))
+        top_r=ct.Translate((right-r, top))
+        bot_l=ct.Translate((left+r, bottom))
+        bot_r=ct.Translate((right-r, bottom))
+        left_t=ct.Translate((left, top+r))
+        left_b=ct.Translate((left, bottom-r))
+        right_t=ct.Translate((right, top+r))
+        right_b=ct.Translate((right, bottom-r))
+
+        canvas.create_line(top_l[0],top_l[1],top_r[0],top_r[1],fill=self.color)
+        canvas.create_line(bot_l[0],bot_l[1],bot_r[0],bot_r[1],fill=self.color)
+        canvas.create_line(left_t[0],left_t[1],left_b[0],left_b[1],fill=self.color)
+        canvas.create_line(right_t[0],right_t[1],right_b[0],right_b[1],fill=self.color)
+
+        # draw the plus/minus and sigma text as before (use inset positions)
         lx=(drawingOrigin[0]+self.origin[0]+1)*grid+grid/2
         ty=(drawingOrigin[1]+self.origin[1]+1)*grid
         rx=(drawingOrigin[0]+self.origin[0]+3)*grid-grid/2
         by=(drawingOrigin[1]+self.origin[1]+3)*grid
-        ct=self.CoordinateTranslater(grid,drawingOrigin)
         p=[ct.Translate((lx,ty)),
            ct.Translate((lx,by)),
            ct.Translate((rx,ty)),
@@ -2523,7 +2570,9 @@ class PartPictureDifferentialNoiseSource(PartPictureBox):
         canvas.create_text(p[2][0],p[2][1],text='+',fill=self.color)
         canvas.create_text(p[3][0],p[3][1],text='-',fill=self.color)
         canvas.create_text(p[4][0],p[4][1],text=u"\u03C3",fill=self.color)
-        PartPictureBox.DrawDevice(self,device,canvas,grid,drawingOrigin,connected)
+
+        # draw pins and other decorations but skip the default inner rectangle
+        PartPicture.DrawDevice(self,device,canvas,grid,drawingOrigin,False,connected)
 
 class PartPictureVariableDifferentialNoiseSource(PartPictureVariable):
     def __init__(self):
