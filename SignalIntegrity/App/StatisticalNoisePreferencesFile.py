@@ -133,18 +133,35 @@ class JohnsonNoiseConfiguration(XMLConfiguration):
             fl,
             [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
 
+class CrosstalkNoiseFromProbeConfiguration(XMLConfiguration):
+    def __init__(self):
+        super().__init__('Crosstalk')
+        self.Add(XMLPropertyDefaultString('ProbeName',''))
+    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        if output_waveforms is None or output_waveform_names is None:
+            return SpectralDensity(fl, [0.0 for _ in fl])
+        probe_name = self['ProbeName']
+        if probe_name in output_waveform_names:
+            waveform = output_waveforms[output_waveform_names.index(probe_name)]
+            return waveform.SpectralDensity(fl)
+        return SpectralDensity(fl, [0.0 for _ in fl])
+
 class NoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('Noise')
         self.Add(XMLPropertyDefaultBool('Enable',False))
-        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', or 'WaveformFile'
+        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', 'Johnson', or 'Crosstalk'
         self.SubDir(WhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
         self.SubDir(JohnsonNoiseConfiguration())
+        self.SubDir(CrosstalkNoiseFromProbeConfiguration())
         self['Johnson'].wn_property = self['WhiteNoise']
         self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
-    def SpectralDensity(self, EndFrequency, FrequencyPoints):
+    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         import math
@@ -161,4 +178,10 @@ class NoiseConfiguration(XMLConfiguration):
             return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'Johnson':
             return self['Johnson'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+        if noiseType == 'Crosstalk':
+            return self['Crosstalk'].SpectralDensity(
+                EndFrequency,
+                FrequencyPoints,
+                output_waveforms=output_waveforms,
+                output_waveform_names=output_waveform_names)*math.sqrt(lanes)
         raise ValueError(f'Unknown noise type: {noiseType}')

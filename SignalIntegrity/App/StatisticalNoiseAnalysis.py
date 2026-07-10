@@ -51,7 +51,9 @@ class StatisticalNoiseAnalysis(dict):
                 for device in schematic.deviceList:
                     if device['partname'].GetValue() in ['VoltageStatisticaLNoiseSource','VoltageStatisticaLNoiseSourceProject']:
                         if device['ref'].GetValue() == noise_source_ref:
-                            sd = device.SpectralDensity().Resample(fl)
+                            sd = device.SpectralDensity(
+                                output_waveforms=output_waveforms,
+                                output_waveform_names=output_waveform_names).Resample(fl)
                             inputNoiseSpectralDensityList.append(sd)
                             break
 

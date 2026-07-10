@@ -28,7 +28,7 @@ import SignalIntegrity.App.Project
 from SignalIntegrity.App.Files import FileParts
 
 class StatisticalNoisePropertiesDialog(PropertiesDialog):
-    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Johnson','Johnson')]
+    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Johnson','Johnson'),('Crosstalk (From Probe)','Crosstalk')]
     SpecificationTypeChoices=[('dBm/Hz','dBm/Hz'),('V/sqrt(Hz)','V/sqrt(Hz)'),('V^2/GHz (η0)','V^2/GHz'),('Vrms','Vrms'),('ENOB','ENOB'),('COM TX','COM TX')]
     def __init__(self,project,parent):
         PropertiesDialog.__init__(self,parent,project,parent.parent,'Statistical Noise Properties')
@@ -44,8 +44,10 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.JohnsonNoiseFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
         self.JohnsonNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        self.CrosstalkFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
+        self.CrosstalkFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.Enable=CalculationPropertyTrueFalseButton(self.GeneralFrame,'Enable Noise',self.onUpdateFromChanges,None,self.project,'Enable',tooltip='Enable noise generation for this device')
-        self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip="Allowed values: 'WhiteNoise', 'SpectralDensityFile', or 'WaveformFile'.")
+        self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip="Allowed values: 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', 'Johnson', or 'Crosstalk'.")
         self.Lanes=CalculationProperty(self.GeneralFrame,'Lanes',self.onUpdateFromChanges,None,self.project,'Lanes',tooltip='number of lanes of noise for this source')
         self.WhiteNoisePerLaneLabel = tk.Label(self.WhiteNoiseFrame, text='Per lane:')
         self.WhiteNoisePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
@@ -71,6 +73,7 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.Temperature=CalculationPropertySI(self.JohnsonNoiseFrame,'Temperature (K)',self.onUpdateFromChanges,None,self.project,'Johnson.Temperature_Kelvin','K',round=3,tooltip='Temperature in Kelvin (default: 25 C).')
         self.Resistance=CalculationPropertySI(self.JohnsonNoiseFrame,'Resistance (ohm)',self.onUpdateFromChanges,None,self.project,'Johnson.Resistance','ohm',round=3,tooltip='Resistance in ohms (default: 50 ohms).')
         self.JohnsonNoiseBandwidth=CalculationPropertySI(self.JohnsonNoiseFrame,'Noise Bandwidth',self.onNoiseBandwidthChanged,None,self.project,'WhiteNoise.NoiseBandwidth','Hz')
+        self.CrosstalkProbeName=CalculationProperty(self.CrosstalkFrame,'Probe Name',self.onUpdateFromChanges,None,self.project,'Crosstalk.ProbeName',tooltip='Output probe name to use as the crosstalk noise waveform source.')
         self.SaveToPreferencesFrame=tk.Frame(self.propertyListFrame,relief=tk.RIDGE, borderwidth=5)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesButton = tk.Button(self.SaveToPreferencesFrame,text='Save Properties to Global Preferences',command=self.onSaveToPreferences,width=CalculationProperty.labelWidth)
@@ -90,6 +93,7 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
         self.SpectralDensityFileFrame.pack_forget()
         self.WaveformFileFrame.pack_forget()
         self.JohnsonNoiseFrame.pack_forget()
+        self.CrosstalkFrame.pack_forget()
         self.SaveToPreferencesFrame.pack_forget()
         self.NoiseType.Show(enable)
         self.Lanes.Show(enable)
@@ -102,6 +106,8 @@ class StatisticalNoisePropertiesDialog(PropertiesDialog):
                 self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
             elif noiseType=='Johnson':
                 self.JohnsonNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+            elif noiseType=='Crosstalk':
+                self.CrosstalkFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SpecificationType.Show(True)
         self.NoisedBmPerHz.Show(specType=='dBm/Hz')
