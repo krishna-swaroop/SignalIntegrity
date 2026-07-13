@@ -349,7 +349,7 @@ class TestStatisticalNoiseTest(unittest.TestCase,
 
         # 2.5e-3 V^2/GHz corresponds to sqrt(2.5e-12) V/sqrt(Hz).
         expected_rho = math.sqrt(2.5e-12)
-        cfg['SpecificationType'] = 'V^2/GHz'
+        cfg['WhiteNoiseType'] = 'V^2/GHz'
         cfg['VSquaredPerGHz'] = 2.5e-3
         self.assertAlmostEqual(cfg.NoiseDensity(), expected_rho, places=18)
 
@@ -373,13 +373,17 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
 
         cfg = WhiteNoiseConfiguration()
-        cfg['SpecificationType'] = 'ENOB'
-        cfg['ENOB'] = 8.0
-        cfg['Vpp'] = 1.0
+        cfg['WhiteNoiseType'] = 'ENOB'
+        cfg['SNR.ENOB.ENOB'] = 8.0
+        cfg['SNR.Vpp'] = 1.0
         cfg['NoiseBandwidth'] = 20e9
 
-        snr_db = 6.02 * cfg['ENOB'] + 1.76
-        full_scale_sine_vrms = cfg['Vpp'] / (2.0 * math.sqrt(2.0))
+        self.assertEqual(cfg['SNR'].NoiseBandwidth(), cfg['NoiseBandwidth'])
+        self.assertEqual(cfg['SNR.ENOB'].Vpp(), cfg['SNR.Vpp'])
+        self.assertEqual(cfg['SNR.ENOB'].NoiseBandwidth(), cfg['NoiseBandwidth'])
+
+        snr_db = 6.02 * cfg['SNR.ENOB.ENOB'] + 1.76
+        full_scale_sine_vrms = cfg['SNR.Vpp'] / (2.0 * math.sqrt(2.0))
         expected_vrms = full_scale_sine_vrms / (10.0 ** (snr_db / 20.0))
         expected_rho = expected_vrms / math.sqrt(cfg['NoiseBandwidth'])
 
@@ -403,14 +407,17 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         from SignalIntegrity.Lib.TimeDomain.Filters.Risetime.Gaussian import Gaussian
 
         cfg = WhiteNoiseConfiguration()
-        cfg['SpecificationType'] = 'COM TX'
-        cfg['h0'] = 0.85
-        cfg['Vpp'] = 1.2
-        cfg['SNRdB'] = 33.0
+        cfg['WhiteNoiseType'] = 'COM TX'
+        cfg['SNR.COM_TX.h0'] = 0.85
+        cfg['SNR.Vpp'] = 1.2
+        cfg['SNR.COM_TX.SNRdB'] = 33.0
         cfg['NoiseBandwidth'] = 40e9
-        cfg['Risetime'] = 9e-12
+        cfg['SNR.COM_TX.Risetime'] = 9e-12
 
-        expected_vrms = cfg['h0'] * cfg['Vpp'] / 2.0 * (10.0 ** (-cfg['SNRdB'] / 20.0))
+        self.assertEqual(cfg['SNR.COM_TX'].Vpp(), cfg['SNR.Vpp'])
+        self.assertEqual(cfg['SNR.COM_TX'].NoiseBandwidth(), cfg['NoiseBandwidth'])
+
+        expected_vrms = cfg['SNR.COM_TX.h0'] * cfg['SNR.Vpp'] / 2.0 * (10.0 ** (-cfg['SNR.COM_TX.SNRdB'] / 20.0))
         expected_rho = expected_vrms / math.sqrt(cfg['NoiseBandwidth'])
         self.assertAlmostEqual(cfg.NoiseDensity(), expected_rho, places=18)
 
@@ -420,12 +427,56 @@ class TestStatisticalNoiseTest(unittest.TestCase,
 
         self.assertEqual(rho_values[0], 0.0)
         for i in range(1, len(rho_values)):
-            expected = expected_rho * math.exp(-2.0 * (math.pi * frequencies[i] * cfg['Risetime'] / Gaussian.a2080) ** 2)
+            expected = expected_rho * math.exp(-2.0 * (math.pi * frequencies[i] * cfg['SNR.COM_TX.Risetime'] / Gaussian.a2080) ** 2)
             self.assertAlmostEqual(rho_values[i], expected, places=18)
 
         cfg['NoiseBandwidth'] = 0.0
         with self.assertRaises(ValueError):
             cfg.NoiseDensity()
+
+    def testWhiteNoiseConfigurationJohnson(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
+        import scipy.constants as const
+
+        cfg = WhiteNoiseConfiguration()
+        cfg['WhiteNoiseType'] = 'Johnson'
+        cfg['Johnson.Temperature_Kelvin'] = 300.0
+        cfg['Johnson.Resistance'] = 50.0
+        cfg['NoiseBandwidth'] = 20e9
+
+        expected_rho = math.sqrt(4.0 * const.k * cfg['Johnson.Temperature_Kelvin'] * cfg['Johnson.Resistance'])
+        self.assertAlmostEqual(cfg.NoiseDensity(), expected_rho, places=18)
+
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho, places=18)
+        self.assertAlmostEqual(rho_values[2], expected_rho, places=18)
+        self.assertEqual(rho_values[3], 0.0)
+        self.assertEqual(rho_values[4], 0.0)
+        self.assertEqual(rho_values[5], 0.0)
+
+    def testNoiseConfigurationLegacyJohnsonType(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import NoiseConfiguration
+        import scipy.constants as const
+
+        cfg = NoiseConfiguration()
+        cfg['Enable'] = True
+        cfg['Type'] = 'Johnson'
+        cfg['Lanes'] = 4.0
+        cfg['WhiteNoise.Johnson.Temperature_Kelvin'] = 300.0
+        cfg['WhiteNoise.Johnson.Resistance'] = 50.0
+        cfg['WhiteNoise.NoiseBandwidth'] = 20e9
+
+        expected_rho = math.sqrt(4.0 * const.k * cfg['WhiteNoise.Johnson.Temperature_Kelvin'] * cfg['WhiteNoise.Johnson.Resistance'])
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho * 2.0, places=18)
+        self.assertAlmostEqual(rho_values[2], expected_rho * 2.0, places=18)
+        self.assertEqual(rho_values[3], 0.0)
+        self.assertEqual(rho_values[4], 0.0)
+        self.assertEqual(rho_values[5], 0.0)
 
     def testSalzSNR(self):
         """Test script for SalzSNRdB noise floor filtering"""

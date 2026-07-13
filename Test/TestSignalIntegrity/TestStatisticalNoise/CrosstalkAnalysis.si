@@ -473,31 +473,40 @@
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
-						<Johnson>
-							<Resistance>50.0</Resistance>
-							<Temperature_Kelvin>298.15</Temperature_Kelvin>
-						</Johnson>
 						<Lanes>1.0</Lanes>
 						<SpectralDensityFile>
-							<FileName></FileName>
+							<FileName />
 						</SpectralDensityFile>
 						<Type>WhiteNoise</Type>
 						<WaveformFile>
-							<FileName></FileName>
+							<FileName />
 						</WaveformFile>
 						<WhiteNoise>
-							<ENOB>0.0</ENOB>
 							<NoiseBandwidth>23500000000.0</NoiseBandwidth>
 							<NoisedBmPerHz>-157.85156151952302</NoisedBmPerHz>
-							<Risetime>0.0</Risetime>
-							<SNRdB>33.0</SNRdB>
-							<SpecificationType>V^2/GHz</SpecificationType>
+							<WhiteNoiseType>V^2/GHz</WhiteNoiseType>
 							<VPerRootHz>2.8635642126552704e-09</VPerRootHz>
 							<VRms>0.0004389760813529593</VRms>
 							<VSquaredPerGHz>8.199999999999999e-09</VSquaredPerGHz>
-							<Vpp>1.0</Vpp>
-							<h0>1.0</h0>
+							<Johnson>
+								<Resistance>50.0</Resistance>
+								<Temperature_Kelvin>298.15</Temperature_Kelvin>
+							</Johnson>
+							<SNR>
+								<COM_TX>
+									<Risetime>0.0</Risetime>
+									<SNRdB>33.0</SNRdB>
+									<h0>1.0</h0>
+								</COM_TX>
+								<ENOB>
+									<ENOB>0.0</ENOB>
+								</ENOB>
+								<Vpp>1.0</Vpp>
+							</SNR>
 						</WhiteNoise>
+						<Crosstalk>
+							<ProbeName />
+						</Crosstalk>
 					</Noise>
 					<PartPicture>
 						<Index>0</Index>
@@ -531,31 +540,40 @@
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
-						<Johnson>
-							<Resistance>50.0</Resistance>
-							<Temperature_Kelvin>298.15</Temperature_Kelvin>
-						</Johnson>
 						<Lanes>1.0</Lanes>
 						<SpectralDensityFile>
-							<FileName></FileName>
+							<FileName />
 						</SpectralDensityFile>
 						<Type>WhiteNoise</Type>
 						<WaveformFile>
-							<FileName></FileName>
+							<FileName />
 						</WaveformFile>
 						<WhiteNoise>
-							<ENOB>5.5</ENOB>
 							<NoiseBandwidth>23500000000.0</NoiseBandwidth>
 							<NoisedBmPerHz>-134.60127853599698</NoisedBmPerHz>
-							<Risetime>0.0</Risetime>
-							<SNRdB>37.88029995663981</SNRdB>
-							<SpecificationType>ENOB</SpecificationType>
+							<WhiteNoiseType>ENOB</WhiteNoiseType>
 							<VPerRootHz>4.163140571131424e-08</VPerRootHz>
 							<VRms>0.006381973646549406</VRms>
 							<VSquaredPerGHz>1.7331739415000478e-06</VSquaredPerGHz>
-							<Vpp>1.0</Vpp>
-							<h0>1.0</h0>
+							<Johnson>
+								<Resistance>50.0</Resistance>
+								<Temperature_Kelvin>298.15</Temperature_Kelvin>
+							</Johnson>
+							<SNR>
+								<COM_TX>
+									<Risetime>0.0</Risetime>
+									<SNRdB>37.88029995663981</SNRdB>
+									<h0>1.0</h0>
+								</COM_TX>
+								<ENOB>
+									<ENOB>5.5</ENOB>
+								</ENOB>
+								<Vpp>1.0</Vpp>
+							</SNR>
 						</WhiteNoise>
+						<Crosstalk>
+							<ProbeName />
+						</Crosstalk>
 					</Noise>
 					<PartPicture>
 						<Index>0</Index>
@@ -709,31 +727,40 @@
 					<ClassName>DeviceVoltageStatisticalNoiseSource</ClassName>
 					<Noise>
 						<Enable>True</Enable>
-						<Johnson>
-							<Resistance>50.0</Resistance>
-							<Temperature_Kelvin>298.15</Temperature_Kelvin>
-						</Johnson>
 						<Lanes>1.0</Lanes>
 						<SpectralDensityFile>
-							<FileName></FileName>
+							<FileName />
 						</SpectralDensityFile>
 						<Type>WhiteNoise</Type>
 						<WaveformFile>
-							<FileName></FileName>
+							<FileName />
 						</WaveformFile>
 						<WhiteNoise>
-							<ENOB>5.011279120186265</ENOB>
 							<NoiseBandwidth>22500000000.0</NoiseBandwidth>
 							<NoisedBmPerHz>-135.9073003902417</NoisedBmPerHz>
-							<Risetime>1e-11</Risetime>
-							<SNRdB>33.0</SNRdB>
-							<SpecificationType>COM TX</SpecificationType>
+							<WhiteNoiseType>COM TX</WhiteNoiseType>
 							<VPerRootHz>3.581953821709344e-08</VPerRootHz>
 							<VRms>0.005372930732564015</VRms>
 							<VSquaredPerGHz>1.2830393180858173e-06</VSquaredPerGHz>
-							<Vpp>0.6</Vpp>
-							<h0>0.8</h0>
+							<Johnson>
+								<Resistance>50.0</Resistance>
+								<Temperature_Kelvin>298.15</Temperature_Kelvin>
+							</Johnson>
+							<SNR>
+								<COM_TX>
+									<Risetime>1e-11</Risetime>
+									<SNRdB>33.0</SNRdB>
+									<h0>0.8</h0>
+								</COM_TX>
+								<ENOB>
+									<ENOB>5.011279120186265</ENOB>
+								</ENOB>
+								<Vpp>0.6</Vpp>
+							</SNR>
 						</WhiteNoise>
+						<Crosstalk>
+							<ProbeName />
+						</Crosstalk>
 					</Noise>
 					<PartPicture>
 						<Index>0</Index>

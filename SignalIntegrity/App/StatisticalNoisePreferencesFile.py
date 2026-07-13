@@ -20,27 +20,102 @@ StatisticalNoisePreferencesFile.py
 from SignalIntegrity.App.ProjectFileBase import XMLConfiguration,XMLPropertyDefaultString,XMLPropertyDefaultInt,XMLPropertyDefaultBool,XMLPropertyDefaultFloat,XMLPropertyDefaultFile
 import math
 
+class COM_TXConfiguration(XMLConfiguration):
+    def __init__(self, parent=None):
+        super().__init__('COM_TX')
+        self.parent = parent
+        self.Add(XMLPropertyDefaultFloat('h0', 1.0))       # COM TX FFE cursor tap height used to scale noise density.
+        self.Add(XMLPropertyDefaultFloat('SNRdB', 33.0))   # COM TX signal-to-noise ratio in dB used to derive noise.
+        self.Add(XMLPropertyDefaultFloat('Risetime', 0.0)) # COM TX transmitter 20-80 risetime in seconds used for Gaussian spectral shaping.
+
+    def NoiseBandwidth(self):
+        if self.parent is not None:
+            return self.parent.NoiseBandwidth()
+        return None
+
+    def Vpp(self):
+        if self.parent is not None:
+            return self.parent['Vpp']
+        return None
+
+    def noiseVrms(self):
+        return self['h0'] * self.Vpp() / 2.0 * (10.0 ** (-self['SNRdB'] / 20.0))
+
+class ENOBConfiguration(XMLConfiguration):
+    def __init__(self, parent=None):
+        super().__init__('ENOB')
+        self.parent = parent
+        self.Add(XMLPropertyDefaultFloat('ENOB', 0.0))  # Effective number of bits used for COM RX noise specification.
+
+    def NoiseBandwidth(self):
+        if self.parent is not None:
+            return self.parent.NoiseBandwidth()
+        return None
+
+    def Vpp(self):
+        if self.parent is not None:
+            return self.parent['Vpp']
+        return None
+
+class SNRConfiguration(XMLConfiguration):
+    def __init__(self, parent=None):
+        super().__init__('SNR')
+        self.parent = parent
+        self.Add(XMLPropertyDefaultFloat('Vpp', 1.0))   # Peak-to-peak voltage used for COM TX/COM RX derived-noise calculations.
+        self.SubDir(ENOBConfiguration(parent=self))
+        self.SubDir(COM_TXConfiguration(parent=self))
+
+    def NoiseBandwidth(self):
+        if self.parent is not None:
+            return self.parent['NoiseBandwidth']
+        return None
+
+class JohnsonNoiseConfiguration(XMLConfiguration):
+    def __init__(self, parent=None):
+        super().__init__('Johnson')
+        self.parent = parent
+        self.Add(XMLPropertyDefaultFloat('Temperature_Kelvin', 298.15)) # Temperature in Kelvin (default: 25 C).
+        self.Add(XMLPropertyDefaultFloat('Resistance', 50.0))           # Resistance in ohms (default: 50 ohms).
+
+    def NoiseDensity(self):
+        import scipy.constants as const
+        k_B = const.k
+        return math.sqrt(4.0 * k_B * self['Temperature_Kelvin'] * self['Resistance'])
+
+    def NoiseBandwidth(self):
+        if self.parent is not None:
+            return self.parent['NoiseBandwidth']
+        return None
+
+    def SpectralDensity(self, EndFrequency, FrequencyPoints):
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        noiseDensity = self.NoiseDensity()
+        noiseBandwidth = self.NoiseBandwidth()
+        return SpectralDensity(
+            fl,
+            [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
+
 class WhiteNoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('WhiteNoise')
-        self.Add(XMLPropertyDefaultString('SpecificationType','V/sqrt(Hz)')) # Allowed values: 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms', 'ENOB', or 'COM TX'.
+        self.Add(XMLPropertyDefaultString('WhiteNoiseType','V/sqrt(Hz)')) # Allowed values: 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms', 'ENOB', 'COM TX', or 'Johnson'.
         self.Add(XMLPropertyDefaultFloat('NoisedBmPerHz',0.0)) # Noise density in dBm/Hz.
-        self.Add(XMLPropertyDefaultFloat('VPerRootHz',0.0)) # Noise density in V/sqrt(Hz).
-        self.Add(XMLPropertyDefaultFloat('VSquaredPerGHz',0.0)) # Noise density in V^2/GHz.
-        self.Add(XMLPropertyDefaultFloat('VRms',0.0)) # Total noise in Vrms integrated over NoiseBandwidth (i.e., density in V/sqrt(Hz) * sqrt(NoiseBandwidth)).
-        self.Add(XMLPropertyDefaultFloat('ENOB',0.0)) # Effective number of bits used for COM RX noise specification.
-        self.Add(XMLPropertyDefaultFloat('Vpp',1.0)) # Peak-to-peak voltage used for COM TX/COM RX derived-noise calculations.
-        self.Add(XMLPropertyDefaultFloat('h0',1.0)) # COM TX FFE cursor tap height used to scale noise density.
-        self.Add(XMLPropertyDefaultFloat('SNRdB',33.0)) # COM TX signal-to-noise ratio in dB used to derive noise.
-        self.Add(XMLPropertyDefaultFloat('Risetime',0.0)) # COM TX transmitter 20-80 risetime in seconds used for Gaussian spectral shaping.
-        self.Add(XMLPropertyDefaultFloat('NoiseBandwidth',0.0)) # Noise bandwidth in Hz used for Vrms integration and white-noise support.
+        self.Add(XMLPropertyDefaultFloat('VPerRootHz',0.0))    # Noise density in V/sqrt(Hz).
+        self.Add(XMLPropertyDefaultFloat('VSquaredPerGHz',0.0))# Noise density in V^2/GHz.
+        self.Add(XMLPropertyDefaultFloat('VRms',0.0))          # Total noise in Vrms integrated over NoiseBandwidth (i.e., density in V/sqrt(Hz) * sqrt(NoiseBandwidth)).
+        self.Add(XMLPropertyDefaultFloat('NoiseBandwidth',0.0))# Noise bandwidth in Hz used for Vrms integration and white-noise support.
+        self.SubDir(SNRConfiguration(parent=self))
+        self.SubDir(JohnsonNoiseConfiguration(parent=self))
 
     def _noiseVrmsFromComTx(self):
-        return self['h0'] * self['Vpp'] / 2.0 * (10.0 ** (-self['SNRdB'] / 20.0))
+        return self['SNR.COM_TX'].noiseVrms()
 
     def NoiseDensity(self):
         from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
-        spec_type = self['SpecificationType']
+        spec_type = self['WhiteNoiseType']
+        bw = self['NoiseBandwidth']
         if spec_type == 'dBm/Hz':
             value = self['NoisedBmPerHz']
         elif spec_type == 'V/sqrt(Hz)':
@@ -50,25 +125,26 @@ class WhiteNoiseConfiguration(XMLConfiguration):
         elif spec_type == 'Vrms':
             value = self['VRms']
         elif spec_type == 'ENOB':
-            bw = self['NoiseBandwidth']
             if bw is None or bw <= 0:
                 raise ValueError('NoiseBandwidth must be > 0 for ENOB specification')
-            vpp = self['Vpp']
-            enob = self['ENOB']
+            vpp = self['SNR.Vpp']
+            enob = self['SNR.ENOB.ENOB']
             snr_db = 6.02 * enob + 1.76
             signal_vrms = vpp / (2.0 * math.sqrt(2.0))
             value = signal_vrms / (10.0 ** (snr_db / 20.0))
             spec_type = 'Vrms'
         elif spec_type == 'COM TX':
-            bw = self['NoiseBandwidth']
             if bw is None or bw <= 0:
                 raise ValueError('NoiseBandwidth must be > 0 for COM TX specification')
             value = self._noiseVrmsFromComTx()
             spec_type = 'Vrms'
+        elif spec_type == 'Johnson':
+            value = self['Johnson'].NoiseDensity()
+            spec_type = 'V/sqrt(Hz)'
         else:
-            raise ValueError(f'Unknown SpecificationType: {spec_type}')
+            raise ValueError(f'Unknown WhiteNoiseType: {spec_type}')
         return DFTUtilities.ConvertSpectralDensity(
-            value, spec_type, 'V/sqrt(Hz)', bw=self['NoiseBandwidth'])
+            value, spec_type, 'V/sqrt(Hz)', bw=bw)
 
     def SpectralDensity(self, EndFrequency, FrequencyPoints):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
@@ -76,10 +152,10 @@ class WhiteNoiseConfiguration(XMLConfiguration):
         fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
         noiseDensity = self.NoiseDensity()
         noiseBandwidth = self['NoiseBandwidth']
-        spec_type = self['SpecificationType']
+        spec_type = self['WhiteNoiseType']
         if spec_type == 'COM TX':
             from SignalIntegrity.Lib.TimeDomain.Filters.Risetime.Gaussian import Gaussian
-            risetime = self['Risetime']
+            risetime = self['SNR.COM_TX.Risetime']
             density = []
             for f in fl:
                 if f == 0.0 or f > noiseBandwidth:
@@ -114,25 +190,6 @@ class NoiseWaveformFileConfiguration(XMLConfiguration):
         wf = Waveform().ReadFromFile(self['FileName'])
         return wf.SpectralDensity(fl)
 
-class JohnsonNoiseConfiguration(XMLConfiguration):
-    def __init__(self):
-        super().__init__('Johnson')
-        self.Add(XMLPropertyDefaultFloat('Temperature_Kelvin',298.15)) # Temperature in Kelvin (default: 25 C).
-        self.Add(XMLPropertyDefaultFloat('Resistance',50.0)) # Resistance in ohms (default: 50 ohms).
-    def SpectralDensity(self, EndFrequency, FrequencyPoints):
-        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
-        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
-        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
-        import scipy.constants as const
-        import math
-        # Boltzmann constant in Joules per Kelvin
-        k_B = const.k
-        noiseDensity = math.sqrt(4.*k_B*self['Temperature_Kelvin']*self['Resistance'])
-        noiseBandwidth = self.wn_property['NoiseBandwidth']
-        return SpectralDensity(
-            fl,
-            [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
-
 class CrosstalkNoiseFromProbeConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('Crosstalk')
@@ -153,13 +210,11 @@ class NoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('Noise')
         self.Add(XMLPropertyDefaultBool('Enable',False))
-        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', 'Johnson', or 'Crosstalk'
+        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', or 'Crosstalk' (legacy 'Johnson' is still accepted)
         self.SubDir(WhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
-        self.SubDir(JohnsonNoiseConfiguration())
         self.SubDir(CrosstalkNoiseFromProbeConfiguration())
-        self['Johnson'].wn_property = self['WhiteNoise']
         self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
     def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
@@ -177,7 +232,8 @@ class NoiseConfiguration(XMLConfiguration):
         if noiseType == 'WaveformFile':
             return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'Johnson':
-            return self['Johnson'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+            # Backwards compatibility for existing project files that still store Johnson as a top-level noise type.
+            return self['WhiteNoise.Johnson'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'Crosstalk':
             return self['Crosstalk'].SpectralDensity(
                 EndFrequency,

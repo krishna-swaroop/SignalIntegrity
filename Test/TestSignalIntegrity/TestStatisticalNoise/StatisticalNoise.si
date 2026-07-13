@@ -135,7 +135,7 @@
 						<WhiteNoise>
 							<NoiseBandwidth>100000000000.0</NoiseBandwidth>
 							<NoisedBmPerHz>-143.0102999566398</NoisedBmPerHz>
-							<SpecificationType>dBm/Hz</SpecificationType>
+							<WhiteNoiseType>dBm/Hz</WhiteNoiseType>
 							<VPerRootHz>1.58113883008419e-08</VPerRootHz>
 							<VRms>0.005</VRms>
 						</WhiteNoise>
@@ -254,7 +254,7 @@
 						<WhiteNoise>
 							<NoiseBandwidth>40000000000.0</NoiseBandwidth>
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 						</WhiteNoise>

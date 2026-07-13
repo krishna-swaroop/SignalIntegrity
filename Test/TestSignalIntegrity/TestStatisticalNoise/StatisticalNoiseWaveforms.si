@@ -95,7 +95,7 @@
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
 							<Risetime>0.0</Risetime>
 							<SNRdB>33.0</SNRdB>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 							<VSquaredPerGHz>0.0</VSquaredPerGHz>
@@ -369,7 +369,7 @@
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
 							<Risetime>0.0</Risetime>
 							<SNRdB>33.0</SNRdB>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 							<VSquaredPerGHz>0.0</VSquaredPerGHz>
@@ -625,7 +625,7 @@
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
 							<Risetime>0.0</Risetime>
 							<SNRdB>33.0</SNRdB>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 							<VSquaredPerGHz>0.0</VSquaredPerGHz>
@@ -755,7 +755,7 @@
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
 							<Risetime>0.0</Risetime>
 							<SNRdB>33.0</SNRdB>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 							<VSquaredPerGHz>0.0</VSquaredPerGHz>
@@ -885,7 +885,7 @@
 							<NoisedBmPerHz>-133.0102999566398</NoisedBmPerHz>
 							<Risetime>0.0</Risetime>
 							<SNRdB>33.0</SNRdB>
-							<SpecificationType>Vrms</SpecificationType>
+							<WhiteNoiseType>Vrms</WhiteNoiseType>
 							<VPerRootHz>5e-08</VPerRootHz>
 							<VRms>0.01</VRms>
 							<VSquaredPerGHz>0.0</VSquaredPerGHz>

@@ -35,9 +35,4 @@ class StatisticalNoiseConfiguration(NoiseConfiguration,DeviceExtendedConfigurati
             dialog=dialog
             )
     def HandleBackwardsCompatibility(self):
-        # for backwards compatibility with old projects with noise sources with global noise configurations,
-        # assign the global configuration to the device.  When the file is written, these individual configurations
-        # will be retained and the global configuration will be removed.
-        import SignalIntegrity.App.Project
-        if not SignalIntegrity.App.Project['Noise'] is None:
-            self.dict = copy.deepcopy(SignalIntegrity.App.Project['Noise'].dict)
+        return
