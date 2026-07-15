@@ -29,9 +29,12 @@ class SParameterViewerPreferencesDialog(PropertiesDialog):
         self.matPlotLibColorFrame=CalculationPropertyColor(self.propertyListFrame,'plot color',None,self.onUpdateColors,preferences,'Appearance.Color.Plot')
         self.plotCursors=CalculationPropertyTrueFalseButton(self.propertyListFrame,'show cursor values on plots',None,self.onUpdatePreferences,preferences,'Appearance.PlotCursorValues')
         self.significantDigits=CalculationProperty(self.propertyListFrame,'significant digits',None,self.onUpdatePreferences,preferences,'SParameterProperties.SignificantDigits')
+        self.maxSParameterButtons=CalculationProperty(self.propertyListFrame,'max s-parameter buttons',None,self.onUpdatePreferences,preferences,'SParameterProperties.MaxSParameterButtons')
         self.Finish()
     def onUpdatePreferences(self):
         self.project.SaveToFile()
+        if hasattr(self.parent,'UpdateSParameterButtonsView'):
+            self.parent.UpdateSParameterButtonsView()
     def onUpdateColors(self):
         self.onUpdatePreferences()
     def Finish(self):

@@ -318,6 +318,20 @@ class SParametersDialog(tk.Toplevel):
         self.controlsFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.sButtonsFrame = tk.Frame(self.controlsFrame, bd=1, relief=tk.SUNKEN)
         self.sButtonsFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.NONE)
+        self.sButtonsFrame.grid_rowconfigure(0,weight=1)
+        self.sButtonsFrame.grid_columnconfigure(0,weight=1)
+        self.sButtonsCanvas = tk.Canvas(self.sButtonsFrame,borderwidth=0,highlightthickness=0)
+        self.sButtonsCanvas.grid(row=0,column=0,sticky='nsew')
+        self.sButtonsYScroll = tk.Scrollbar(self.sButtonsFrame,orient=tk.VERTICAL,command=self._onSButtonsYScroll)
+        self.sButtonsYScroll.grid(row=0,column=1,sticky='ns')
+        self.sButtonsXScroll = tk.Scrollbar(self.sButtonsFrame,orient=tk.HORIZONTAL,command=self._onSButtonsXScroll)
+        self.sButtonsXScroll.grid(row=1,column=0,sticky='ew')
+        self.sButtonsScrollCorner=tk.Frame(self.sButtonsFrame)
+        self.sButtonsScrollCorner.grid(row=1,column=1,sticky='nsew')
+        self.sButtonsContentFrame = tk.Frame(self.sButtonsCanvas)
+        self.sButtonsCanvasWindow = self.sButtonsCanvas.create_window((0,0),window=self.sButtonsContentFrame,anchor='nw')
+        self._BindSButtonsMouseWheel(self.sButtonsCanvas)
+        self._BindSButtonsMouseWheel(self.sButtonsContentFrame)
 
         try:
             try:
@@ -416,8 +430,7 @@ class SParametersDialog(tk.Toplevel):
         self.Zoom['AreSParameterLike']=(areSParameters or isCalibration)
         if buttonLabels == None:
             numPorts=self.sp.m_P
-            (formatStr1,formatStr2)=('{:1d}','{:1d}') if numPorts < 10 else ('{:2d}','{:3d}') # assumes less than 100
-            buttonLabels=[['s'+formatStr1.format(toP+1)+formatStr2.format(fromP+1) for fromP in range(numPorts)] for toP in range(numPorts)]
+            buttonLabels=[[self._FormatSParameterButtonLabel(toP+1,fromP+1) for fromP in range(numPorts)] for toP in range(numPorts)]
             self.spList[0][3]=buttonLabels
         else:
             if self.calibration == None:
@@ -435,6 +448,11 @@ class SParametersDialog(tk.Toplevel):
         self.toPort = 1
         self.LimitChangeLock=False
         self.onSelection(0)
+
+    def _FormatSParameterButtonLabel(self,toPort,fromPort):
+        if (toPort < 10) and (fromPort < 10):
+            return 's'+str(toPort)+str(fromPort)
+        return 's'+str(toPort)+' '+str(fromPort)
 
     def onShowHeader(self):
         from SignalIntegrity.App.HeaderDialog import HeaderDialog
@@ -1313,10 +1331,12 @@ class SParametersDialog(tk.Toplevel):
         self.bottomRightPlot.callbacks.connect('ylim_changed', self.onBottomRightYLimitChange)
 
     def onSelectSParameter(self,toP,fromP):
-        self.buttons[self.toPort-1][self.fromPort-1].config(relief=tk.RAISED)
-        self.toPort = toP
-        self.fromPort = fromP
-        self.buttons[self.toPort-1][self.fromPort-1].config(relief=tk.SUNKEN)
+        maxToPort=max(1,len(self.buttonLabels))
+        maxFromPort=max(1,len(self.buttonLabels[0]) if len(self.buttonLabels)>0 else 1)
+        self.toPort=max(1,min(toP,maxToPort))
+        self.fromPort=max(1,min(fromP,maxFromPort))
+        self._EnsureSelectedSButtonVisible()
+        self._RefreshVisibleSButtons()
         self.plotProperties=self.properties['Plot.S'][self.toPort-1][self.fromPort-1]
         self.delayViewerProperty.SetString(self.plotProperties['Delay'])
         self.PlotSParameter()
@@ -1646,19 +1666,217 @@ class SParametersDialog(tk.Toplevel):
             else:
                 self.title(title+': '+self.fileparts.FileNameTitle())
 
-        sButtonsFrame = tk.Frame(self.controlsFrame, bd=1, relief=tk.SUNKEN)
-        self.buttons=[]
-        for toP in range(len(self.buttonLabels)):
-            buttonrow=[]
-            rowFrame=tk.Frame(sButtonsFrame)
-            rowFrame.pack(side=tk.TOP,expand=tk.NO,fill=tk.NONE)
-            for fromP in range(len(self.buttonLabels[0])):
-                thisButton=tk.Button(rowFrame,text=self.buttonLabels[toP][fromP],width=len(self.buttonLabels[toP][fromP]),command=lambda x=toP+1,y=fromP+1: self.onSelectSParameter(x,y))
-                thisButton.pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
-                buttonrow.append(thisButton)
-            self.buttons.append(buttonrow)
-        self.sButtonsFrame.pack_forget()
-        self.sButtonsFrame=sButtonsFrame
-        self.sButtonsFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.NONE)
+        self.totalSButtonRows=len(self.buttonLabels)
+        self.totalSButtonColumns=len(self.buttonLabels[0]) if self.totalSButtonRows>0 else 0
+        self.sButtonWidth=max([len(label) for row in self.buttonLabels for label in row]) if self.totalSButtonRows>0 and self.totalSButtonColumns>0 else 1
+        self.sButtonRowOffset=0
+        self.sButtonColumnOffset=0
+        self._CreateVisibleSButtons()
+        self.UpdateSParameterButtonsView()
         self.update_idletasks()
         self.onSelectSParameter(self.toPort, self.fromPort)
+
+    def _CreateVisibleSButtons(self):
+        for child in self.sButtonsContentFrame.winfo_children():
+            child.destroy()
+
+        maxButtons=self._GetMaxSParameterButtons()
+        self.visibleSButtonRows=min(self.totalSButtonRows,maxButtons)
+        self.visibleSButtonColumns=min(self.totalSButtonColumns,maxButtons)
+        self.buttons=[]
+
+        for visibleRow in range(self.visibleSButtonRows):
+            buttonrow=[]
+            rowFrame=tk.Frame(self.sButtonsContentFrame)
+            rowFrame.pack(side=tk.TOP,expand=tk.NO,fill=tk.NONE)
+            self._BindSButtonsMouseWheel(rowFrame)
+            for visibleColumn in range(self.visibleSButtonColumns):
+                thisButton=tk.Button(rowFrame,width=self.sButtonWidth,command=lambda vr=visibleRow,vc=visibleColumn: self._onVisibleSButton(vr,vc))
+                thisButton.pack(side=tk.LEFT,fill=tk.NONE,expand=tk.NO)
+                self._BindSButtonsMouseWheel(thisButton)
+                buttonrow.append(thisButton)
+            self.buttons.append(buttonrow)
+
+    def _onVisibleSButton(self,visibleRow,visibleColumn):
+        toP=self.sButtonRowOffset+visibleRow+1
+        fromP=self.sButtonColumnOffset+visibleColumn+1
+        self.onSelectSParameter(toP,fromP)
+
+    def _BindSButtonsMouseWheel(self,widget):
+        widget.bind('<MouseWheel>',self._onSButtonsMouseWheel)
+        widget.bind('<Shift-MouseWheel>',self._onSButtonsShiftMouseWheel)
+        widget.bind('<Button-4>',self._onSButtonsMouseWheel)
+        widget.bind('<Button-5>',self._onSButtonsMouseWheel)
+        widget.bind('<Shift-Button-4>',self._onSButtonsShiftMouseWheel)
+        widget.bind('<Shift-Button-5>',self._onSButtonsShiftMouseWheel)
+
+    def _MouseWheelDeltaUnits(self,event):
+        if hasattr(event,'num'):
+            if event.num == 4:
+                return -1
+            if event.num == 5:
+                return 1
+        if hasattr(event,'delta'):
+            if event.delta > 0:
+                return -1
+            if event.delta < 0:
+                return 1
+        return 0
+
+    def _onSButtonsMouseWheel(self,event):
+        delta=self._MouseWheelDeltaUnits(event)
+        if delta != 0:
+            self._ScrollSButtonsVertical(delta)
+        return 'break'
+
+    def _onSButtonsShiftMouseWheel(self,event):
+        delta=self._MouseWheelDeltaUnits(event)
+        if delta != 0:
+            self._ScrollSButtonsHorizontal(delta)
+        return 'break'
+
+    def _GetMaxSParameterButtons(self):
+        try:
+            maxButtons=int(SignalIntegrity.App.Preferences['SParameterProperties.MaxSParameterButtons'])
+        except:
+            maxButtons=10
+        return max(1,maxButtons)
+
+    def _onSButtonsYScroll(self,*args):
+        if len(args) < 2:
+            return
+        maxOffset=max(0,self.totalSButtonRows-self.visibleSButtonRows)
+        if args[0] == 'moveto':
+            fraction=max(0.,min(1.,float(args[1])))
+            self.sButtonRowOffset=int(round(fraction*maxOffset))
+        elif args[0] == 'scroll':
+            step=int(args[1])
+            if len(args) > 2 and args[2] == 'pages':
+                step*=max(1,self.visibleSButtonRows)
+            self.sButtonRowOffset=max(0,min(maxOffset,self.sButtonRowOffset+step))
+        self._RefreshVisibleSButtons()
+        self._UpdateSButtonsScrollbarThumbs()
+
+    def _onSButtonsXScroll(self,*args):
+        if len(args) < 2:
+            return
+        maxOffset=max(0,self.totalSButtonColumns-self.visibleSButtonColumns)
+        if args[0] == 'moveto':
+            fraction=max(0.,min(1.,float(args[1])))
+            self.sButtonColumnOffset=int(round(fraction*maxOffset))
+        elif args[0] == 'scroll':
+            step=int(args[1])
+            if len(args) > 2 and args[2] == 'pages':
+                step*=max(1,self.visibleSButtonColumns)
+            self.sButtonColumnOffset=max(0,min(maxOffset,self.sButtonColumnOffset+step))
+        self._RefreshVisibleSButtons()
+        self._UpdateSButtonsScrollbarThumbs()
+
+    def _ScrollSButtonsVertical(self,delta):
+        maxOffset=max(0,self.totalSButtonRows-self.visibleSButtonRows)
+        newOffset=max(0,min(maxOffset,self.sButtonRowOffset+delta))
+        if newOffset != self.sButtonRowOffset:
+            self.sButtonRowOffset=newOffset
+            self._RefreshVisibleSButtons()
+            self._UpdateSButtonsScrollbarThumbs()
+
+    def _ScrollSButtonsHorizontal(self,delta):
+        maxOffset=max(0,self.totalSButtonColumns-self.visibleSButtonColumns)
+        newOffset=max(0,min(maxOffset,self.sButtonColumnOffset+delta))
+        if newOffset != self.sButtonColumnOffset:
+            self.sButtonColumnOffset=newOffset
+            self._RefreshVisibleSButtons()
+            self._UpdateSButtonsScrollbarThumbs()
+
+    def _EnsureSelectedSButtonVisible(self):
+        if self.visibleSButtonRows <= 0 or self.visibleSButtonColumns <= 0:
+            return
+        selectedRow=self.toPort-1
+        selectedColumn=self.fromPort-1
+
+        if selectedRow < self.sButtonRowOffset:
+            self.sButtonRowOffset=selectedRow
+        elif selectedRow >= self.sButtonRowOffset+self.visibleSButtonRows:
+            self.sButtonRowOffset=selectedRow-self.visibleSButtonRows+1
+
+        if selectedColumn < self.sButtonColumnOffset:
+            self.sButtonColumnOffset=selectedColumn
+        elif selectedColumn >= self.sButtonColumnOffset+self.visibleSButtonColumns:
+            self.sButtonColumnOffset=selectedColumn-self.visibleSButtonColumns+1
+
+    def _RefreshVisibleSButtons(self):
+        if not hasattr(self,'buttons') or len(self.buttons)==0:
+            return
+        for visibleRow,buttonRow in enumerate(self.buttons):
+            for visibleColumn,thisButton in enumerate(buttonRow):
+                absoluteRow=self.sButtonRowOffset+visibleRow
+                absoluteColumn=self.sButtonColumnOffset+visibleColumn
+                label=self.buttonLabels[absoluteRow][absoluteColumn]
+                thisButton.config(text=label,width=self.sButtonWidth)
+                if (absoluteRow == self.toPort-1) and (absoluteColumn == self.fromPort-1):
+                    thisButton.config(relief=tk.SUNKEN)
+                else:
+                    thisButton.config(relief=tk.RAISED)
+
+    def _UpdateSButtonsScrollbarThumbs(self):
+        if self.totalSButtonRows <= 0:
+            self.sButtonsYScroll.set(0.0,1.0)
+        else:
+            yFirst=float(self.sButtonRowOffset)/float(self.totalSButtonRows)
+            yLast=float(self.sButtonRowOffset+self.visibleSButtonRows)/float(self.totalSButtonRows)
+            self.sButtonsYScroll.set(yFirst,min(1.0,yLast))
+        if self.totalSButtonColumns <= 0:
+            self.sButtonsXScroll.set(0.0,1.0)
+        else:
+            xFirst=float(self.sButtonColumnOffset)/float(self.totalSButtonColumns)
+            xLast=float(self.sButtonColumnOffset+self.visibleSButtonColumns)/float(self.totalSButtonColumns)
+            self.sButtonsXScroll.set(xFirst,min(1.0,xLast))
+
+    def _UpdateSButtonsScrollbarVisibility(self):
+        showVertical=self.totalSButtonRows>self.visibleSButtonRows
+        showHorizontal=self.totalSButtonColumns>self.visibleSButtonColumns
+
+        if showVertical:
+            self.sButtonsYScroll.grid()
+        else:
+            self.sButtonsYScroll.grid_remove()
+
+        if showHorizontal:
+            self.sButtonsXScroll.grid()
+        else:
+            self.sButtonsXScroll.grid_remove()
+
+        if showVertical and showHorizontal:
+            self.sButtonsScrollCorner.grid()
+        else:
+            self.sButtonsScrollCorner.grid_remove()
+
+    def _onSButtonsContentConfigure(self,event=None):
+        pass
+
+    def _onSButtonsCanvasConfigure(self,event=None):
+        pass
+
+    def UpdateSParameterButtonsView(self):
+        self.update_idletasks()
+        maxButtons=self._GetMaxSParameterButtons()
+        if (not hasattr(self,'buttons')) or self.totalSButtonRows<=0 or self.totalSButtonColumns<=0:
+            return
+
+        desiredRows=min(self.totalSButtonRows,maxButtons)
+        desiredColumns=min(self.totalSButtonColumns,maxButtons)
+        if (desiredRows != self.visibleSButtonRows) or (desiredColumns != self.visibleSButtonColumns):
+            self._CreateVisibleSButtons()
+
+        self._EnsureSelectedSButtonVisible()
+        self._RefreshVisibleSButtons()
+        if len(self.buttons)==0 or len(self.buttons[0])==0:
+            return
+
+        rowButton=self.buttons[0][0]
+        buttonWidth=rowButton.winfo_reqwidth()
+        buttonHeight=rowButton.winfo_reqheight()
+        border=6
+        self.sButtonsCanvas.configure(width=buttonWidth*self.visibleSButtonColumns+border,height=buttonHeight*self.visibleSButtonRows+border)
+        self._UpdateSButtonsScrollbarVisibility()
+        self._UpdateSButtonsScrollbarThumbs()

@@ -120,6 +120,7 @@ class SParameterProperties(CalculationPropertiesBase):
         else:
             self.SubDir(SParameterZoomProperties())
             self.Add(XMLPropertyDefaultInt('SignificantDigits',6))
+            self.Add(XMLPropertyDefaultInt('MaxSParameterButtons',15))
         self.SubDir(PlotProperties(preferences))
         self.SubDir(Enforcements())
 
