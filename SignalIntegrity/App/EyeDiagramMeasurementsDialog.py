@@ -20,7 +20,7 @@ EyeDiagramMeasurementsDialog.py
 
 import tkinter as tk
 from tkinter import ttk
-
+import tkinter.font as tkfont
 import math
 
 from SignalIntegrity.App.MenuSystemHelpers import StatusBar
@@ -28,45 +28,115 @@ import SignalIntegrity.App.Project
 import SignalIntegrity.App.Preferences
 from SignalIntegrity.Lib.ToSI import ToSI
 
+
 class EyeDiagramMeasurementsDialog(tk.Toplevel):
-    labelwidth=25
-    entrywidth=10
     def __init__(self, parent, name):
         tk.Toplevel.__init__(self, parent)
-        self.parent=parent
+        self.parent = parent
         self.withdraw()
-        self.name=name
-        self.title('Eye Diagram: '+name)
-        self.img = tk.PhotoImage(file=SignalIntegrity.App.IconsBaseDir+'AppIcon2.gif')
+        self.name = name
+        self.title('Eye Diagram: ' + name)
+        self.img = tk.PhotoImage(file=SignalIntegrity.App.IconsBaseDir + 'AppIcon2.gif')
         self.tk.call('wm', 'iconphoto', self._w, self.img)
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
 
-        self.tabControl=ttk.Notebook(self)
+        self.statusbar = StatusBar(self)
+        self.statusbar.pack(side=tk.TOP, fill=tk.X, expand=tk.NO)
 
-        self.tab1=ttk.Frame(self.tabControl)
-        self.tabControl.add(self.tab1,text='Vertical/Horizontal')
-        self.tabControl.pack(expand=1,fill=tk.BOTH)
-        self.eyeStatus=StatusBar(self.tab1)
-        self.eyeStatus.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        self.ParametersFrame=tk.Frame(self.tab1,relief=tk.RIDGE,borderwidth=5)
-        self.ParametersFrame.pack(side=tk.LEFT,fill=tk.X,expand=tk.NO,anchor=tk.NW)
+        self.tabControl = ttk.Notebook(self)
+        self.tabControl.pack(expand=1, fill=tk.BOTH)
 
-        self.tab2=ttk.Frame(self.tabControl)
-        self.tabControl.add(self.tab2,text='Error Rates')
-        self.BERFrame=tk.Frame(self.tab2,relief=tk.RIDGE,borderwidth=5)
-        self.BERFrame.pack(side=tk.LEFT,fill=tk.X,expand=tk.NO,anchor=tk.NW)
+        self._treeStyle = ttk.Style(self)
+        self._headerFont = tkfont.nametofont('TkHeadingFont').copy()
+        self._headerFont.configure(weight='bold')
+        self._treeStyle.configure('EyeDiagram.Treeview.Heading', font=self._headerFont)
+        self._groupFont = tkfont.nametofont('TkDefaultFont').copy()
+        self._groupFont.configure(weight='bold')
 
-        self.tab3=ttk.Frame(self.tabControl)
-        self.tabControl.add(self.tab3,text='Optical')
-        self.OpticalFrame=tk.Frame(self.tab3,relief=tk.RIDGE,borderwidth=5)
-        self.OpticalFrame.pack(side=tk.LEFT,fill=tk.X,expand=tk.NO,anchor=tk.NW)
+        self.tab1 = ttk.Frame(self.tabControl)
+        self.tabControl.add(self.tab1, text='Vertical/Horizontal')
+        self.tab2 = ttk.Frame(self.tabControl)
+        self.tabControl.add(self.tab2, text='Error Rates')
+        self.tab3 = ttk.Frame(self.tabControl)
+        self.tabControl.add(self.tab3, text='Optical')
 
-        self.bind('<FocusIn>',self.onFocus)
-        self.resizable(False, False)
+        self._tree1 = self._makeTree(self.tab1)
+        self._tree2 = self._makeTree(self.tab2)
+        self._tree3 = self._makeTree(self.tab3)
+
+        self._hasAutoSized = False
+        self.bind('<FocusIn>', self.onFocus)
+        self.resizable(True, True)
         self.deiconify()
         self.lift()
 
-    def onFocus(self,event):
+    # ── widget helpers ────────────────────────────────────────────────────────
+
+    def _makeTree(self, parent):
+        """Create a Treeview with horizontal + vertical scrollbars inside *parent*."""
+        xScroll = ttk.Scrollbar(parent, orient=tk.HORIZONTAL)
+        xScroll.pack(side=tk.BOTTOM, fill=tk.X)
+        frame = tk.Frame(parent, relief=tk.RIDGE, borderwidth=5)
+        frame.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.YES)
+        tree = ttk.Treeview(frame, show='headings', style='EyeDiagram.Treeview')
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        yScroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=tree.yview)
+        yScroll.pack(side=tk.RIGHT, fill=tk.Y)
+        tree.configure(yscrollcommand=yScroll.set, xscrollcommand=xScroll.set)
+        xScroll.configure(command=tree.xview)
+        tree.tag_configure('group', background='#e8e8e8', font=self._groupFont)
+        return tree
+
+    def _clearTree(self, tree):
+        tree['columns'] = ()
+        for item in tree.get_children():
+            tree.delete(item)
+
+    def _fmt(self, value, unit):
+        if value is None:
+            return '-'
+        try:
+            return ToSI(value, unit)
+        except Exception:
+            return str(value)
+
+    def _autoSizeColumns(self, tree, all_center=False, min_width=80, max_width=700, pad=24):
+        cell_font = tkfont.nametofont('TkDefaultFont')
+        for i, col in enumerate(tree['columns']):
+            max_px = self._headerFont.measure(str(col))
+            for item in tree.get_children(''):
+                vals = tree.item(item, 'values')
+                if i < len(vals):
+                    max_px = max(max_px, cell_font.measure(str(vals[i])))
+            width = max(min_width, min(max_width, max_px + pad))
+            anchor = 'center' if (all_center or i > 0) else 'w'
+            tree.column(col, width=width, anchor=anchor, stretch=tk.NO)
+
+    def _autoSizeWindow(self):
+        self.update_idletasks()
+        active = [t for t in (self._tree1, self._tree2, self._tree3) if t['columns']]
+        if not active:
+            return
+        max_w = max(
+            sum(int(t.column(c, 'width')) for c in t['columns']) + 25 + 10
+            for t in active
+        )
+        try:
+            row_height = int(self._treeStyle.lookup('Treeview', 'rowheight'))
+        except (TypeError, ValueError):
+            row_height = 0
+        if row_height <= 0:
+            row_height = tkfont.nametofont('TkDefaultFont').metrics('linespace') + 6
+        heading_height = self._headerFont.metrics('linespace') + 10
+        max_rows = max(len(t.get_children('')) for t in active)
+        table_h  = heading_height + max_rows * row_height + 10
+        window_w = max(400, max_w)
+        window_h = max(300, min(1000, table_h + self.statusbar.winfo_reqheight() + 70))
+        self.geometry(f'{window_w}x{window_h}')
+
+    # ── standard dialog overrides ─────────────────────────────────────────────
+
+    def onFocus(self, event):
         if event.widget == self:
             if self.parent.winfo_exists():
                 self.parent.lift()
@@ -80,307 +150,275 @@ class EyeDiagramMeasurementsDialog(tk.Toplevel):
         tk.Toplevel.withdraw(self)
         tk.Toplevel.destroy(self)
 
-    def Line2(self,frame,text):
-        line=tk.Label(frame,text=text,font='fixedsys')
-        line.pack(side=tk.TOP,expand=tk.NO,fill=tk.X)
+    # ── main update ───────────────────────────────────────────────────────────
 
-    def SingleLine(self,frame,label,textEntry):
-        if not isinstance(textEntry,list): textEntry=[textEntry]
-        if all([t==None for t in textEntry]):
-            return
-        lineFrame=tk.Frame(frame)
-        lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        text=label.ljust(self.labelwidth)
-        line=tk.Label(lineFrame,text=text,width=self.labelwidth)
-        line.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-        for entry in textEntry:
-            if entry == None:
-                entryFrame=tk.Frame(lineFrame)
-            else:
-                entryFrame=tk.Frame(lineFrame,relief=tk.RIDGE,borderwidth=2)
-            entryFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-            entry=tk.Label(entryFrame,width=self.entrywidth,text='' if entry == None else entry)
-            entry.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-
-    def Fields2(self,frame,category,parameter,subparameter,label,unit=None):
-        lineFrame=tk.Frame(frame)
-        lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        text=label.ljust(self.labelwidth)
-        line=tk.Label(lineFrame,text=text,width=self.labelwidth)
-        line.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-        for e in range(len(self.meas[category])):
-            entryFrame=tk.Frame(lineFrame,relief=tk.RIDGE,borderwidth=2)
-            entryFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-            entry=tk.Label(entryFrame,width=self.entrywidth,text=ToSI(self.meas[category][e][parameter][subparameter],unit))
-            entry.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-
-    def Heading(self,frame,label,elements):
-        lineFrame=tk.Frame(frame)
-        lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        text=label.center(self.labelwidth-5)
-        line=tk.Label(lineFrame,text=text,font='fixedsys')
-        line.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-        for e in elements:
-            entryFrame=tk.Frame(lineFrame,borderwidth=2)
-            entryFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-            entry=tk.Label(entryFrame,width=self.entrywidth,text=e,anchor='center')
-            entry.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-            entry.configure(anchor="center")
-
-    def AddText(self,frame,text,width):
-        entryFrame=tk.Frame(frame,borderwidth=2)
-        entryFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-        line=tk.Label(entryFrame,text=text,width=width)
-        line.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-
-    def AddEntry(self,frame,text,width=10):
-            entryFrame=tk.Frame(frame,relief=tk.RIDGE,borderwidth=2)
-            entryFrame.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-            entry=tk.Label(entryFrame,width=width,text=text)
-            entry.pack(side=tk.LEFT,expand=tk.NO,fill=tk.X)
-
-    def UpdateMeasurements(self,meas):
+    def UpdateMeasurements(self, meas):
         self.withdraw()
-        self.meas=meas
-        if self.meas==None:
+        if meas is None:
+            self.deiconify()
             return
 
-        self.tabControl.destroy()
-        self.tabControl=ttk.Notebook(self)
+        self._clearTree(self._tree1)
+        self._clearTree(self._tree2)
+        self._clearTree(self._tree3)
 
-        self.tab1=ttk.Frame(self.tabControl)
-        self.tabControl.add(self.tab1,text='Vertical/Horizontal')
-        self.tabControl.pack(expand=1,fill=tk.BOTH)
-        self.eyeStatus=StatusBar(self.tab1)
-        self.eyeStatus.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        self.ParametersFrame=tk.Frame(self.tab1,relief=tk.RIDGE,borderwidth=5)
-        self.ParametersFrame.pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES,anchor=tk.NW)
+        verticalUnit = {'V': 'V', 'A': 'A', 'W': 'W', 'FW': '', 'AW': 'A', 'VW': 'V'}[meas['WaveformType']]
+        noiseUnit    = {'V': 'Vrms', 'A': 'Arms', 'W': 'Wrms', '': '', 'AW': 'Arms', 'VW': 'Vrms'}[verticalUnit]
 
-        self.tab2=ttk.Frame(self.tabControl)
-        self.tabControl.add(self.tab2,text='Error Rates')
-        self.BERFrame=tk.Frame(self.tab2,relief=tk.RIDGE,borderwidth=5)
-        self.BERFrame.pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES,anchor=tk.NW)
+        # ── Tab 1: Vertical / Horizontal ──────────────────────────────────────
+        n_eyes   = len(meas.get('Eye',   []))
+        n_levels = len(meas.get('Level', []))
+        n_vals   = max(n_eyes, n_levels, 1)
+        val_ids  = [f'_v{i}' for i in range(n_vals)]
 
-        if 'Optical' in self.meas.keys():
-            self.tab3=ttk.Frame(self.tabControl)
-            self.tabControl.add(self.tab3,text='Optical')
-            self.OpticalFrame=tk.Frame(self.tab3,relief=tk.RIDGE,borderwidth=5)
-            self.OpticalFrame.pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES,anchor=tk.NW)
+        self._tree1['columns'] = ['Measurement'] + val_ids
+        self._tree1.heading('Measurement', text='Measurement')
+        self._tree1.column('Measurement', width=200, anchor='w', stretch=tk.NO)
+        for vid in val_ids:
+            self._tree1.heading(vid, text='')
+            self._tree1.column(vid, width=110, anchor='center', stretch=tk.NO)
 
-        self.eyeStatus.set(f"All Measurements Taken at: {10.0**meas['BERForMeasure']}")
+        def group1(title, subcol_labels):
+            row = [title] + subcol_labels + ['' for _ in range(n_vals - len(subcol_labels))]
+            self._tree1.insert('', tk.END, values=row, tags=('group',))
 
-        verticalUnit={'V':'V','A':'A','W':'W','FW':'','AW':'A','VW':'V'}[meas['WaveformType']]
-        noiseUnit = {'V':'Vrms','A':'Arms','W':'Wrms','':'','AW':'Arms','VW':'Vrms'}[verticalUnit]
+        def eye_row(label, param, subparam, unit):
+            vals = [self._fmt(meas['Eye'][e][param][subparam], unit) for e in range(n_eyes)]
+            self._tree1.insert('', tk.END, values=[label] + vals + ['' for _ in range(n_vals - n_eyes)])
 
-        #topline=''.join(['Eye'.ljust(self.labelwidth)]+[str(eye).center(self.entrywidth-1) for eye in range(len(self.meas['Eye']))]+[''.ljust(self.entrywidth-1)])
-        self.Heading(self.ParametersFrame,'Eye',[str(e) for e in range(len(self.meas['Eye']))])
-        #self.Line2(topline)
-        self.Line2(self.ParametersFrame,'Timing')
-        self.Fields2(self.ParametersFrame,'Eye','Start','Time','Start','s')
-        self.Fields2(self.ParametersFrame,'Eye','End','Time','End','s')
-        self.Fields2(self.ParametersFrame,'Eye','Width','Time','Width','s')
-        self.Line2(self.ParametersFrame,'')
-        self.Line2(self.ParametersFrame,'Vertical')
-        self.Fields2(self.ParametersFrame,'Eye','Low','Value','Low',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Eye','Mid','Value','Midpoint',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Eye','Best','Value','Best Decision Level',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Eye','High','Value','High',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Eye','Height','Value','Height',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Eye','AV','Value','AV',verticalUnit)
-        self.Line2(self.ParametersFrame,'')
-        #line=''.join(['Thresholds'.ljust(self.labelwidth)]+[str(th).center(self.entrywidth-1) for th in range(len(self.meas['Level']))])
-        #self.Line2(line)
-        self.Heading(self.ParametersFrame,'Extents',[str(th) for th in range(len(self.meas['Level']))])
-        self.Fields2(self.ParametersFrame,'Level','Min','Value','Min',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Level', 'Max', 'Value', 'Max',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Level', 'Delta', 'Value', 'Delta',verticalUnit)
-        self.Fields2(self.ParametersFrame,'Level', 'Mean', 'Value', 'Mean',verticalUnit)
-        self.Line2(self.ParametersFrame,'')
-        if len(meas['Eye'])>1:
-            self.SingleLine(self.ParametersFrame,'Eye Linearity',ToSI(self.meas['Linearity']*100.,'%'))
+        def level_row(label, param, subparam, unit):
+            vals = [self._fmt(meas['Level'][e][param][subparam], unit) for e in range(n_levels)]
+            self._tree1.insert('', tk.END, values=[label] + vals + ['' for _ in range(n_vals - n_levels)])
+
+        def scalar_row1(label, val_str):
+            self._tree1.insert('', tk.END, values=[label, val_str] + ['' for _ in range(n_vals - 1)])
+
+        group1('Timing', [f'Eye {i}' for i in range(n_eyes)])
+        eye_row('Start', 'Start', 'Time', 's')
+        eye_row('End',   'End',   'Time', 's')
+        eye_row('Width', 'Width', 'Time', 's')
+
+        group1('Vertical', [f'Eye {i}' for i in range(n_eyes)])
+        eye_row('Low',                 'Low',    'Value', verticalUnit)
+        eye_row('Midpoint',            'Mid',    'Value', verticalUnit)
+        eye_row('Best Decision Level', 'Best',   'Value', verticalUnit)
+        eye_row('High',                'High',   'Value', verticalUnit)
+        eye_row('Height',              'Height', 'Value', verticalUnit)
+        eye_row('AV',                  'AV',     'Value', verticalUnit)
+
+        group1('Extents', [f'Level {i}' for i in range(n_levels)])
+        level_row('Min',   'Min',   'Value', verticalUnit)
+        level_row('Max',   'Max',   'Value', verticalUnit)
+        level_row('Delta', 'Delta', 'Value', verticalUnit)
+        level_row('Mean',  'Mean',  'Value', verticalUnit)
+
+        group1('Signal & Noise', [])
+        if n_eyes > 1:
+            lin = meas.get('Linearity')
+            if lin is not None:
+                scalar_row1('Eye Linearity', self._fmt(lin * 100., '%'))
             try:
-                self.SingleLine(self.ParametersFrame,'RLM',ToSI(self.meas['RLM']*100.,'%'))
-            except:
+                scalar_row1('RLM', self._fmt(meas['RLM'] * 100., '%'))
+            except Exception:
                 pass
-            self.Line2(self.ParametersFrame,'')
-        self.SingleLine(self.ParametersFrame,'Signal Power',ToSI(self.meas['RMS'],noiseUnit))
-        self.SingleLine(self.ParametersFrame,'Noise',ToSI(self.meas['Noise'],noiseUnit))
-        self.SingleLine(self.ParametersFrame, 'Residual Error',ToSI(self.meas['NoiseResidual'],noiseUnit))
-        self.SingleLine(self.ParametersFrame,'SDR',ToSI(self.meas['SDR'],'dB'))
-        if not self.meas['SNR'] is None:
-            self.SingleLine(self.ParametersFrame,'SNR',ToSI(self.meas['SNR'],'dB'))
-            self.SingleLine(self.ParametersFrame, 'SNDR',ToSI(self.meas['SNDR'],'dB'))
-        self.Line2(self.ParametersFrame,'')
-        self.SingleLine(self.ParametersFrame,'Vertical Resolution',ToSI(self.meas['VerticalResolution'],verticalUnit))
-        self.SingleLine(self.ParametersFrame,'Horizontal Resolution',ToSI(self.meas['HorizontalResolution'],'s'))
+        scalar_row1('Signal Power',   self._fmt(meas.get('RMS'),           noiseUnit))
+        scalar_row1('Noise',          self._fmt(meas.get('Noise'),         noiseUnit))
+        scalar_row1('Residual Error', self._fmt(meas.get('NoiseResidual'), noiseUnit))
+        scalar_row1('SDR',            self._fmt(meas.get('SDR'),           'dB'))
+        if meas.get('SNR') is not None:
+            scalar_row1('SNR',  self._fmt(meas['SNR'],        'dB'))
+            scalar_row1('SNDR', self._fmt(meas.get('SNDR'),   'dB'))
 
-        if 'Probabilities' in self.meas.keys():
-#         self.measDict['Probabilities']={'SymbolCodes':SymbolCode,'GrayCodes':GrayCodes,'Interpretation':SymbolInterpretedAsOther,
-#                                         'ErrorRate':{'Symbol':{'PerSymbol':SymbolErrorRatePerSymbol,'Nominal':NominalSymbolErrorRate,'Measured':MeasuredSymbolErrorRate},
-#                                                      'Bit':{'Standard':{'PerSymbol':BitErrorRatePerSymbol,'Nominal':NominalBitErrorRate,'Measured':MeasuredBitErrorRate},
-#                                                             'Gray':{'PerSymbol':GrayCodeBitErrorRatePerSymbol,'Nominal':GrayCodeNominalBitErrorRate,'Measured':GrayCodeMeasuredBitErrorRate}}}}
+        group1('Resolution', [])
+        scalar_row1('Vertical Resolution',   self._fmt(meas.get('VerticalResolution'),   verticalUnit))
+        scalar_row1('Horizontal Resolution', self._fmt(meas.get('HorizontalResolution'), 's'))
 
-            SymbolCode=self.meas['Probabilities']['SymbolCodes']
-            GrayCode=self.meas['Probabilities']['GrayCodes']
-            numberOfSymbols=len(SymbolCode)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,'Interpretation'.center(self.entrywidth*numberOfSymbols),self.entrywidth*numberOfSymbols)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'',self.entrywidth)
-            self.AddText(lineFrame,'',self.entrywidth)
-            symbolDigits=math.floor(math.log2(numberOfSymbols)+0.5)
-            for s in SymbolCode:
-                self.AddText(lineFrame,bin(s)[2:].rjust(symbolDigits,'0'),self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'',self.entrywidth)
-                self.AddText(lineFrame,'',self.entrywidth)
-                symbolDigits=math.floor(math.log2(numberOfSymbols)+0.5)
-                for s in GrayCode:
-                    self.AddText(lineFrame,bin(s)[2:].rjust(symbolDigits,'0'),self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            self.AddText(lineFrame,'Symbol',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'Gray Code',self.entrywidth)
-            Probability=self.meas['Probabilities']['Interpretation']
-            for s in range(len(SymbolCode)):
-                lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-                self.AddText(lineFrame,bin(SymbolCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddText(lineFrame,bin(GrayCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                for o in range(len(SymbolCode)):
-                    self.AddEntry(lineFrame, '{:.3E}'.format(Probability[s][o],3), self.entrywidth)
-            # nominal error rates
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            self.AddText(lineFrame,''.center(2*self.entrywidth),2*self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,'Nominal Error Rates'.center(self.entrywidth*numberOfSymbols),self.entrywidth*numberOfSymbols)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            self.AddText(lineFrame,'Symbol',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'Gray Code',self.entrywidth)
-            self.AddText(lineFrame,'Probability',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'SER',self.entrywidth)
-            self.AddText(lineFrame,'BER',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'Gray BER',self.entrywidth)
-            Probability=1./len(SymbolCode)
-            SER=self.meas['Probabilities']['ErrorRate']['Symbol']['PerSymbol']
-            BER=self.meas['Probabilities']['ErrorRate']['Bit']['Standard']['PerSymbol']
-            GrayBER=self.meas['Probabilities']['ErrorRate']['Bit']['Gray']['PerSymbol']
-            for s in range(len(SymbolCode)):
-                lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-                self.AddText(lineFrame,bin(SymbolCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddText(lineFrame,bin(GrayCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                self.AddEntry(lineFrame, '{:.3E}'.format(Probability,3), self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddEntry(lineFrame, '{:.3E}'.format(SER[s],3), self.entrywidth)
-                self.AddEntry(lineFrame, '{:.3E}'.format(BER[s],3), self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddEntry(lineFrame, '{:.3E}'.format(GrayBER[s],3), self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'',self.entrywidth)
-            self.AddText(lineFrame,'Totals',self.entrywidth)
-            self.AddEntry(lineFrame, '{:.3E}'.format(1.,3), self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Symbol']['Nominal'],3), self.entrywidth)
-            self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Bit']['Standard']['Nominal'],3), self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Bit']['Gray']['Nominal'],3), self.entrywidth)
-            # measured error rates
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            self.AddText(lineFrame,''.center(2*self.entrywidth),2*self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,''.center(self.entrywidth),self.entrywidth)
-            self.AddText(lineFrame,'Measured Error Rates'.center(self.entrywidth*numberOfSymbols),self.entrywidth*numberOfSymbols)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            self.AddText(lineFrame,'Symbol',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'Gray Code',self.entrywidth)
-            self.AddText(lineFrame,'Probability',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'SER',self.entrywidth)
-            self.AddText(lineFrame,'BER',self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'Gray BER',self.entrywidth)
-            Probability=self.meas['Probabilities']['Symbol']
-            SER=self.meas['Probabilities']['ErrorRate']['Symbol']['PerSymbol']
-            BER=self.meas['Probabilities']['ErrorRate']['Bit']['Standard']['PerSymbol']
-            GrayBER=self.meas['Probabilities']['ErrorRate']['Bit']['Gray']['PerSymbol']
-            for s in range(len(SymbolCode)):
-                lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-                self.AddText(lineFrame,bin(SymbolCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddText(lineFrame,bin(GrayCode[s])[2:].rjust(symbolDigits,'0'),self.entrywidth)
-                self.AddEntry(lineFrame, '{:.3E}'.format(Probability[s],3), self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddEntry(lineFrame, '{:.3E}'.format(SER[s],3), self.entrywidth)
-                self.AddEntry(lineFrame, '{:.3E}'.format(BER[s],3), self.entrywidth)
-                if numberOfSymbols > 2:
-                    self.AddEntry(lineFrame, '{:.3E}'.format(GrayBER[s],3), self.entrywidth)
-            lineFrame=tk.Frame(self.BERFrame); lineFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-            if numberOfSymbols > 2:
-                self.AddText(lineFrame,'',self.entrywidth)
-            self.AddText(lineFrame,'Totals',self.entrywidth)
-            self.AddEntry(lineFrame, '{:.3E}'.format(sum(Probability),3), self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Symbol']['Measured'],3), self.entrywidth)
-            self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Bit']['Standard']['Measured'],3), self.entrywidth)
-            if numberOfSymbols > 2:
-                self.AddEntry(lineFrame, '{:.3E}'.format(self.meas['Probabilities']['ErrorRate']['Bit']['Gray']['Measured'],3), self.entrywidth)
-            self.tabControl.tab(1,state='normal')
+        self._autoSizeColumns(self._tree1)
+
+        # ── Tab 2: Error Rates ────────────────────────────────────────────────
+        if 'Probabilities' in meas:
+            SymbolCode      = meas['Probabilities']['SymbolCodes']
+            GrayCode        = meas['Probabilities']['GrayCodes']
+            numberOfSymbols = len(SymbolCode)
+            symbolDigits    = math.floor(math.log2(numberOfSymbols) + 0.5)
+            sym_str         = lambda s: bin(s)[2:].rjust(symbolDigits, '0')
+            has_gray        = numberOfSymbols > 2
+
+            # columns needed: max of (interp matrix columns, error-rate table columns)
+            n_interp   = 1 + (1 if has_gray else 0) + numberOfSymbols
+            n_er       = 1 + (1 if has_gray else 0) + 1 + (1 if has_gray else 0) + 1 + (1 if has_gray else 0)
+            total_cols = max(n_interp, n_er)
+            col_ids    = [f'_c{i}' for i in range(total_cols)]
+
+            self._tree2['columns'] = col_ids
+            for cid in col_ids:
+                self._tree2.heading(cid, text='')
+                self._tree2.column(cid, width=80, anchor='center', stretch=tk.NO)
+
+            def insert2(values, is_group=False):
+                padded = list(values) + ['' for _ in range(total_cols - len(values))]
+                if is_group:
+                    self._tree2.insert('', tk.END, values=padded, tags=('group',))
+                else:
+                    self._tree2.insert('', tk.END, values=padded)
+
+            SER_ps     = meas['Probabilities']['ErrorRate']['Symbol']['PerSymbol']
+            BER_ps     = meas['Probabilities']['ErrorRate']['Bit']['Standard']['PerSymbol']
+            GrayBER_ps = meas['Probabilities']['ErrorRate']['Bit']['Gray']['PerSymbol']
+
+            er_hdr = ['Symbol']
+            if has_gray: er_hdr.append('Gray Code')
+            er_hdr.append('Probability')
+            if has_gray: er_hdr.append('SER')
+            er_hdr.append('BER')
+            if has_gray: er_hdr.append('Gray BER')
+
+            # Interpretation matrix
+            insert2(['Symbol Interpretation Matrix'], is_group=True)
+            hdr = ['Symbol']
+            if has_gray: hdr.append('Gray Code')
+            hdr += [f'\u2192{sym_str(s)}' for s in SymbolCode]
+            insert2(hdr, is_group=True)
+            Prob_interp = meas['Probabilities']['Interpretation']
+            for s in range(numberOfSymbols):
+                row = [sym_str(SymbolCode[s])]
+                if has_gray: row.append(sym_str(GrayCode[s]))
+                row += ['{:.3E}'.format(Prob_interp[s][o]) for o in range(numberOfSymbols)]
+                insert2(row)
+
+            # Nominal error rates
+            insert2(['Nominal Error Rates'], is_group=True)
+            insert2(er_hdr, is_group=True)
+            nom_prob = 1. / numberOfSymbols
+            for s in range(numberOfSymbols):
+                row = [sym_str(SymbolCode[s])]
+                if has_gray: row.append(sym_str(GrayCode[s]))
+                row.append('{:.3E}'.format(nom_prob))
+                if has_gray: row.append('{:.3E}'.format(SER_ps[s]))
+                row.append('{:.3E}'.format(BER_ps[s]))
+                if has_gray: row.append('{:.3E}'.format(GrayBER_ps[s]))
+                insert2(row)
+            totals = ['Totals']
+            if has_gray: totals.append('')
+            totals.append('{:.3E}'.format(1.))
+            if has_gray: totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Symbol']['Nominal']))
+            totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Bit']['Standard']['Nominal']))
+            if has_gray: totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Bit']['Gray']['Nominal']))
+            insert2(totals)
+
+            # Measured error rates
+            insert2(['Measured Error Rates'], is_group=True)
+            insert2(er_hdr, is_group=True)
+            meas_prob_sym = meas['Probabilities']['Symbol']
+            for s in range(numberOfSymbols):
+                row = [sym_str(SymbolCode[s])]
+                if has_gray: row.append(sym_str(GrayCode[s]))
+                row.append('{:.3E}'.format(meas_prob_sym[s]))
+                if has_gray: row.append('{:.3E}'.format(SER_ps[s]))
+                row.append('{:.3E}'.format(BER_ps[s]))
+                if has_gray: row.append('{:.3E}'.format(GrayBER_ps[s]))
+                insert2(row)
+            totals = ['Totals']
+            if has_gray: totals.append('')
+            totals.append('{:.3E}'.format(sum(meas_prob_sym)))
+            if has_gray: totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Symbol']['Measured']))
+            totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Bit']['Standard']['Measured']))
+            if has_gray: totals.append('{:.3E}'.format(meas['Probabilities']['ErrorRate']['Bit']['Gray']['Measured']))
+            insert2(totals)
+
+            self._autoSizeColumns(self._tree2, all_center=True)
+            self.tabControl.tab(1, state='normal')
         else:
-            self.tabControl.tab(1,state='disabled')
+            self.tabControl.tab(1, state='disabled')
 
-        if 'Optical' in self.meas.keys():
-            def ToSINone(d,sa): return None if d==None else ToSI(d,sa,round=3)
-            self.Line2(self.OpticalFrame,f'Optical Power: '+{'W':'W','FW':'Fractional Power','AW':'Current Proportional to Power','VW':'Voltage Proportional to Power'}[self.meas['WaveformType']])
-            if 'Pin' in self.meas['Optical'].keys():
-                self.SingleLine(self.OpticalFrame,'Input Power (Pin)', [ToSINone(self.meas['Optical']['Pin']['Linear']['Value'],self.meas['Optical']['Pin']['Linear']['Unit']),
-                                                                        ToSINone(self.meas['Optical']['Pin']['Log']['Value'],self.meas['Optical']['Pin']['Log']['Unit'])])
-            self.SingleLine(self.OpticalFrame, 'High Level (PH)', [ToSINone(self.meas['Optical']['PH']['Linear']['Value'],self.meas['Optical']['PH']['Linear']['Unit']),
-                                                                   ToSINone(self.meas['Optical']['PH']['Log']['Value'],self.meas['Optical']['PH']['Log']['Unit'])])
-            self.SingleLine(self.OpticalFrame, 'Low Level (PL)', [ToSINone(self.meas['Optical']['PL']['Linear']['Value'],self.meas['Optical']['PL']['Linear']['Unit']),
-                                                                  ToSINone(self.meas['Optical']['PL']['Log']['Value'],self.meas['Optical']['PL']['Log']['Unit'])])
-            self.SingleLine(self.OpticalFrame, 'Average Power (Pavg)', [ToSINone(self.meas['Optical']['Pavg']['Linear']['Value'],self.meas['Optical']['Pavg']['Linear']['Unit']),
-                                                                        ToSINone(self.meas['Optical']['Pavg']['Log']['Value'],self.meas['Optical']['Pavg']['Log']['Unit'])])
-            self.SingleLine(self.OpticalFrame, 'Modulation Amplitude (OMA)', [ToSINone(self.meas['Optical']['OMA']['Linear']['Value'],self.meas['Optical']['OMA']['Linear']['Unit']),
-                                                                              ToSINone(self.meas['Optical']['OMA']['Log']['Value'],self.meas['Optical']['OMA']['Log']['Unit'])])
-            self.SingleLine(self.OpticalFrame, 'Extinction Ratio (ER)', [ToSINone(self.meas['Optical']['ER']['Linear']['Value'],self.meas['Optical']['ER']['Linear']['Unit']),
-                                                                         ToSINone(self.meas['Optical']['ER']['Log']['Value'],self.meas['Optical']['ER']['Log']['Unit'])])
-            if 'IL' in self.meas['Optical'].keys():
-                self.SingleLine(self.OpticalFrame,'Insertion Loss (IL)', [ToSINone(self.meas['Optical']['IL']['Linear']['Value'],self.meas['Optical']['IL']['Linear']['Unit']),
-                                                                          ToSINone(self.meas['Optical']['IL']['Log']['Value'],self.meas['Optical']['IL']['Log']['Unit'])])
-            if 'Loss' in self.meas['Optical'].keys():
-                self.SingleLine(self.OpticalFrame,'Loss (Pin - Pavg)', [ToSINone(self.meas['Optical']['Loss']['Linear']['Value'],self.meas['Optical']['Loss']['Linear']['Unit']),
-                                                                        ToSINone(self.meas['Optical']['Loss']['Log']['Value'],self.meas['Optical']['Loss']['Log']['Unit'])])
-            if 'TP' in self.meas['Optical'].keys():
-                self.SingleLine(self.OpticalFrame,'Transmission Penalty (TP)', [ToSINone(self.meas['Optical']['TP']['Linear']['Value'],self.meas['Optical']['TP']['Linear']['Unit']),
-                                                                                ToSINone(self.meas['Optical']['TP']['Log']['Value'],self.meas['Optical']['TP']['Log']['Unit'])])
+        # ── Tab 3: Optical ────────────────────────────────────────────────────
+        if 'Optical' in meas:
+            self._tree3['columns'] = ['Measurement', 'Linear', 'dB']
+            self._tree3.heading('Measurement', text='Measurement')
+            self._tree3.column('Measurement', width=260, anchor='w',      stretch=tk.NO)
+            self._tree3.heading('Linear', text='Linear')
+            self._tree3.column('Linear',      width=120, anchor='center', stretch=tk.NO)
+            self._tree3.heading('dB', text='dB')
+            self._tree3.column('dB',          width=120, anchor='center', stretch=tk.NO)
 
-            if 'Q' in self.meas['Optical'].keys():
-                self.Line2(self.OpticalFrame,'Q Measurements')
-                self.SingleLine(self.OpticalFrame, 'BER', '{:.3E}'.format(self.meas['Optical']['Q']['BERMeasured']))
-                self.SingleLine(self.OpticalFrame,'Q Factor', [ToSINone(self.meas['Optical']['Q']['QFactor'],''),ToSINone(self.meas['Optical']['Q']['QFactordB'],'dB')])
+            optical  = meas['Optical']
+            wt_label = {'W': 'W', 'FW': 'Fractional Power',
+                        'AW': 'Current Proportional to Power',
+                        'VW': 'Voltage Proportional to Power'}[meas['WaveformType']]
 
-                if 'QFactorExpected' in self.meas['Optical']['Q'].keys():
-                    self.SingleLine(self.OpticalFrame, 'BER Expected', '{:.3E}'.format(self.meas['Optical']['Q']['BERExpected']))
-                    self.SingleLine(self.OpticalFrame,'Q Factor Expected', [ToSINone(self.meas['Optical']['Q']['QFactorExpected'],''),ToSINone(self.meas['Optical']['Q']['QFactorExpecteddB'],'dB')])
-                    self.SingleLine(self.OpticalFrame,'Tx Penalty', ToSINone(self.meas['Optical']['Q']['TxPenalty'],'dB'))
-# 
-#             self.tabControl.tab(2,state='normal')
-#         else:
-#             self.tabControl.tab(2,state='disabled')
+            def opt_group(title):
+                self._tree3.insert('', tk.END, values=[title, '', ''], tags=('group',))
+
+            def ToSINone(d, sa):
+                return None if d is None else ToSI(d, sa, round=3)
+
+            def opt_row(label, lin_val, lin_unit, log_val, log_unit):
+                lin = ToSINone(lin_val, lin_unit) or '-'
+                log = ToSINone(log_val, log_unit) or '-'
+                self._tree3.insert('', tk.END, values=[label, lin, log])
+
+            opt_group(f'Optical Power: {wt_label}')
+            if 'Pin' in optical:
+                opt_row('Input Power (Pin)',
+                        optical['Pin']['Linear']['Value'], optical['Pin']['Linear']['Unit'],
+                        optical['Pin']['Log']['Value'],    optical['Pin']['Log']['Unit'])
+            opt_row('High Level (PH)',
+                    optical['PH']['Linear']['Value'], optical['PH']['Linear']['Unit'],
+                    optical['PH']['Log']['Value'],    optical['PH']['Log']['Unit'])
+            opt_row('Low Level (PL)',
+                    optical['PL']['Linear']['Value'], optical['PL']['Linear']['Unit'],
+                    optical['PL']['Log']['Value'],    optical['PL']['Log']['Unit'])
+            opt_row('Average Power (Pavg)',
+                    optical['Pavg']['Linear']['Value'], optical['Pavg']['Linear']['Unit'],
+                    optical['Pavg']['Log']['Value'],    optical['Pavg']['Log']['Unit'])
+            opt_row('Modulation Amplitude (OMA)',
+                    optical['OMA']['Linear']['Value'], optical['OMA']['Linear']['Unit'],
+                    optical['OMA']['Log']['Value'],    optical['OMA']['Log']['Unit'])
+            opt_row('Extinction Ratio (ER)',
+                    optical['ER']['Linear']['Value'], optical['ER']['Linear']['Unit'],
+                    optical['ER']['Log']['Value'],    optical['ER']['Log']['Unit'])
+            if 'IL' in optical:
+                opt_row('Insertion Loss (IL)',
+                        optical['IL']['Linear']['Value'], optical['IL']['Linear']['Unit'],
+                        optical['IL']['Log']['Value'],    optical['IL']['Log']['Unit'])
+            if 'Loss' in optical:
+                opt_row('Loss (Pin \u2212 Pavg)',
+                        optical['Loss']['Linear']['Value'], optical['Loss']['Linear']['Unit'],
+                        optical['Loss']['Log']['Value'],    optical['Loss']['Log']['Unit'])
+            if 'TP' in optical:
+                opt_row('Transmission Penalty (TP)',
+                        optical['TP']['Linear']['Value'], optical['TP']['Linear']['Unit'],
+                        optical['TP']['Log']['Value'],    optical['TP']['Log']['Unit'])
+            if 'Q' in optical:
+                opt_group('Q Measurements')
+                self._tree3.insert('', tk.END,
+                    values=['BER', '{:.3E}'.format(optical['Q']['BERMeasured']), ''])
+                self._tree3.insert('', tk.END,
+                    values=['Q Factor',
+                            ToSINone(optical['Q']['QFactor'],   '') or '-',
+                            ToSINone(optical['Q']['QFactordB'], 'dB') or '-'])
+                if 'QFactorExpected' in optical['Q']:
+                    self._tree3.insert('', tk.END,
+                        values=['BER Expected', '{:.3E}'.format(optical['Q']['BERExpected']), ''])
+                    self._tree3.insert('', tk.END,
+                        values=['Q Factor Expected',
+                                ToSINone(optical['Q']['QFactorExpected'],   '') or '-',
+                                ToSINone(optical['Q']['QFactorExpecteddB'], 'dB') or '-'])
+                    self._tree3.insert('', tk.END,
+                        values=['Tx Penalty', '',
+                                ToSINone(optical['Q']['TxPenalty'], 'dB') or '-'])
+
+            self._autoSizeColumns(self._tree3)
+            self.tabControl.tab(2, state='normal')
+        else:
+            self.tabControl.tab(2, state='disabled')
+
+        # ── status bar & window sizing ────────────────────────────────────────
+        self.statusbar.set(f"All Measurements Taken at: {10.0 ** meas['BERForMeasure']:.3E}")
+
+        if not self._hasAutoSized:
+            self._autoSizeWindow()
+            self._hasAutoSized = True
+
         self.deiconify()
+        self.lift()
