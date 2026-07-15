@@ -21,6 +21,7 @@ Preferences.py
 from SignalIntegrity.App.PreferencesFile import PreferencesFile
 
 import os,errno
+import shutil
 import platform
 
 from SignalIntegrity.__about__ import __version__
@@ -33,9 +34,21 @@ class Preferences(PreferencesFile):
             thisOS=platform.system()
             if thisOS == 'Linux':
                 pathToPreferencesFile = os.path.expanduser('~')+'/.signalintegrity'
+                self.preferencesFileName=pathToPreferencesFile+'/preferences'
             else:
-                pathToPreferencesFile = 'c:/LeCroy/SignalIntegrity'
-            self.preferencesFileName=pathToPreferencesFile+'/preferences'
+                pathToPreferencesFile = 'c:/Nubis/SignalIntegrity'
+                legacyPreferencesFileName = 'c:/LeCroy/SignalIntegrity/preferences.xml'
+                self.preferencesFileName=pathToPreferencesFile+'/preferences.xml'
+                if (not os.path.isfile(self.preferencesFileName)) and os.path.isfile(legacyPreferencesFileName):
+                    try:
+                        os.makedirs(pathToPreferencesFile)
+                    except OSError as e:
+                        if e.errno != errno.EEXIST:
+                            return
+                    try:
+                        shutil.copy2(legacyPreferencesFileName,self.preferencesFileName)
+                    except:
+                        pass
             try:
                 os.makedirs(pathToPreferencesFile)
             except OSError as e:
