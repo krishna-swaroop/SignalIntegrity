@@ -132,6 +132,7 @@ class Features(XMLConfiguration):
     def __init__(self):
         XMLConfiguration.__init__(self,'Features')
         self.Add(XMLPropertyDefaultBool('NetworkAnalyzerModel',False))
+        self.Add(XMLPropertyDefaultBool('StatisticalNoise',False))
 
 class PreferencesFile(ProjectFileBase):
     def __init__(self):

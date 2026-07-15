@@ -1802,7 +1802,7 @@ class DeviceVoltageStatisticalNoiseSource(Device):
                         netlist,
                         propertiesList+[
                             PartPropertyCategory('Statistical Noise Sources'),
-                            PartPropertyPartName('VoltageStatisticaLNoiseSource'),
+                            PartPropertyPartName('VoltageStatisticalNoiseSource'),
                             PartPropertyHelp('device:Voltage-StatisticaL-Noise-Source'),
                             PartPropertyDefaultReferenceDesignator('VN?'),
                             PartPropertyWaveformType('statistical')
@@ -1821,7 +1821,7 @@ class DeviceVoltageStatisticalNoiseSourceProject(Device):
         netlist=DeviceNetListLine(devicename='voltagenoisesource')
         Device.__init__(self,netlist,[
             PartPropertyCategory('Statistical Noise Sources'),
-            PartPropertyPartName('VoltageStatisticaLNoiseSourceProject'),
+            PartPropertyPartName('VoltageStatisticalNoiseSourceProject'),
             PartPropertyHelp('device:Voltage-StatisticaL-Noise-Source-Project'),
             PartPropertyDefaultReferenceDesignator('VN?'),
             PartPropertyCalculationProperties(),

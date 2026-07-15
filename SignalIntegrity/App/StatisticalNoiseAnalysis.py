@@ -49,7 +49,7 @@ class StatisticalNoiseAnalysis(dict):
             for noise_source_ref in netlist.NoiseSourceNames():
                 sd = None
                 for device in schematic.deviceList:
-                    if device['partname'].GetValue() in ['VoltageStatisticaLNoiseSource','VoltageStatisticaLNoiseSourceProject']:
+                    if device['partname'].GetValue() in ['VoltageStatisticalNoiseSource','VoltageStatisticalNoiseSourceProject']:
                         if device['ref'].GetValue() == noise_source_ref:
                             sd = device.SpectralDensity(
                                 output_waveforms=output_waveforms,

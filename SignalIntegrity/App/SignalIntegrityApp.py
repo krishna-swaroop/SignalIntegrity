@@ -1333,6 +1333,9 @@ class SignalIntegrityApp(tk.Frame):
         DeviceList.Enable('NetworkAnalyzerStimulus',networkAnalyzerModelEnabled)
         DeviceList.Enable('NetworkAnalyzerModel',networkAnalyzerModelEnabled)
         DeviceList.Enable('DeviceUnderTest',networkAnalyzerModelEnabled)
+        statisticalNoiseEnabled = SignalIntegrity.App.Preferences['Features.StatisticalNoise']
+        DeviceList.Enable('VoltageStatisticalNoiseSource',statisticalNoiseEnabled)
+        DeviceList.Enable('VoltageStatisticalNoiseSourceProject',statisticalNoiseEnabled)
 
     def CheckSaveCurrentProject(self):
         if self.Drawing.stateMachine.state == 'NoProject':
