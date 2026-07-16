@@ -25,6 +25,7 @@ import cmath
 import math
 import os
 import sys
+import numpy as np
 
 from SignalIntegrity.Lib.SParameters.SParameters import SParameters
 from SignalIntegrity.Lib.Conversions import ReferenceImpedance
@@ -94,9 +95,8 @@ class SParameterFile(SParameters):
         complexType = 'MA'
         Z0=50.
         sp=True
-        f=[]
         self.m_f=[]
-        numbersList=[]
+        numeric_chunks=[]
         # pragma: silent exclude
         self.header=[]
         self.picture=None
@@ -110,12 +110,14 @@ class SParameterFile(SParameters):
             except IOError:
                 raise SignalIntegrityExceptionSParameterFile(name+' not found')
         readHeader=True
-        # pragma: include indent indent
+        # pragma: include
         for line in spfile:
             # pragma: silent exclude
             if readHeader:
-                if line[0] in ['!',' ','#','\n']:
-                    if line[0] == '!':
+                stripped = line.lstrip()
+                first = stripped[:1]
+                if first in ['!','#'] or first == '':
+                    if first == '!':
                         if line == '! picture start\n':
                             self.picture=[]
                             in_picture=True
@@ -130,9 +132,11 @@ class SParameterFile(SParameters):
                 else:
                     readHeader = False
             # pragma: include
-            lineList = str.lower(line).split('!')[0].split()
-            if len(lineList)>0:
-                if lineList[0] == '#':
+            line_no_comment = line.split('!')[0]
+            stripped = line_no_comment.lstrip()
+            if len(stripped)>0:
+                if stripped[:1] == '#':
+                    lineList = stripped.lower().split()
                     if 'hz' in lineList: freqMul = 1.0
                     if 'khz' in lineList: freqMul = 1e3
                     if 'mhz' in lineList: freqMul = 1e6
@@ -144,55 +148,60 @@ class SParameterFile(SParameters):
                         Z0=float(lineList[lineList.index('r')+1])
                     if not self.m_sToken.lower() in lineList:
                         sp=False
-                else: numbersList.extend(lineList)
+                else:
+                    nums = np.fromstring(line_no_comment, sep=' ')
+                    if nums.size:
+                        numeric_chunks.append(nums)
         if not sp: return
         if self.m_Z0==None: self.m_Z0=Z0
+        numbers = np.concatenate(numeric_chunks)\
+            if len(numeric_chunks)>0 else np.array([],dtype=float)
         # pragma: silent exclude
-        try:
-            import numpy as np
-            invalid = np.any(np.isnan([float(v) for v in numbersList]))
-        except:
-            invalid = True
-        if invalid:
+        if np.any(np.isnan(numbers)):
             raise SignalIntegrityExceptionSParameterFile(name+' has invalid values')
         # pragma: include
-        frequencies = len(numbersList)//(1+self.m_P*self.m_P*2)
         P=self.m_P
-        self.m_d=[empty([P,P]).tolist() for fi in range(frequencies)]
-        for fi in range(frequencies):
-            f.append(float(numbersList[(1+P*P*2)*fi])*freqMul)
-            for r in range(P):
-                for c in range(P):
-                    n1=float(numbersList[(1+P*P*2)*fi+1+(r*P+c)*2])
-                    n2=float(numbersList[(1+P*P*2)*fi+1+(r*P+c)*2+1])
-                    if complexType == 'RI':
-                        self.m_d[fi][r][c]=n1+1j*n2
-                    else:
-                        expangle=cmath.exp(1j*math.pi/180.*n2)
-                        if complexType == 'MA':
-                            self.m_d[fi][r][c]=n1*expangle
-                        elif complexType == 'DB':
-                            self.m_d[fi][r][c]=math.pow(10.,n1/20)*expangle
-            if P == 2:
-                self.m_d[fi]=array(self.m_d[fi]).transpose().tolist()
-            if Z0 != self.m_Z0:
+        values_per_freq = 1 + P*P*2
+        # pragma: silent exclude
+        if numbers.size % values_per_freq != 0:
+            raise SignalIntegrityExceptionSParameterFile(name+' has invalid values')
+        # pragma: include
+        values = numbers.reshape((-1, values_per_freq))
+        f = values[:, 0] * freqMul
+        raw_pairs = values[:, 1:].reshape((-1, P, P, 2))
+
+        if complexType == 'RI':
+            m_d_np = raw_pairs[..., 0] + 1j * raw_pairs[..., 1]
+        else:
+            angles = np.exp(1j * np.deg2rad(raw_pairs[..., 1]))
+            if complexType == 'MA':
+                m_d_np = raw_pairs[..., 0] * angles
+            elif complexType == 'DB':
+                m_d_np = np.power(10.0, raw_pairs[..., 0] / 20.0) * angles
+            # pragma: silent exclude
+            else:
+                raise SignalIntegrityExceptionSParameterFile(
+                    name+' has invalid values')
+            # pragma: include
+
+        if P == 2:
+            m_d_np = m_d_np.transpose((0, 2, 1))
+
+        self.m_d=m_d_np.tolist()
+        if Z0 != self.m_Z0:
+            for fi in range(len(self.m_d)):
                 self.m_d[fi]=ReferenceImpedance(self.m_d[fi],self.m_Z0,Z0)
-        self.m_f=GenericFrequencyList(f)
+        self.m_f=GenericFrequencyList(f.tolist())
         # pragma: silent exclude
         if order != None:
             sp=self.PortReorder(order)
             SParameters.__init__(self,sp.m_f,sp.m_d,sp.m_Z0)
         if self.sort_frequencies:
-            import numpy as np
             if not all (np.diff(f) > 0): # frequency list is not in order!
-                _,unq_row_indices = np.unique(np.array(f),return_index=True,axis=0)
-                reindex_array=np.stack((np.array(f)[unq_row_indices],unq_row_indices),axis=1)
-                reindex_array=reindex_array[reindex_array[:, 0].argsort()]
-                newf,index = reindex_array[:,0],reindex_array[:,1].astype(int)
+                newf,index = np.unique(f,return_index=True)
                 newd=[self.m_d[i] for i in index]
                 self.m_f=newf.tolist()
                 self.m_d=newd
-                pass
         # pragma: include
 # pragma: silent exclude
 if __name__ == "__main__": # pragma: no cover
@@ -200,10 +209,10 @@ if __name__ == "__main__": # pragma: no cover
 
     if runProfiler:
         import cProfile
-        cProfile.run('SParameterFile(\'/home/peterp/Work/PySI/PowerIntegrity/ReversePulseMode/CurrentDelayLine1p65us.s4p\')','stats')
+        cProfile.run('SParameterFile(\'C:/Users/ppupalai/Downloads/CpX_connector.s256p\')','stats')
 
         import pstats
         p = pstats.Stats('stats')
         p.strip_dirs().sort_stats('cumulative').print_stats(30)
     else:
-        SParameterFile('/home/peterp/Work/PySI/PowerIntegrity/ReversePulseMode/CurrentDelayLine1p65us.s4p')
+        SParameterFile(r"C:\Users\ppupalai\Downloads\CpX_connector.s256p")
