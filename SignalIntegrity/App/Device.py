@@ -316,6 +316,9 @@ class DeviceFromProject(object):
             else:
                 if self.result.configuration.name in deviceProject.dict.keys():
                     self.result.configuration.dict = deviceProject[self.result.configuration.name].dict
+                elif getattr(self.result.configuration,'legacyName',None) in deviceProject.dict.keys():
+                    # backwards compatibility: read config saved under a legacy XML tag name
+                    self.result.configuration.dict = deviceProject[self.result.configuration.legacyName].dict
                 self.result.configuration.HandleBackwardsCompatibility()
 
 class DeviceFileNetListLine(DeviceNetListLine):
@@ -1796,7 +1799,7 @@ class DeviceReference(Device):
 
 class DeviceVoltageStatisticalNoiseSource(Device):
     def __init__(self,propertiesList,partPicture):
-        from SignalIntegrity.App.StatisticalNoiseConfiguration import StatisticalNoiseConfiguration
+        from SignalIntegrity.App.VoltageStatisticalNoiseConfiguration import VoltageStatisticalNoiseConfiguration
         netlist=DeviceNetListLine(devicename='voltagenoisesource')
         Device.__init__(self,
                         netlist,
@@ -1808,7 +1811,7 @@ class DeviceVoltageStatisticalNoiseSource(Device):
                             PartPropertyWaveformType('statistical')
                         ],
                         partPicture,
-                        configuration=StatisticalNoiseConfiguration())
+                        configuration=VoltageStatisticalNoiseConfiguration())
     def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
         return self.configuration.SpectralDensity(
             SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
@@ -1824,6 +1827,49 @@ class DeviceVoltageStatisticalNoiseSourceProject(Device):
             PartPropertyPartName('VoltageStatisticalNoiseSourceProject'),
             PartPropertyHelp('device:Voltage-StatisticaL-Noise-Source-Project'),
             PartPropertyDefaultReferenceDesignator('VN?'),
+            PartPropertyCalculationProperties(),
+            PartPropertyWaveformFileName(),
+            PartPropertyShow(),
+            PartPropertyWaveformType('statistical'),
+            PartPropertyWaveformProjectName(''),
+            PartPropertyLanes(1.)]+propertiesList,partPicture)
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+        from SignalIntegrity.App.SignalIntegrityAppHeadless import ProjectNoise
+        args=SignalIntegrity.App.Project['Variables'].Dictionary(self.variablesList)
+        if self['calcprop'].GetValue() == 'true':
+            args.update(SignalIntegrity.App.Project['CalculationProperties'].Dictionary())
+        return ProjectNoise(self['wffile']['Value'],self['wfprojname']['Value'],None,lanes=self['lanes'].GetValue(),**args)
+
+class DeviceCurrentStatisticalNoiseSource(Device):
+    def __init__(self,propertiesList,partPicture):
+        from SignalIntegrity.App.CurrentStatisticalNoiseConfiguration import CurrentStatisticalNoiseConfiguration
+        netlist=DeviceNetListLine(devicename='currentnoisesource')
+        Device.__init__(self,
+                        netlist,
+                        propertiesList+[
+                            PartPropertyCategory('Statistical Noise Sources'),
+                            PartPropertyPartName('CurrentStatisticalNoiseSource'),
+                            PartPropertyHelp('device:Current-StatisticaL-Noise-Source'),
+                            PartPropertyDefaultReferenceDesignator('IN?'),
+                            PartPropertyWaveformType('statistical')
+                        ],
+                        partPicture,
+                        configuration=CurrentStatisticalNoiseConfiguration())
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+        return self.configuration.SpectralDensity(
+            SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
+            SignalIntegrity.App.Project['CalculationProperties']['FrequencyPoints'],
+            output_waveforms=output_waveforms,
+            output_waveform_names=output_waveform_names)
+
+class DeviceCurrentStatisticalNoiseSourceProject(Device):
+    def __init__(self,propertiesList,partPicture):
+        netlist=DeviceNetListLine(devicename='currentnoisesource')
+        Device.__init__(self,netlist,[
+            PartPropertyCategory('Statistical Noise Sources'),
+            PartPropertyPartName('CurrentStatisticalNoiseSourceProject'),
+            PartPropertyHelp('device:Current-StatisticaL-Noise-Source-Project'),
+            PartPropertyDefaultReferenceDesignator('IN?'),
             PartPropertyCalculationProperties(),
             PartPropertyWaveformFileName(),
             PartPropertyShow(),
@@ -1962,7 +2008,13 @@ DeviceList=Devices([
                 DeviceVoltageStatisticalNoiseSource([PartPropertyDescription('Differential Voltage Statistical Noise Generator'),PartPropertyPorts(4)],PartPictureVariableDifferentialNoiseSource()),
                 DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('One Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(1)],PartPictureVariableVoltageSourceNoiseSourceOnePort()),
                 DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Voltage Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableVoltageSourceNoiseSourceTwoPort()),
-                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Differential Voltage Statistical Noise Generator Project'),PartPropertyPorts(4)],PartPictureVariableDifferentialNoiseSource()),])
+                DeviceVoltageStatisticalNoiseSourceProject([PartPropertyDescription('Differential Voltage Statistical Noise Generator Project'),PartPropertyPorts(4)],PartPictureVariableDifferentialNoiseSource()),
+                DeviceCurrentStatisticalNoiseSource([PartPropertyDescription('One Port Current Statistical Noise Generator'),PartPropertyPorts(1)],PartPictureVariableCurrentSourceNoiseSourceOnePort()),
+                DeviceCurrentStatisticalNoiseSource([PartPropertyDescription('Two Port Current Statistical Noise Generator'),PartPropertyPorts(2)],PartPictureVariableCurrentSourceNoiseSourceTwoPort()),
+                DeviceCurrentStatisticalNoiseSource([PartPropertyDescription('Differential Current Statistical Noise Generator'),PartPropertyPorts(4)],PartPictureVariableDifferentialCurrentNoiseSource()),
+                DeviceCurrentStatisticalNoiseSourceProject([PartPropertyDescription('One Port Current Statistical Noise Generator Project'),PartPropertyPorts(1)],PartPictureVariableCurrentSourceNoiseSourceOnePort()),
+                DeviceCurrentStatisticalNoiseSourceProject([PartPropertyDescription('Two Port Current Statistical Noise Generator Project'),PartPropertyPorts(2)],PartPictureVariableCurrentSourceNoiseSourceTwoPort()),
+                DeviceCurrentStatisticalNoiseSourceProject([PartPropertyDescription('Differential Current Statistical Noise Generator Project'),PartPropertyPorts(4)],PartPictureVariableDifferentialCurrentNoiseSource()),])
 DeviceListUnknown = Devices([
                 DeviceUnknown([PartPropertyDescription('One Port Unknown'),PartPropertyPorts(1)],PartPictureVariableUnknown(1)),
                 DeviceUnknown([PartPropertyDescription('Two Port Unknown'),PartPropertyPorts(2)],PartPictureVariableUnknown(2)),

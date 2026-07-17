@@ -1,5 +1,9 @@
 """
 StatisticalNoiseConfiguration.py
+
+Deprecated: retained for backwards compatibility. The statistical noise
+configuration has been split into voltage and current variants. Use
+VoltageStatisticalNoiseConfiguration or CurrentStatisticalNoiseConfiguration.
 """
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
@@ -17,22 +21,7 @@ StatisticalNoiseConfiguration.py
 #
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
-from SignalIntegrity.App.StatisticalNoisePreferencesFile import NoiseConfiguration
-from SignalIntegrity.App.DeviceExtendedConfiguration import DeviceExtendedConfiguration
-import SignalIntegrity.App.Preferences
-import copy
+from SignalIntegrity.App.VoltageStatisticalNoiseConfiguration import VoltageStatisticalNoiseConfiguration
 
-class StatisticalNoiseConfiguration(NoiseConfiguration,DeviceExtendedConfiguration):
-    def __init__(self):
-        if DeviceExtendedConfiguration.headless:
-            dialog=None
-        else:
-            from SignalIntegrity.App.StatisticalNoisePropertiesDialog import StatisticalNoisePropertiesDialog
-            dialog=StatisticalNoisePropertiesDialog
-        NoiseConfiguration.__init__(self)
-        DeviceExtendedConfiguration.__init__(self,
-            label='Statistical Noise Configuration',
-            dialog=dialog
-            )
-    def HandleBackwardsCompatibility(self):
-        return
+# Backwards-compatible alias.
+StatisticalNoiseConfiguration = VoltageStatisticalNoiseConfiguration

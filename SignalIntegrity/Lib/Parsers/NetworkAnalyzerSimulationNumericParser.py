@@ -80,7 +80,7 @@ class NetworkAnalyzerSimulationNumericParser(SimulatorNumericParser):
                         isNetworkAnalyzerPort=True
                 if not isNetworkAnalyzerPort:
                     otherSourceList.append(line)
-            elif tokens[0]=='currentsource':
+            elif tokens[0] in ['currentsource','currentnoisesource']:
                 otherSourceList.append(line)
             elif tokens[0]=='device':
                 if len(tokens)>=3:

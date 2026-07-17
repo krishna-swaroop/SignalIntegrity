@@ -45,12 +45,28 @@ class StatisticalNoiseAnalysis(dict):
             from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
             fl = EvenlySpacedFrequencyList(transferMatrices.f[-1], len(transferMatrices.f)-1)
 
+            # determine the 'type' (voltage or current) of each output probe.
+            # A CurrentOutput probe measures current, so its noise/signal is
+            # reported in current units; every other probe reports voltage.
+            output_types = {}
+            for output_name in outputWaveformLabels:
+                output_types[output_name] = 'voltage'
+                for device in schematic.deviceList:
+                    if device['ref'] is None:
+                        continue
+                    if device['ref'].GetValue() == output_name:
+                        if device['partname'].GetValue() == 'CurrentOutput':
+                            output_types[output_name] = 'current'
+                        break
+
+            input_types = {}
             inputNoiseSpectralDensityList = []
             for noise_source_ref in netlist.NoiseSourceNames():
                 sd = None
                 for device in schematic.deviceList:
-                    if device['partname'].GetValue() in ['VoltageStatisticalNoiseSource','VoltageStatisticalNoiseSourceProject']:
+                    if device['partname'].GetValue() in ['VoltageStatisticalNoiseSource','VoltageStatisticalNoiseSourceProject','CurrentStatisticalNoiseSource','CurrentStatisticalNoiseSourceProject']:
                         if device['ref'].GetValue() == noise_source_ref:
+                            input_types[noise_source_ref] = 'current' if device['partname'].GetValue().startswith('Current') else 'voltage'
                             sd = device.SpectralDensity(
                                 output_waveforms=output_waveforms,
                                 output_waveform_names=output_waveform_names).Resample(fl)
@@ -65,7 +81,9 @@ class StatisticalNoiseAnalysis(dict):
                               output_waveforms = output_waveforms,
                               input_names = sourceNames,
                               transfer_matrices = transferMatrices,
-                              input_noise_spectral_density = inputNoiseSpectralDensityList
+                              input_noise_spectral_density = inputNoiseSpectralDensityList,
+                              output_types = output_types,
+                              input_types = input_types
                               )
                           )
         except Exception as e:
@@ -73,6 +91,6 @@ class StatisticalNoiseAnalysis(dict):
 
     def Noise(self,reference):
         try:
-            return self['output_noise_spectral_density'][reference]['Vrms']
+            return self['output_noise_spectral_density'][reference]['rms']
         except Exception as e:
             return 0.0

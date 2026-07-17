@@ -23,11 +23,12 @@ from SignalIntegrity.App.SParameterProperties import SParameterProperties
 
 class DeviceConfigurations(XMLConfiguration):
     def __init__(self):
-        from StatisticalNoisePreferencesFile import NoiseConfiguration
+        from StatisticalNoisePreferencesFile import VoltageNoiseConfiguration,CurrentNoiseConfiguration
         from EyeDiagramPreferencesFile import EyeConfiguration
         super().__init__('Devices')
         self.SubDir(EyeConfiguration())
-        self.SubDir(NoiseConfiguration())
+        self.SubDir(VoltageNoiseConfiguration())
+        self.SubDir(CurrentNoiseConfiguration())
 
 class Color(XMLConfiguration):
     def __init__(self):

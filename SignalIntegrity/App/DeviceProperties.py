@@ -318,7 +318,7 @@ class DeviceProperties(tk.Frame):
                 elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource']:
                     if not self.device['wftype'].GetValue() == 'DC':
                         self.waveformViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
-                elif self.device.netlist['DeviceName'] == 'voltagenoisesource':
+                elif self.device.netlist['DeviceName'] in ['voltagenoisesource','currentnoisesource']:
                     self.noiseViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
         try:
             self.device['calcprop']['Hidden']= not self.isAProjectDevice
@@ -468,7 +468,7 @@ class DeviceProperties(tk.Frame):
                 elif self.device.netlist['DeviceName'] in ['networkanalyzerport','voltagesource','currentsource']:
                     if not self.device['wftype'].GetValue() == 'DC':
                         self.waveformViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
-                elif self.device.netlist['DeviceName'] == 'voltagenoisesource':
+                elif self.device.netlist['DeviceName'] in ['voltagenoisesource','currentnoisesource']:
                     self.noiseViewButton.pack(expand=tk.NO,fill=tk.NONE,anchor=tk.CENTER)
         if self.isAProjectDevice:
             self.variablesButton.pack(side=tk.TOP,expand=tk.NO,fill=tk.X)
@@ -635,13 +635,18 @@ class DeviceProperties(tk.Frame):
         nd=sim.NoiseDialog()
         nd.title('Noise')
 
+        # A current noise source (e.g. CurrentStatisticalNoiseSource) reports its
+        # noise in current units, so the neutral 'rms' is an Arms and the dBm must
+        # be computed with the 'current' power law.  Everything else is a voltage.
+        noise_type = 'current' if device['partname'].GetValue().startswith('Current') else 'voltage'
+
         noise_dict = {'output_names':[referenceDesignator],
                          'input_names':[],
                          'transfer_matrices':None,
                          'input_noise_spectral_density':{},
                          'input_noise_spectral_density_list':[],
                          'output_noise_spectral_density_list':[sd],
-                         'output_noise_spectral_density':{referenceDesignator:{'spectrum':sd,'Vrms':sd.TotalRMS(),'dBm':sd.TotaldBm()}},
+                         'output_noise_spectral_density':{referenceDesignator:{'spectrum':sd,'type':noise_type,'rms':sd.TotalRMS(),'dBm':sd.TotaldBm(reference=noise_type)}},
                          'contributions':None
                          }
 
@@ -651,8 +656,8 @@ class DeviceProperties(tk.Frame):
 
         fe = sdv['spectrum'].Frequencies('GHz')[-1]
 
-        sdv['Vrms/sqrt(Hz)'] = sdv['Vrms']/math.sqrt(fe*1e9)
-        sdv['Vrms/sqrt(GHz)'] = sdv['Vrms']/math.sqrt(fe)
+        sdv['rms/sqrt(Hz)'] = sdv['rms']/math.sqrt(fe*1e9)
+        sdv['rms/sqrt(GHz)'] = sdv['rms']/math.sqrt(fe)
         sdv['dBm/Hz'] = sdv['dBm'] - 10.*math.log10(fe*1e9)
         sdv['dBm/GHz'] = sdv['dBm'] - 10.*math.log10(fe)
 

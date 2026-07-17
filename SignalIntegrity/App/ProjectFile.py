@@ -91,6 +91,15 @@ class DeviceConfiguration(XMLConfiguration):
         import SignalIntegrity.App.Preferences
         for key in SignalIntegrity.App.Preferences['Devices'].dict.keys():
             self.SubDir(copy.deepcopy(SignalIntegrity.App.Preferences['Devices'][key]),makeOnRead=True)
+        # backwards compatibility: legacy projects stored the (voltage) noise
+        # configuration under the <Noise> tag before the voltage/current split.
+        # Register a read-only alias so those files still load; on save the
+        # device writes the configuration under its new <VoltageNoise> tag.
+        if 'VoltageNoise' in SignalIntegrity.App.Preferences['Devices'].dict.keys():
+            legacyNoise=copy.deepcopy(SignalIntegrity.App.Preferences['Devices']['VoltageNoise'])
+            legacyNoise.name='Noise'
+            legacyNoise.write=False
+            self.SubDir(legacyNoise,makeOnRead=True)
     def Property(self,name):
         for part_property in self['PartProperties']:
             if part_property.dict['Keyword']['value'] == name:

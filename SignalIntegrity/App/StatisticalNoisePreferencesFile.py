@@ -97,7 +97,7 @@ class JohnsonNoiseConfiguration(XMLConfiguration):
             fl,
             [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
 
-class WhiteNoiseConfiguration(XMLConfiguration):
+class VoltageWhiteNoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('WhiteNoise')
         self.Add(XMLPropertyDefaultString('WhiteNoiseType','V/sqrt(Hz)')) # Allowed values: 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms', 'ENOB', 'COM TX', or 'Johnson'.
@@ -169,6 +169,43 @@ class WhiteNoiseConfiguration(XMLConfiguration):
             fl,
             [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
 
+class CurrentWhiteNoiseConfiguration(XMLConfiguration):
+    def __init__(self):
+        super().__init__('WhiteNoise')
+        self.Add(XMLPropertyDefaultString('WhiteNoiseType','A/sqrt(Hz)')) # Allowed values: 'dBm/Hz', 'A/sqrt(Hz)', 'A^2/GHz', or 'Arms'.
+        self.Add(XMLPropertyDefaultFloat('NoisedBmPerHz',0.0)) # Noise density in dBm/Hz.
+        self.Add(XMLPropertyDefaultFloat('APerRootHz',0.0))    # Noise density in A/sqrt(Hz).
+        self.Add(XMLPropertyDefaultFloat('ASquaredPerGHz',0.0))# Noise density in A^2/GHz.
+        self.Add(XMLPropertyDefaultFloat('ARms',0.0))          # Total noise in Arms integrated over NoiseBandwidth (i.e., density in A/sqrt(Hz) * sqrt(NoiseBandwidth)).
+        self.Add(XMLPropertyDefaultFloat('NoiseBandwidth',0.0))# Noise bandwidth in Hz used for Arms integration and white-noise support.
+
+    def NoiseDensity(self):
+        from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
+        spec_type = self['WhiteNoiseType']
+        bw = self['NoiseBandwidth']
+        if spec_type == 'dBm/Hz':
+            value = self['NoisedBmPerHz']
+        elif spec_type == 'A/sqrt(Hz)':
+            value = self['APerRootHz']
+        elif spec_type == 'A^2/GHz':
+            value = self['ASquaredPerGHz']
+        elif spec_type == 'Arms':
+            value = self['ARms']
+        else:
+            raise ValueError(f'Unknown WhiteNoiseType: {spec_type}')
+        return DFTUtilities.ConvertSpectralDensity(
+            value, spec_type, 'A/sqrt(Hz)', bw=bw, reference='current')
+
+    def SpectralDensity(self, EndFrequency, FrequencyPoints):
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        noiseDensity = self.NoiseDensity()
+        noiseBandwidth = self['NoiseBandwidth']
+        return SpectralDensity(
+            fl,
+            [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
+
 class SpectralDensityFileConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('SpectralDensityFile')
@@ -206,12 +243,12 @@ class CrosstalkNoiseFromProbeConfiguration(XMLConfiguration):
             return waveform.SpectralDensity(fl)
         return SpectralDensity(fl, [0.0 for _ in fl])
 
-class NoiseConfiguration(XMLConfiguration):
+class VoltageNoiseConfiguration(XMLConfiguration):
     def __init__(self):
-        super().__init__('Noise')
+        super().__init__('VoltageNoise')
         self.Add(XMLPropertyDefaultBool('Enable',False))
         self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', or 'Crosstalk' (legacy 'Johnson' is still accepted)
-        self.SubDir(WhiteNoiseConfiguration())
+        self.SubDir(VoltageWhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
         self.SubDir(CrosstalkNoiseFromProbeConfiguration())
@@ -234,6 +271,39 @@ class NoiseConfiguration(XMLConfiguration):
         if noiseType == 'Johnson':
             # Backwards compatibility for existing project files that still store Johnson as a top-level noise type.
             return self['WhiteNoise.Johnson'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+        if noiseType == 'Crosstalk':
+            return self['Crosstalk'].SpectralDensity(
+                EndFrequency,
+                FrequencyPoints,
+                output_waveforms=output_waveforms,
+                output_waveform_names=output_waveform_names)*math.sqrt(lanes)
+        raise ValueError(f'Unknown noise type: {noiseType}')
+
+class CurrentNoiseConfiguration(XMLConfiguration):
+    def __init__(self):
+        super().__init__('CurrentNoise')
+        self.Add(XMLPropertyDefaultBool('Enable',False))
+        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', or 'Crosstalk'
+        self.SubDir(CurrentWhiteNoiseConfiguration())
+        self.SubDir(SpectralDensityFileConfiguration())
+        self.SubDir(NoiseWaveformFileConfiguration())
+        self.SubDir(CrosstalkNoiseFromProbeConfiguration())
+        self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
+    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        import math
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        if not self['Enable']:
+            return SpectralDensity(fl, [0.0 for _ in fl])
+        noiseType = self['Type']
+        lanes = self['Lanes']
+        if noiseType == 'WhiteNoise':
+            return self['WhiteNoise'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+        if noiseType == 'SpectralDensityFile':
+            return self['SpectralDensityFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
+        if noiseType == 'WaveformFile':
+            return self['WaveformFile'].SpectralDensity(EndFrequency, FrequencyPoints)*math.sqrt(lanes)
         if noiseType == 'Crosstalk':
             return self['Crosstalk'].SpectralDensity(
                 EndFrequency,

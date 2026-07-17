@@ -303,51 +303,82 @@ class DFTUtilities(object):
     # --- spectral density conversions --------------------------------------
 
     @staticmethod
-    def ConvertSpectralDensity(value, from_units, to_units, bw=None):
+    def ConvertSpectralDensity(value, from_units, to_units, bw=None, reference='voltage'):
         """Convert a spectral quantity between unit representations.
 
-        Supported units:
+        Supported voltage units (reference='voltage'):
             - 'dBm/Hz'      power spectral density (50 ohm, 1 mW reference)
             - 'V/sqrt(Hz)'  amplitude spectral density
             - 'V^2/GHz'     voltage power spectral density per GHz
             - 'Vrms'        integrated rms voltage over bandwidth @a bw
                             (assumes a flat/white spectrum across @a bw)
 
+        Supported current units (reference='current'):
+            - 'dBm/Hz'      power spectral density (50 ohm, 1 mW reference)
+            - 'A/sqrt(Hz)'  amplitude spectral density
+            - 'A^2/GHz'     current power spectral density per GHz
+            - 'Arms'        integrated rms current over bandwidth @a bw
+                            (assumes a flat/white spectrum across @a bw)
+
         @param value      float value to convert.
-        @param from_units one of 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms'.
-        @param to_units   one of 'dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms'.
-        @param bw         float bandwidth in Hz; required only when 'Vrms'
-                          appears as input or output.
+        @param from_units source unit (voltage or current set per @a reference).
+        @param to_units   destination unit (voltage or current set per @a reference).
+        @param bw         float bandwidth in Hz; required only when the rms
+                          ('Vrms'/'Arms') unit appears as input or output.
+        @param reference  'voltage' (default) or 'current'. Selects the unit
+                          set and the power law used for the dBm leg. For a
+                          voltage source P = asd^2 / R (R divides); for a
+                          current source P = asd^2 * R (R multiplies).
         @return           converted value in @a to_units.
         @throws ValueError on unknown units, or missing @a bw when needed.
+        @note
+        Only the dBm leg differs between voltage and current references; the
+        sqrt(Hz), ^2/GHz, and rms legs are structurally identical because they
+        do not involve the reference impedance.
         """
-        valid = ('dBm/Hz', 'V/sqrt(Hz)', 'V^2/GHz', 'Vrms')
+        R = 50.
+        P = 1e-3
+        if reference == 'current':
+            asd_units = 'A/sqrt(Hz)'
+            sq_units = 'A^2/GHz'
+            rms_units = 'Arms'
+        else:
+            asd_units = 'V/sqrt(Hz)'
+            sq_units = 'V^2/GHz'
+            rms_units = 'Vrms'
+        valid = ('dBm/Hz', asd_units, sq_units, rms_units)
         if from_units not in valid:
             raise ValueError(f'Unknown spectral density unit: {from_units}')
         if to_units not in valid:
             raise ValueError(f'Unknown spectral density unit: {to_units}')
         if from_units == to_units:
             return value
-        if (from_units == 'Vrms' or to_units == 'Vrms') and bw is None:
-            raise ValueError("'bw' is required when converting to/from 'Vrms'")
+        if (from_units == rms_units or to_units == rms_units) and bw is None:
+            raise ValueError(f"'bw' is required when converting to/from '{rms_units}'")
 
-        # Step 1: normalize input to V/sqrt(Hz)
-        if from_units == 'V/sqrt(Hz)':
+        # Step 1: normalize input to amplitude spectral density (asd_units)
+        if from_units == asd_units:
             asd = value
         elif from_units == 'dBm/Hz':
-            asd = math.sqrt(50. * 1e-3 * 10. ** (value / 10.))
-        elif from_units == 'V^2/GHz':
+            # P = asd^2 / R (voltage) or P = asd^2 * R (current)
+            if reference == 'current':
+                asd = math.sqrt(P * 10. ** (value / 10.) / R)
+            else:
+                asd = math.sqrt(R * P * 10. ** (value / 10.))
+        elif from_units == sq_units:
             asd = 0. if value <= 0. else math.sqrt(value / 1e9)
-        else:  # 'Vrms'
+        else:  # rms_units
             asd = value / math.sqrt(bw)
 
-        # Step 2: convert V/sqrt(Hz) to requested output
-        if to_units == 'V/sqrt(Hz)':
+        # Step 2: convert amplitude spectral density to requested output
+        if to_units == asd_units:
             return asd
-        if to_units == 'V^2/GHz':
+        if to_units == sq_units:
             return asd * asd * 1e9
         if to_units == 'dBm/Hz':
             if asd <= 0.:
                 return -3000.
-            return 10. * math.log10(asd * asd / 50. / 1e-3)
-        return asd * math.sqrt(bw)  # 'Vrms'
+            if reference == 'current':
+                return 10. * math.log10(asd * asd * R / P)
+            return 10. * math.log10(asd * asd / R / P)
+        return asd * math.sqrt(bw)  # rms_units

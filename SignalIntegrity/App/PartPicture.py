@@ -1313,6 +1313,32 @@ class PartPictureVariableVoltageSourceNoiseSourceOnePort(PartPictureVariable):
     def __init__(self):
         PartPictureVariable.__init__(self,['PartPictureVoltageSourceNoiseSourceOnePort'],1)
 
+class PartPictureCurrentSourceOnePort(PartPicture):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPicture.__init__(self,origin,[PartPin(1,(1,0),'t',False,True,False)],[(0,1),(2,3)],[(0,0),(2,5)],(2.5,2),orientation,mirroredHorizontally,mirroredVertically)
+    def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
+        PartPicture.DrawIndependent(self,canvas,grid,drawingOrigin)
+        # arrow inside the current source (replaces the plus/minus of the voltage source)
+        PartPicture.DrawArrowUp(self,canvas,grid,drawingOrigin,1)
+        PartPicture.DrawStem(self,canvas,grid,drawingOrigin,1,3)
+        PartPicture.DrawGround(self,canvas,grid,drawingOrigin,1,4)
+        PartPicture.DrawDevice(self,device,canvas,grid,drawingOrigin,False,connected)
+
+class PartPictureVariableCurrentSourceOnePort(PartPictureVariable):
+    def __init__(self):
+        PartPictureVariable.__init__(self,['PartPictureCurrentSourceOnePort'],1)
+
+class PartPictureCurrentSourceNoiseSourceOnePort(PartPictureCurrentSourceOnePort):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPictureCurrentSourceOnePort.__init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically)
+    def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
+        self.DrawCharacterInMiddle(canvas,grid,drawingOrigin,u"\u03C3")
+        PartPictureCurrentSourceOnePort.DrawDevice(self,device,canvas,grid,drawingOrigin,connected)
+
+class PartPictureVariableCurrentSourceNoiseSourceOnePort(PartPictureVariable):
+    def __init__(self):
+        PartPictureVariable.__init__(self,['PartPictureCurrentSourceNoiseSourceOnePort'],1)
+
 class PartPictureVoltageSourcePulseGeneratorOnePort(PartPictureVoltageSourceOnePort):
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
         PartPictureVoltageSourceOnePort.__init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically)
@@ -1381,6 +1407,17 @@ class PartPictureCurrentSourceTwoPort(PartPicture):
 class PartPictureVariableCurrentSourceTwoPort(PartPictureVariable):
     def __init__(self):
         PartPictureVariable.__init__(self,['PartPictureCurrentSourceTwoPort'],2)
+
+class PartPictureCurrentSourceNoiseSourceTwoPort(PartPictureCurrentSourceTwoPort):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPictureCurrentSourceTwoPort.__init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically)
+    def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
+        self.DrawCharacterInMiddle(canvas,grid,drawingOrigin,u"\u03C3")
+        PartPictureCurrentSourceTwoPort.DrawDevice(self,device,canvas,grid,drawingOrigin,connected)
+
+class PartPictureVariableCurrentSourceNoiseSourceTwoPort(PartPictureVariable):
+    def __init__(self):
+        PartPictureVariable.__init__(self,['PartPictureCurrentSourceNoiseSourceTwoPort'],2)
 
 class PartPictureCurrentSourceStepGeneratorTwoPort(PartPictureCurrentSourceTwoPort):
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
@@ -2504,9 +2541,15 @@ class PartPictureVariableReference(PartPictureVariable):
     def __init__(self):
         PartPictureVariable.__init__(self,['PartPictureReference'],4)
 
-class PartPictureDifferentialNoiseSource(PartPictureBox):
+class PartPictureDifferentialNoiseSourceBox(PartPictureBox):
+    """Base class that draws the rounded-rectangle body (with four pins) shared by
+    the differential voltage and differential current statistical noise sources.
+    Derived classes fill in the interior symbols via DrawInteriorSymbols()."""
     def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
         PartPictureBox.__init__(self,origin,[PartPin(1,(0,1),'l',False,True,True),PartPin(2,(0,3),'l',False,True,True),PartPin(3,(4,1),'r',False,True,True),PartPin(4,(4,3),'r',False,True,True)],[(1,0),(3,4)],[(0,0),(4,4)],(2,-0.5),orientation,mirroredHorizontally,mirroredVertically)
+    def DrawInteriorSymbols(self,canvas,grid,drawingOrigin,ct):
+        # to be overridden by derived classes
+        pass
     def DrawDevice(self,device,canvas,grid,drawingOrigin,connected=None):
         # draw rounded rectangle for the device body and then the usual symbols
         ct=self.CoordinateTranslater(grid,drawingOrigin)
@@ -2555,7 +2598,17 @@ class PartPictureDifferentialNoiseSource(PartPictureBox):
         canvas.create_line(left_t[0],left_t[1],left_b[0],left_b[1],fill=self.color)
         canvas.create_line(right_t[0],right_t[1],right_b[0],right_b[1],fill=self.color)
 
-        # draw the plus/minus and sigma text as before (use inset positions)
+        # let the derived class draw the interior indicators (plus/minus or arrows) and sigma
+        self.DrawInteriorSymbols(canvas,grid,drawingOrigin,ct)
+
+        # draw pins and other decorations but skip the default inner rectangle
+        PartPicture.DrawDevice(self,device,canvas,grid,drawingOrigin,False,connected)
+
+class PartPictureDifferentialNoiseSource(PartPictureDifferentialNoiseSourceBox):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPictureDifferentialNoiseSourceBox.__init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically)
+    def DrawInteriorSymbols(self,canvas,grid,drawingOrigin,ct):
+        # draw the plus/minus and sigma text (use inset positions)
         lx=(drawingOrigin[0]+self.origin[0]+1)*grid+grid/2
         ty=(drawingOrigin[1]+self.origin[1]+1)*grid
         rx=(drawingOrigin[0]+self.origin[0]+3)*grid-grid/2
@@ -2571,9 +2624,32 @@ class PartPictureDifferentialNoiseSource(PartPictureBox):
         canvas.create_text(p[3][0],p[3][1],text='-',fill=self.color)
         canvas.create_text(p[4][0],p[4][1],text=u"\u03C3",fill=self.color)
 
-        # draw pins and other decorations but skip the default inner rectangle
-        PartPicture.DrawDevice(self,device,canvas,grid,drawingOrigin,False,connected)
-
 class PartPictureVariableDifferentialNoiseSource(PartPictureVariable):
     def __init__(self):
         PartPictureVariable.__init__(self,['PartPictureDifferentialNoiseSource'],4)
+
+class PartPictureDifferentialCurrentNoiseSource(PartPictureDifferentialNoiseSourceBox):
+    def __init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically):
+        PartPictureDifferentialNoiseSourceBox.__init__(self,ports,origin,orientation,mirroredHorizontally,mirroredVertically)
+    def DrawInteriorSymbols(self,canvas,grid,drawingOrigin,ct):
+        # arrow pointing down on the input (left) and up on the output (right),
+        # with the sigma running through the middle.  The arrows are purely cosmetic.
+        lx=(drawingOrigin[0]+self.origin[0]+1)*grid+grid/2
+        rx=(drawingOrigin[0]+self.origin[0]+3)*grid-grid/2
+        ty=(drawingOrigin[1]+self.origin[1]+1)*grid
+        by=(drawingOrigin[1]+self.origin[1]+3)*grid
+        my=(ty+by)/2
+        arrowshape=((8*grid)/20,(10*grid)/20,(3*grid)/20)
+        # down arrow on the input (left)
+        p0=ct.Translate((lx,ty)); p1=ct.Translate((lx,by))
+        canvas.create_line(p0[0],p0[1],p1[0],p1[1],fill=self.color,arrow='last',arrowshape=arrowshape)
+        # up arrow on the output (right)
+        p0=ct.Translate((rx,ty)); p1=ct.Translate((rx,by))
+        canvas.create_line(p0[0],p0[1],p1[0],p1[1],fill=self.color,arrow='first',arrowshape=arrowshape)
+        # sigma in the middle
+        p=ct.Translate(((lx+rx)/2,my))
+        canvas.create_text(p[0],p[1],text=u"\u03C3",fill=self.color)
+
+class PartPictureVariableDifferentialCurrentNoiseSource(PartPictureVariable):
+    def __init__(self):
+        PartPictureVariable.__init__(self,['PartPictureDifferentialCurrentNoiseSource'],4)

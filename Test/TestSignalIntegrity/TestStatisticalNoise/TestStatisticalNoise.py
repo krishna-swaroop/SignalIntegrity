@@ -112,34 +112,34 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         # VO1
         self.assertEqual(ToSI(VO1_wf.rms(),'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO1_wf.SpectralDensity().TotalRMS(),'Vrms',round=2),'10.0 mVrms')
-        self.assertEqual(ToSI(VO1_sd['Vrms'],'Vrms'),'0 Vrms')
+        self.assertEqual(ToSI(VO1_sd['rms'],'Vrms'),'0 Vrms')
 
         # VO2
-        self.assertEqual(ToSI(VO2_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO2_sd['rms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO2_wf.rms(),'Vrms'),'0 Vrms')
 
         # VO3
-        self.assertEqual(ToSI(VO3_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO3_sd['rms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO3_wf.rms(),'Vrms'),'0 Vrms')
 
         # VO4
         self.assertEqual(ToSI(VO4_wf.rms(),'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO4_wf.SpectralDensity().TotalRMS(),'Vrms',round=2),'10.0 mVrms')
-        self.assertEqual(ToSI(VO4_sd['Vrms'],'Vrms'),'0 Vrms')
+        self.assertEqual(ToSI(VO4_sd['rms'],'Vrms'),'0 Vrms')
 
         # VO5
         # this generates 10 mVrms of total noise by having 10 lanes of noise
-        self.assertEqual(ToSI(VO5_sd['Vrms'],'Vrms',round=2),'10.0 mVrms')
+        self.assertEqual(ToSI(VO5_sd['rms'],'Vrms',round=2),'10.0 mVrms')
         self.assertEqual(ToSI(VO5_wf.rms(),'Vrms'),'0 Vrms')
 
         # VO6
         # from .csv file.
-        self.assertEqual(ToSI(VO6_sd['Vrms'],'Vrms',round=2),'26.0 uVrms')
+        self.assertEqual(ToSI(VO6_sd['rms'],'Vrms',round=2),'26.0 uVrms')
         self.assertEqual(ToSI(VO6_wf.rms(),'Vrms'),'0 Vrms')
 
         # VO7
         # from .json file.
-        self.assertEqual(ToSI(VO7_sd['Vrms'],'Vrms',round=2),'2.5 mVrms')
+        self.assertEqual(ToSI(VO7_sd['rms'],'Vrms',round=2),'2.5 mVrms')
         self.assertEqual(ToSI(VO7_wf.rms(),'Vrms'),'0 Vrms')
 
     def testAttenuator(self):
@@ -341,10 +341,10 @@ class TestStatisticalNoiseTest(unittest.TestCase,
             os.remove(fileName)
 
     def testWhiteNoiseConfigurationVSquaredUnits(self):
-        from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import VoltageWhiteNoiseConfiguration
         from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
 
-        cfg = WhiteNoiseConfiguration()
+        cfg = VoltageWhiteNoiseConfiguration()
         cfg['NoiseBandwidth'] = 35e9
 
         # 2.5e-3 V^2/GHz corresponds to sqrt(2.5e-12) V/sqrt(Hz).
@@ -370,9 +370,9 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(rho_values[5], 0.0)
 
     def testWhiteNoiseConfigurationENOB(self):
-        from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import VoltageWhiteNoiseConfiguration
 
-        cfg = WhiteNoiseConfiguration()
+        cfg = VoltageWhiteNoiseConfiguration()
         cfg['WhiteNoiseType'] = 'ENOB'
         cfg['SNR.ENOB.ENOB'] = 8.0
         cfg['SNR.Vpp'] = 1.0
@@ -403,10 +403,10 @@ class TestStatisticalNoiseTest(unittest.TestCase,
             cfg.NoiseDensity()
 
     def testWhiteNoiseConfigurationComTx(self):
-        from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import VoltageWhiteNoiseConfiguration
         from SignalIntegrity.Lib.TimeDomain.Filters.Risetime.Gaussian import Gaussian
 
-        cfg = WhiteNoiseConfiguration()
+        cfg = VoltageWhiteNoiseConfiguration()
         cfg['WhiteNoiseType'] = 'COM TX'
         cfg['SNR.COM_TX.h0'] = 0.85
         cfg['SNR.Vpp'] = 1.2
@@ -435,10 +435,10 @@ class TestStatisticalNoiseTest(unittest.TestCase,
             cfg.NoiseDensity()
 
     def testWhiteNoiseConfigurationJohnson(self):
-        from SignalIntegrity.App.StatisticalNoisePreferencesFile import WhiteNoiseConfiguration
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import VoltageWhiteNoiseConfiguration
         import scipy.constants as const
 
-        cfg = WhiteNoiseConfiguration()
+        cfg = VoltageWhiteNoiseConfiguration()
         cfg['WhiteNoiseType'] = 'Johnson'
         cfg['Johnson.Temperature_Kelvin'] = 300.0
         cfg['Johnson.Resistance'] = 50.0
@@ -457,10 +457,10 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(rho_values[5], 0.0)
 
     def testNoiseConfigurationLegacyJohnsonType(self):
-        from SignalIntegrity.App.StatisticalNoisePreferencesFile import NoiseConfiguration
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import VoltageNoiseConfiguration
         import scipy.constants as const
 
-        cfg = NoiseConfiguration()
+        cfg = VoltageNoiseConfiguration()
         cfg['Enable'] = True
         cfg['Type'] = 'Johnson'
         cfg['Lanes'] = 4.0
@@ -477,6 +477,99 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         self.assertEqual(rho_values[3], 0.0)
         self.assertEqual(rho_values[4], 0.0)
         self.assertEqual(rho_values[5], 0.0)
+
+    def testCurrentDBmReferenceConversion(self):
+        """The dBm leg differs for a current reference: P = asd^2 * R.
+
+        For a voltage source P = asd^2 / R (R divides), while for a current
+        source P = asd^2 * R (R multiplies).  Verify both directions of the
+        conversion and that a round-trip is lossless.
+        """
+        from SignalIntegrity.Lib.FrequencyDomain.DFTUtilities import DFTUtilities
+        R = 50.0
+        P = 1e-3
+
+        asd = 1e-6  # A/sqrt(Hz)
+        expected_dBm = 10.0 * math.log10(asd * asd * R / P)
+        self.assertAlmostEqual(
+            DFTUtilities.ConvertSpectralDensity(asd, 'A/sqrt(Hz)', 'dBm/Hz', reference='current'),
+            expected_dBm, places=12)
+
+        # reverse direction: dBm/Hz -> A/sqrt(Hz)
+        expected_asd = math.sqrt(P * 10.0 ** (expected_dBm / 10.0) / R)
+        self.assertAlmostEqual(
+            DFTUtilities.ConvertSpectralDensity(expected_dBm, 'dBm/Hz', 'A/sqrt(Hz)', reference='current'),
+            expected_asd, places=18)
+        self.assertAlmostEqual(expected_asd, asd, places=18)
+
+        # the current reference must differ from the voltage reference for dBm
+        voltage_dBm = DFTUtilities.ConvertSpectralDensity(asd, 'V/sqrt(Hz)', 'dBm/Hz', reference='voltage')
+        current_dBm = DFTUtilities.ConvertSpectralDensity(asd, 'A/sqrt(Hz)', 'dBm/Hz', reference='current')
+        self.assertNotAlmostEqual(voltage_dBm, current_dBm, places=6)
+        # they differ by 20*log10(R) exactly
+        self.assertAlmostEqual(current_dBm - voltage_dBm, 20.0 * math.log10(R), places=9)
+
+    def testCurrentWhiteNoiseConfigurationAUnits(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import CurrentWhiteNoiseConfiguration
+
+        cfg = CurrentWhiteNoiseConfiguration()
+        cfg['NoiseBandwidth'] = 35e9
+
+        # 2.5e-3 A^2/GHz corresponds to sqrt(2.5e-12) A/sqrt(Hz).
+        expected_rho = math.sqrt(2.5e-12)
+        cfg['WhiteNoiseType'] = 'A^2/GHz'
+        cfg['ASquaredPerGHz'] = 2.5e-3
+        self.assertAlmostEqual(cfg.NoiseDensity(), expected_rho, places=18)
+
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(len(rho_values), 6)
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho, places=18)
+        self.assertAlmostEqual(rho_values[2], expected_rho, places=18)
+        self.assertAlmostEqual(rho_values[3], expected_rho, places=18)
+        self.assertEqual(rho_values[4], 0.0)
+        self.assertEqual(rho_values[5], 0.0)
+
+    def testCurrentWhiteNoiseConfigurationArms(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import CurrentWhiteNoiseConfiguration
+
+        cfg = CurrentWhiteNoiseConfiguration()
+        cfg['WhiteNoiseType'] = 'Arms'
+        cfg['ARms'] = 10e-6
+        cfg['NoiseBandwidth'] = 40e9
+
+        expected_rho = cfg['ARms'] / math.sqrt(cfg['NoiseBandwidth'])
+        self.assertAlmostEqual(cfg.NoiseDensity(), expected_rho, places=24)
+
+    def testCurrentNoiseConfigurationWhiteNoiseLanes(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import CurrentNoiseConfiguration
+
+        cfg = CurrentNoiseConfiguration()
+        cfg['Enable'] = True
+        cfg['Type'] = 'WhiteNoise'
+        cfg['Lanes'] = 4.0
+        cfg['WhiteNoise.WhiteNoiseType'] = 'A/sqrt(Hz)'
+        cfg['WhiteNoise.APerRootHz'] = 3e-6
+        cfg['WhiteNoise.NoiseBandwidth'] = 20e9
+
+        expected_rho = 3e-6
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho * 2.0, places=18)
+        self.assertAlmostEqual(rho_values[2], expected_rho * 2.0, places=18)
+        self.assertEqual(rho_values[3], 0.0)
+        self.assertEqual(rho_values[4], 0.0)
+        self.assertEqual(rho_values[5], 0.0)
+
+    def testCurrentNoiseConfigurationDisabled(self):
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import CurrentNoiseConfiguration
+
+        cfg = CurrentNoiseConfiguration()
+        cfg['Enable'] = False
+        sd = cfg.SpectralDensity(50e9, 5)
+        self.assertEqual(sd.Values('V/sqrt(Hz)'), [0.0] * 6)
 
     def testSalzSNR(self):
         """Test script for SalzSNRdB noise floor filtering"""
@@ -515,7 +608,7 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         print(f'Test 4b - SalzSNR with non-uniform noise, noise_floor=1e-7: {salz_with_filter:.2f} dB')
         print(f'Test 4c - Difference (filter should give higher SNR): {salz_with_filter - salz_no_filter:.2f} dB (higher is good)')
 
-        print('\n✓ All SalzSNRdB noise floor filtering tests completed successfully!')
+        print('\nAll SalzSNRdB noise floor filtering tests completed successfully!')
 
 
 if __name__ == "__main__":

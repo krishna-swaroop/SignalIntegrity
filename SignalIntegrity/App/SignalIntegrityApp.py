@@ -1336,6 +1336,8 @@ class SignalIntegrityApp(tk.Frame):
         statisticalNoiseEnabled = SignalIntegrity.App.Preferences['Features.StatisticalNoise']
         DeviceList.Enable('VoltageStatisticalNoiseSource',statisticalNoiseEnabled)
         DeviceList.Enable('VoltageStatisticalNoiseSourceProject',statisticalNoiseEnabled)
+        DeviceList.Enable('CurrentStatisticalNoiseSource',statisticalNoiseEnabled)
+        DeviceList.Enable('CurrentStatisticalNoiseSourceProject',statisticalNoiseEnabled)
 
     def CheckSaveCurrentProject(self):
         if self.Drawing.stateMachine.state == 'NoProject':

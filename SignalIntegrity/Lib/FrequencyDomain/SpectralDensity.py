@@ -238,16 +238,25 @@ class SpectralDensity(FrequencyDomain):
             DFTUtilities.rho_to_rms(
                 self.Values(),
                 deltaf))
-    def TotaldBm(self):
+    def TotaldBm(self,reference='voltage'):
         """Total power across the spectrum
+        @param reference (optional) string either 'voltage' (default) or
+        'current' selecting the power law used to convert the integrated rms
+        to power.  For a voltage quantity P = rms^2 / R (R divides); for a
+        current quantity P = rms^2 * R (R multiplies).
         @return float total power in dBm.
+        @note
+        The two references differ by exactly 20*log10(R) dB for the same
+        numeric rms.
         """
         deltaf = DFTUtilities.DeltaFrequency((len(self)-1)*2, self.Frequencies()[-1]*2)
+        rms = DFTUtilities.rho_to_rms(self.Values(), deltaf)
+        if reference == 'current':
+            # P = rms^2 * R  (current through the reference impedance)
+            total_power = sum(r*r for r in rms) * self.R
+            return -3000. if total_power <= 1e-300 else 10.*math.log10(total_power/self.P)
         return DFTUtilities.TotalSpectralContentdBm(
-            DFTUtilities.rms_to_dBm(
-                DFTUtilities.rho_to_rms(
-                    self.Values(),
-                    deltaf)))
+            DFTUtilities.rms_to_dBm(rms))
     def SNRdB(self, other, other_is_signal_or_noise):
         """Calculates SNR in dB from integrated spectral-density powers.
         @param other instance of class SpectralDensity.

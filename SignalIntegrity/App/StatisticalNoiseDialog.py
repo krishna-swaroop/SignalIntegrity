@@ -388,26 +388,38 @@ class StatisticalNoiseDialog(tk.Toplevel):
             fl = si.fd.FrequencyList(self.waveformList[0].Frequencies())
             if fl.CheckEvenlySpaced():
                 sd = self.statistical_noise_analysis['output_noise_spectral_density'][self.waveformNamesList[0]]
+                # select the display units based on the probe type: a current
+                # probe reports Arms / Arms/sqrt(Hz), a voltage probe reports
+                # Vrms / Vrms/sqrt(Hz).
+                probe_type = sd.get('type','voltage')
+                if probe_type == 'current':
+                    rms_units = 'Arms'
+                    density_hz_units = 'Arms/sqrt(Hz)'
+                    density_ghz_units = 'Arms/sqrt(GHz)'
+                else:
+                    rms_units = 'Vrms'
+                    density_hz_units = 'Vrms/sqrt(Hz)'
+                    density_ghz_units = 'Vrms/sqrt(GHz)'
                 integrated_noise_dBm = sd['dBm']
-                integrated_noise_Vrms = sd['Vrms']
+                integrated_noise_rms = sd['rms']
                 noise_density_dBmPerHz = sd['dBm/Hz']
                 noise_density_dBmPerGHz = sd['dBm/GHz']
-                noise_density_VrmsPerRootHz = sd['Vrms/sqrt(Hz)']
-                noise_density_VrmsPerRootGHz = sd['Vrms/sqrt(GHz)']
+                noise_density_rmsPerRootHz = sd['rms/sqrt(Hz)']
+                noise_density_rmsPerRootGHz = sd['rms/sqrt(GHz)']
                 try:
                     signal_spectral_density = self.statistical_noise_analysis['signal_noise_spectral_density'][self.waveformNamesList[0]]
                     integrated_signal_noise_dBm = signal_spectral_density['dBm']
-                    integrated_signal_noise_Vrms = signal_spectral_density['Vrms']
-                    signal_noise_string = f"Signal power:  {ToSI(integrated_signal_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_signal_noise_dBm,'dBm',round=3)}\n"
+                    integrated_signal_noise_rms = signal_spectral_density['rms']
+                    signal_noise_string = f"Signal power:  {ToSI(integrated_signal_noise_rms,rms_units,round=3)}, {ToSI(integrated_signal_noise_dBm,'dBm',round=3)}\n"
                     signal_noise_string+= f"SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}, SNR: {ToSI(integrated_signal_noise_dBm-integrated_noise_dBm,'dB',round=3)}\n"
                 except:
                     signal_noise_string = ''
-                noise_string = f"Total noise: {ToSI(integrated_noise_Vrms,'Vrms',round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}\n"
+                noise_string = f"Total noise: {ToSI(integrated_noise_rms,rms_units,round=3)}, {ToSI(integrated_noise_dBm,'dBm',round=3)}\n"
                 noise_string += signal_noise_string
-                noise_string += f"Average noise density: {ToSI(noise_density_VrmsPerRootGHz,'Vrms/sqrt(GHz)',round=3)}, "
+                noise_string += f"Average noise density: {ToSI(noise_density_rmsPerRootGHz,density_ghz_units,round=3)}, "
                 noise_string += f"{ToSI(noise_density_dBmPerGHz,'dBm/GHz',round=3)}\n"
                 noise_string += 'or:\n'
-                noise_string += f"{ToSI(noise_density_VrmsPerRootHz,'Vrms/sqrt(Hz)',round=3)}, "
+                noise_string += f"{ToSI(noise_density_rmsPerRootHz,density_hz_units,round=3)}, "
                 noise_string += f"{ToSI(noise_density_dBmPerHz,'dBm/Hz',round=3)}"
                 self.statusbar.set(f"{ToSI(fl.N,'Pts')} (+1) from DC to {ToSI(fl.Fe,'Hz')}, evenly spaced\n{noise_string}")
             else:

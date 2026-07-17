@@ -47,7 +47,7 @@ class SimulatorParser(SystemDescriptionParser):
         - 'output' - addition of an output probe
         - 'voltageoutput' - addition of a voltage output probe with a name.
         - 'voltagesource' or 'networkanalyzerport' or 'voltagenoisesource' - addition of a voltage source.
-        - 'currentsource' - addition of a current source.
+        - 'currentsource' or 'currentnoisesource' - addition of a current source.
         - 'eyeprobe' - addition of an output probe.  
         Calls SystemDescriptionParser._ProcessLines(),
         exludes 'connect' and 'port' in first call, then processes simulator lines, then
@@ -68,7 +68,7 @@ class SimulatorParser(SystemDescriptionParser):
         elif lineList[0] in ['voltagesource','networkanalyzerport',
                              'voltagenoisesource']:
             self.m_sd.AddVoltageSource(lineList[1],int(lineList[2]))
-        elif lineList[0] == 'currentsource':
+        elif lineList[0] in ['currentsource','currentnoisesource']:
             self.m_sd.AddCurrentSource(lineList[1],int(lineList[2]))
         else: self.m_ul.append(line)
     def _ProcessLines(self):

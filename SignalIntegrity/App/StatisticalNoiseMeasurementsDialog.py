@@ -102,6 +102,16 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         output_entry = section.get(output_name, {})
         return output_entry.get(key_name, None)
 
+    def _outputType(self, measurements, output_name):
+        entry = measurements.get('output_noise_spectral_density', {}).get(output_name, {})
+        return entry.get('type', 'voltage')
+
+    def _rmsUnits(self, measurements, output_name, base):
+        # base is a neutral rms unit like 'rms', 'rms/sqrt(Hz)' or
+        # 'rms/sqrt(GHz)'; prepend 'A' for a current probe, else 'V'.
+        prefix = 'A' if self._outputType(measurements, output_name) == 'current' else 'V'
+        return prefix + base
+
     def _snrDb(self, measurements, output_name):
         return self._dictValue(measurements, output_name, 'signal_to_noise_ratio', 'SNR')
 
@@ -116,12 +126,12 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         contributions = self._contributionsDict(measurements)
         output_contrib = contributions.get(output_name, {})
         contributor = output_contrib.get(contributor_name, {})
-        vrms = self._formatValue(contributor.get('Vrms', None), 'Vrms')
+        rms = self._formatValue(contributor.get('rms', None), self._rmsUnits(measurements, output_name, 'rms'))
         dbm = self._formatValue(contributor.get('dBm', None), 'dBm')
 
         snr = self._formatValue(contributor.get('SNR', None), 'dB')
 
-        return f'{vrms}, {dbm}, {snr}'
+        return f'{rms}, {dbm}, {snr}'
 
     def _contributorNames(self, measurements):
         contributions = self._contributionsDict(measurements)
@@ -146,9 +156,13 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         self.measurementTree.insert('', tk.END, values=values, tags=('group',))
 
     def _insertMeasurementRow(self, label, output_names, extractor, units):
+        # units may be a fixed string (e.g. 'dBm') or a callable(output_name)
+        # returning the units for that output's column (used for rms quantities
+        # whose units depend on whether the probe is a voltage or current probe).
         row = [label]
         for output_name in output_names:
-            row.append(self._formatValue(extractor(output_name), units))
+            column_units = units(output_name) if callable(units) else units
+            row.append(self._formatValue(extractor(output_name), column_units))
         self.measurementTree.insert('', tk.END, values=row)
 
     def _autoSizeOutputColumns(self, output_names, min_width=170, max_width=700, pad=24):
@@ -223,10 +237,10 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         self._insertGroupRow('Signal Power', column_count)
         self._insertMeasurementRow(
-            'Integrated signal power (Vrms)',
+            'Integrated signal power (rms)',
             output_names,
-            lambda out: self._dictValue(measurements, out, 'signal_noise_spectral_density', 'Vrms'),
-            'Vrms')
+            lambda out: self._dictValue(measurements, out, 'signal_noise_spectral_density', 'rms'),
+            lambda out: self._rmsUnits(measurements, out, 'rms'))
         self._insertMeasurementRow(
             'Integrated signal power (dBm)',
             output_names,
@@ -235,10 +249,10 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         self._insertGroupRow('Noise Power', column_count)
         self._insertMeasurementRow(
-            'Total noise (Vrms)',
+            'Total noise (rms)',
             output_names,
-            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'Vrms'),
-            'Vrms')
+            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms'),
+            lambda out: self._rmsUnits(measurements, out, 'rms'))
         self._insertMeasurementRow(
             'Total noise (dBm)',
             output_names,
@@ -259,10 +273,10 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         self._insertGroupRow('Average Noise Density (Hz)', column_count)
         self._insertMeasurementRow(
-            'Average noise density (V/√Hz)',
+            'Average noise density (rms/√Hz)',
             output_names,
-            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'Vrms/sqrt(Hz)'),
-            'Vrms/sqrt(Hz)')
+            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms/sqrt(Hz)'),
+            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(Hz)'))
         self._insertMeasurementRow(
             'Average noise density (dBm/Hz)',
             output_names,
@@ -271,10 +285,10 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
 
         self._insertGroupRow('Average Noise Density (GHz)', column_count)
         self._insertMeasurementRow(
-            'Average noise density (V/√GHz)',
+            'Average noise density (rms/√GHz)',
             output_names,
-            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'Vrms/sqrt(GHz)'),
-            'Vrms/sqrt(GHz)')
+            lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms/sqrt(GHz)'),
+            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(GHz)'))
         self._insertMeasurementRow(
             'Average noise density (dBm/GHz)',
             output_names,
