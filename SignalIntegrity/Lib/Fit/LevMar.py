@@ -30,7 +30,7 @@ from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionFitter
 class LevMar(CallBacker):
     """Implements the Levenberg-Marquardt algorithm for non-linear fitting  
     To use this class, you derive your class for fitting some arbitrary
-    function to some data from LeVmar.  The function must contain, at a minimum, an
+    function to some data from LevMar.  The function must contain, at a minimum, an
     __init__ function for construction and a function fF(self,a), which implements
     the function y=f(a) where ideally a is a vector of numbers and y is a vector of
     numbers in matrix form.  In other words, if you are fitting a 3 variable function

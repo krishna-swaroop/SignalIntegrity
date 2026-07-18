@@ -1,7 +1,6 @@
 """
  Exception.py
 """
-
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
 # All rights reserved worldwide.
@@ -22,6 +21,7 @@
 import inspect
 
 class SignalIntegrityException(Exception):
+    """base class for all signal integrity exceptions"""
     def __init__(self,value,message=''):
         self.parameter=value
         self.message=message

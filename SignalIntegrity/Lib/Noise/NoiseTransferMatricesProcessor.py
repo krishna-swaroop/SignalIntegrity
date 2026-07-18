@@ -23,7 +23,6 @@ from SignalIntegrity.Lib.CallBacker import CallBacker
 
 class NoiseTransferMatricesProcessor(CallBacker):
     """Processes transfer matrices for noise spectral densities.
-
     Given transfer matrices and a list of input spectral densities, produces
     output spectral densities by multiplying each input by its corresponding
     frequency response magnitude and combining contributions via root-sum-square

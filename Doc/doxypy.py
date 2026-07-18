@@ -75,7 +75,6 @@ class FSM(object):
 		
 	def makeTransition(self, input):
 		""" Makes a transition based on the given input.
-
 		@param	input	input to parse by the FSM
 		"""
 		for transition in self.transitions:
@@ -95,22 +94,22 @@ class Doxypy(object):
 	def __init__(self):
 		string_prefixes = "[uU]?[rR]?"
 		
-		self.start_single_comment_re = re.compile("^\s*%s(''')" % string_prefixes)
-		self.end_single_comment_re = re.compile("(''')\s*$")
+		self.start_single_comment_re = re.compile(r"^\s*%s(''')" % string_prefixes)
+		self.end_single_comment_re = re.compile(r"(''')\s*$")
 		
-		self.start_double_comment_re = re.compile("^\s*%s(\"\"\")" % string_prefixes)
-		self.end_double_comment_re = re.compile("(\"\"\")\s*$")
+		self.start_double_comment_re = re.compile(r"^\s*%s(\"\"\")" % string_prefixes)
+		self.end_double_comment_re = re.compile(r"(\"\"\")\s*$")
 		
-		self.single_comment_re = re.compile("^\s*%s(''').*(''')\s*$" % string_prefixes)
-		self.double_comment_re = re.compile("^\s*%s(\"\"\").*(\"\"\")\s*$" % string_prefixes)
+		self.single_comment_re = re.compile(r"^\s*%s(''').*(''')\s*$" % string_prefixes)
+		self.double_comment_re = re.compile(r"^\s*%s(\"\"\").*(\"\"\")\s*$" % string_prefixes)
 		
-		self.defclass_re = re.compile("^(\s*)(def .+:|class .+:)")
-		self.empty_re = re.compile("^\s*$")
-		self.hashline_re = re.compile("^\s*#.*$")
-		self.importline_re = re.compile("^\s*(import |from .+ import)")
+		self.defclass_re = re.compile(r"^(\s*)(def .+:|class .+:)")
+		self.empty_re = re.compile(r"^\s*$")
+		self.hashline_re = re.compile(r"^\s*#.*$")
+		self.importline_re = re.compile(r"^\s*(import |from .+ import)")
 
-		self.multiline_defclass_start_re = re.compile("^(\s*)(def|class)(\s.*)?$")
-		self.multiline_defclass_end_re = re.compile(":\s*$")
+		self.multiline_defclass_start_re = re.compile(r"^(\s*)(def|class)(\s.*)?$")
+		self.multiline_defclass_end_re = re.compile(r":\s*$")
 		
 		## Transition list format
 		#  ["FROM", "TO", condition, action]
@@ -331,7 +330,7 @@ class Doxypy(object):
 		doxyStart = "##"
 		commentLines = self.comment
 		
-		commentLines = map(lambda x: "%s# %s" % (self.indent, x), commentLines)
+		commentLines = list(map(lambda x: "%s# %s" % (self.indent, x), commentLines))
 		l = [self.indent + doxyStart]
 		l.extend(commentLines)
 			 
@@ -340,7 +339,6 @@ class Doxypy(object):
 	def parse(self, input):
 		"""Parses a python file given as input string and returns the doxygen-
 		compatible representation.
-		
 		@param	input	the python code to parse
 		@returns the modified python code
 		""" 
@@ -355,26 +353,22 @@ class Doxypy(object):
 		return "\n".join(self.output)
 	
 	def parseFile(self, filename):
-		"""Parses a python file given as input string and returns the doxygen-
+		"""Parses a python file given as filename and returns the doxygen-
 		compatible representation.
-		
-		@param	input	the python code to parse
+		@param	filename	the python file to parse
 		@returns the modified python code
 		""" 
 		f = open(filename, 'r')
-		self.output=["'''"+filename.split('/')[-1].split('.')[0]+"'''"]
-		self.__flushBuffer()
 		for line in f:
 			self.parseLine(line.rstrip('\r\n'))
 		if self.fsm.current_state == "DEFCLASS":
 			self.__closeComment()
-			self.__flushBuffer()
+		self.__flushBuffer()
 		f.close()
 	
 	def parseLine(self, line):
 		"""Parse one line of python and flush the resulting output to the 
 		outstream.
-		
 		@param	line	the python code line to parse
 		"""
 		self.fsm.makeTransition(line)

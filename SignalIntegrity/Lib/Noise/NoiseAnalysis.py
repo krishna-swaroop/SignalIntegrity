@@ -21,7 +21,6 @@ import math
 
 class NoiseAnalysis(dict):
     """Computes and organizes the results of a linear noise analysis.
-
     Given a set of noise sources (inputs), the transfer functions from those
     sources to a set of observation points (outputs), and the ideal signal
     waveforms at those outputs, this class propagates each input noise spectral
@@ -67,7 +66,6 @@ class NoiseAnalysis(dict):
     def __init__(self, output_names, output_waveforms, input_names, transfer_matrices, input_noise_spectral_density,
                  output_types=None, input_types=None):
         """Constructs a NoiseAnalysis result dictionary.
-
         @param output_names list of str names of the observation points
             (outputs) in the order they appear in the transfer matrices.
         @param output_waveforms list of the ideal signal waveforms at each
