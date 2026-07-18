@@ -399,9 +399,13 @@ class NetList(object):
                     # connecting the common-modes together, and exposing the left and right D ports as ports 5 and 6.
                     assert(tokens[1].endswith('_$D$'))
                     line = 'device '+tokens[1]+' 6 diffnoiseinserter'
-                    endinglines.append('voltagenoisesource '+tokens[1][:-4]+' 2')
-                    endinglines.append('connect '+tokens[1][:-4]+' 1 '+tokens[1]+' 5')
-                    endinglines.append('connect '+tokens[1][:-4]+' 2 '+tokens[1]+' 6')
+                    ref = tokens[1][:-4]
+                    # Very Important!!! - this source now needs to appear at the end of the source lists!
+                    self.sourceNames = [s for s in self.sourceNames if s != ref] + [ref]
+                    self.noiseSourceNames = [s for s in self.noiseSourceNames if s != ref] + [ref]
+                    endinglines.append('voltagenoisesource '+ref+' 2')
+                    endinglines.append('connect '+ref+' 1 '+tokens[1]+' 5')
+                    endinglines.append('connect '+ref+' 2 '+tokens[1]+' 6')
             elif tokens[0] in ['currentnoisesource']:
                 if (len(tokens) >= 3) and tokens[2] == '4':
                     # this is a differential current noise source. It has already had its reference postpended with '_$D$'.
@@ -410,8 +414,12 @@ class NetList(object):
                     # The single current source injects the differential-mode current that ports 5 and 6 expose.
                     assert(tokens[1].endswith('_$D$'))
                     line = 'device '+tokens[1]+' 6 diffnoiseinserter'
-                    endinglines.append('currentnoisesource '+tokens[1][:-4]+' 1')
-                    endinglines.append('connect '+tokens[1][:-4]+' 1 '+tokens[1]+' 5 '+tokens[1]+' 6')
+                    ref = tokens[1][:-4]
+                    # Very Important!!! - this source now needs to appear at the end of the source lists!
+                    self.sourceNames = [s for s in self.sourceNames if s != ref] + [ref]
+                    self.noiseSourceNames = [s for s in self.noiseSourceNames if s != ref] + [ref]
+                    endinglines.append('currentnoisesource '+ref+' 1')
+                    endinglines.append('connect '+ref+' 1 '+tokens[1]+' 5 '+tokens[1]+' 6')
             if not line == None:
                 textToShow.append(line)
         self.textToShow=textToShow+endinglines+SignalIntegrity.App.Project['PostProcessing'].NetListLines()
