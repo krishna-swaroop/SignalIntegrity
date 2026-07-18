@@ -66,13 +66,17 @@ class NetList(object):
 
         # done filtering out disabled devices
 
-        # change all differential noise source references to that have _$D$ appended to them.
-        # This referencing will be applied to the 'differential noise source inserter' device, and the
+        # change all differential/common-mode noise source references to that have _$D$ (differential)
+        # or _$C$ (common-mode) appended to them.
+        # This referencing will be applied to the 'noise source inserter' device, and the
         # original reference supplied will be used for the actual two-port noise source used.
         for device in deviceList:
             if device.netlist['DeviceName'] in ['voltagenoisesource','currentnoisesource']:
                 if device['ports']['Value'] == '4':
-                    device['ref']['Value'] = device['ref']['Value'] + '_$D$'
+                    if not device['mode'] == None and device['mode']['Value'] == 'common-mode':
+                        device['ref']['Value'] = device['ref']['Value'] + '_$C$'
+                    else:
+                        device['ref']['Value'] = device['ref']['Value'] + '_$D$'
 
         equiPotentialWireList=wires_list.EquiPotentialWireList()
         # put in system variables
@@ -85,9 +89,10 @@ class NetList(object):
                     ref_name=device['ref'].GetValue()
                     if device.netlist['DeviceName'] in ['voltagenoisesource','currentnoisesource']:
                         if device['ports']['Value'] == '4':
-                            # this is a four-port noise source.  It has presumably had a '_$D$' appended to its reference,
-                            # so we need to remove that for the source name, as the actual source name will have the original reference.
-                            assert ref_name.endswith('_$D$')
+                            # this is a four-port noise source.  It has presumably had a '_$D$' (differential) or
+                            # '_$C$' (common-mode) appended to its reference, so we need to remove that for the
+                            # source name, as the actual source name will have the original reference.
+                            assert ref_name.endswith('_$D$') or ref_name.endswith('_$C$')
                             ref_name=ref_name[:-4]
                         self.noiseSourceNames.append(ref_name)
                         self.sourceNames.append(ref_name)
@@ -391,14 +396,21 @@ class NetList(object):
                         line = None
             elif tokens[0] in ['voltagenoisesource']:
                 if (len(tokens) >= 3) and tokens[2] == '4':
-                    # this is a differential noise source. It has already had its reference postpended with '_$D$'.
+                    # this is a differential or common-mode noise source. It has already had its reference
+                    # postpended with '_$D$' (differential) or '_$C$' (common-mode).
                     # We need to replace the four port noise source with a six port noise inserter element, then
                     # connect a two-port noise souce to the other, unconnected two ports of the noise inserter.
                     # FYI, the noise inserter is a six-port element formed by placing two voltage mixed-mode converters
-                    # back to back, placing ports 1-4 on the left +, left -, right +, and right - ports, respectively,
-                    # connecting the common-modes together, and exposing the left and right D ports as ports 5 and 6.
-                    assert(tokens[1].endswith('_$D$'))
-                    line = 'device '+tokens[1]+' 6 diffnoiseinserter'
+                    # back to back.  For the differential inserter, ports 1-4 are on the left +, left -, right +, and
+                    # right - ports, the common-modes are connected together, and the left and right D ports are exposed
+                    # as ports 5 and 6.  The common-mode inserter is wired the reverse way, connecting the D ports and
+                    # exposing the common-mode ports as 5 and 6.
+                    assert(tokens[1].endswith('_$D$') or tokens[1].endswith('_$C$'))
+                    if tokens[1].endswith('_$C$'):
+                        inserter = 'commnoiseinserter'
+                    else:
+                        inserter = 'diffnoiseinserter'
+                    line = 'device '+tokens[1]+' 6 '+inserter
                     ref = tokens[1][:-4]
                     # Very Important!!! - this source now needs to appear at the end of the source lists!
                     self.sourceNames = [s for s in self.sourceNames if s != ref] + [ref]
@@ -408,12 +420,18 @@ class NetList(object):
                     endinglines.append('connect '+ref+' 2 '+tokens[1]+' 6')
             elif tokens[0] in ['currentnoisesource']:
                 if (len(tokens) >= 3) and tokens[2] == '4':
-                    # this is a differential current noise source. It has already had its reference postpended with '_$D$'.
+                    # this is a differential or common-mode current noise source. It has already had its reference
+                    # postpended with '_$D$' (differential) or '_$C$' (common-mode).
                     # We replace the four port noise source with a six port noise inserter element, then connect a
-                    # one-port current noise source to both of the exposed differential ports (5 and 6) of the inserter.
-                    # The single current source injects the differential-mode current that ports 5 and 6 expose.
-                    assert(tokens[1].endswith('_$D$'))
-                    line = 'device '+tokens[1]+' 6 diffnoiseinserter'
+                    # one-port current noise source to both of the exposed ports (5 and 6) of the inserter.
+                    # The single current source injects the differential-mode (diffnoiseinserter) or common-mode
+                    # (commnoiseinserter) current that ports 5 and 6 expose.
+                    assert(tokens[1].endswith('_$D$') or tokens[1].endswith('_$C$'))
+                    if tokens[1].endswith('_$C$'):
+                        inserter = 'commnoiseinserter'
+                    else:
+                        inserter = 'diffnoiseinserter'
+                    line = 'device '+tokens[1]+' 6 '+inserter
                     ref = tokens[1][:-4]
                     # Very Important!!! - this source now needs to appear at the end of the source lists!
                     self.sourceNames = [s for s in self.sourceNames if s != ref] + [ref]

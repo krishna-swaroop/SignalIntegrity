@@ -6,7 +6,7 @@
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>1241x305+182+182</Geometry>
+			<Geometry>1241x305+270+133</Geometry>
 			<Grid>14</Grid>
 			<Originx>-12</Originx>
 			<Originy>9</Originy>
@@ -219,6 +219,12 @@
 							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>mode</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>single-ended</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -486,6 +492,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>mode</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>single-ended</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>wftype</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>statistical</Value>
@@ -550,6 +562,12 @@
 							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>mode</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>single-ended</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -737,6 +755,12 @@
 							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>mode</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>single-ended</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>

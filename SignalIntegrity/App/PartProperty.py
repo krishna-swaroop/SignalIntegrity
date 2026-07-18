@@ -374,6 +374,16 @@ class PartPropertyWaveformType(PartProperty):
     def __init__(self,wfType=None):
         PartProperty.__init__(self,'wftype',type='string',unit=None,keyword='wftype',description='waveform type',value=wfType,hidden=True,visible=False)
 
+class PartPropertyMode(PartProperty):
+    # Note: this is a normal (serialized) PartProperty - not read-only - so that the mode
+    # ('single-ended'/'differential-mode'/'common-mode') is written to and restored from the
+    # project file.  This lets the differential and common-mode noise sources share the same
+    # device class and port count and still round-trip correctly (the mode is restored on load).
+    # It is kept hidden/not visible so the user does not edit it directly.
+    validEntries=['single-ended','differential-mode','common-mode']
+    def __init__(self,mode='single-ended'):
+        PartProperty.__init__(self,'mode',type='string',unit=None,keyword='mode',description='mode',value=mode,hidden=True,visible=False,keywordVisible=False)
+
 class PartPropertyWaveformProjectName(PartProperty):
     def __init__(self,wfProjName=None):
         PartProperty.__init__(self,'wfprojname',type='file',unit=None,keyword='wfprojname',keywordVisible=False,description='waveform project name',value=wfProjName,visible=False)

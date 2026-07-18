@@ -59,3 +59,5 @@ from .TLineTwoPortCOM import TLineTwoPortCOM
 from .Converters import IdealCurrentToVoltageConverter,IdealVoltageToVoltageConverter
 from .IdealBalun import IdealBalun
 from .Reference import Reference
+from .DiffNoiseInserter import DiffNoiseInserter
+from .CommonNoiseInserter import CommNoiseInserter
