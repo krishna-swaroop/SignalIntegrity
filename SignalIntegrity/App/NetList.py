@@ -34,6 +34,7 @@ class NetList(object):
         self.definingStimList=[]
         self.noiseSourceNames=[]
         self.noiseOutputNames=[]
+        self.noiseDisplayOutputNames=[]
         deviceList = schematic.deviceList
 
         wires_list = copy.deepcopy(SignalIntegrity.App.Project['Drawing.Schematic'].dict['Wires'])
@@ -265,6 +266,8 @@ class NetList(object):
                     self.outputNames.append(ref)
                     if self._IncludeInNoise(deviceList[deviceIndex]):
                         self.noiseOutputNames.append(ref)
+                        if self._ShowInNoise(deviceList[deviceIndex]):
+                            self.noiseDisplayOutputNames.append(ref)
                 for port in portList:
                     deviceIndex = port[0]
                     line=deviceList[deviceIndex].NetListLine() + ' ' + devicePinString
@@ -390,11 +393,15 @@ class NetList(object):
                         self.outputNames.append(tokens[1])
                         if self._IncludeInNoise(probeDevice):
                             self.noiseOutputNames.append(tokens[1])
+                            if self._ShowInNoise(probeDevice):
+                                self.noiseDisplayOutputNames.append(tokens[1])
                         endinglines.append('voltageoutput '+tokens[1]+' '+tokens[1]+' 3')
                     if tokens[0] == 'differentialeyeprobe':
                         self.outputNames.append(tokens[1])
                         if self._IncludeInNoise(probeDevice):
                             self.noiseOutputNames.append(tokens[1])
+                            if self._ShowInNoise(probeDevice):
+                                self.noiseDisplayOutputNames.append(tokens[1])
                         endinglines.append('eyeprobe '+tokens[1]+' '+tokens[1]+' 3')
                     if tokens[0] in ['eyewaveform','waveform']:
                         self.waveformNames.append(tokens[1])
@@ -454,15 +461,27 @@ class NetList(object):
     def OutputNames(self):
         return self.outputNames
     def _IncludeInNoise(self,device):
-        # Determines whether a probe's output should be included in the
-        # statistical noise measurements.  Eye probes carry no 'noise' property
-        # and are always included (they are only reached here when their state
-        # is on).  Regular probes are included when their 'noise' property is
-        # 'on'; probes from older project files that predate the property
-        # (device['noise'] is None) default to being included.
+        # Determines whether a probe's output is kept in the transfer matrices
+        # and the noise results dictionary.  Eye probes are always kept (so
+        # their external noise remains available to the eye diagrams) regardless
+        # of their 'noise' property; they are only reached here when their state
+        # is on.  Regular probes are kept when their 'noise' property is 'on';
+        # probes from older project files that predate the property
+        # (device['noise'] is None) default to being kept.
         partname=device['partname'].GetValue()
         if partname in ['EyeProbe','DifferentialEyeProbe','EyeWaveform']:
             return True
+        noiseProperty=device['noise']
+        if noiseProperty is None:
+            return True
+        return noiseProperty.GetValue() == 'on'
+    def _ShowInNoise(self,device):
+        # Determines whether a kept probe is shown in the statistical noise
+        # spectral density plots and listed in the noise measurements.  This is
+        # governed by the 'noise' property for every probe (including eye
+        # probes): an eye probe with 'noise' set to 'off' is still kept in the
+        # results dictionary but is hidden from the plots and measurements.
+        # Probes without the property (older project files) default to shown.
         noiseProperty=device['noise']
         if noiseProperty is None:
             return True
@@ -479,3 +498,5 @@ class NetList(object):
         return self.noiseSourceNames
     def NoiseOutputNames(self):
         return self.noiseOutputNames
+    def NoiseDisplayOutputNames(self):
+        return self.noiseDisplayOutputNames

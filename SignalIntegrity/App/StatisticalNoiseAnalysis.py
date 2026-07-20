@@ -96,6 +96,15 @@ class StatisticalNoiseAnalysis(dict):
                               input_types = input_types
                               )
                           )
+
+            # The kept outputs (including eye probes whose 'include in noise' is
+            # off) remain in the results dictionary above so their external noise
+            # stays available to the eye diagrams.  'noise_display_output_names'
+            # is the subset that should actually be shown in the spectral density
+            # plots and listed in the noise measurements.
+            if 'output_names' in self:
+                displayNames = netlist.NoiseDisplayOutputNames()
+                self['noise_display_output_names'] = [name for name in self['output_names'] if name in displayNames]
         except Exception as e:
             raise Exception("Error in StatisticalNoiseAnalysis: "+str(e))
 

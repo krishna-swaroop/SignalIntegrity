@@ -319,6 +319,13 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
             return
 
         output_names = measurements.get('output_names', [])
+        # Restrict the displayed columns to the outputs designated for display
+        # (via each probe's 'include in noise' property).  Eye probes with the
+        # property turned off remain in the results dictionary (so the eye
+        # diagrams keep their external noise) but are excluded from this table.
+        displayNames = measurements.get('noise_display_output_names', None)
+        if displayNames is not None:
+            output_names = [name for name in output_names if name in displayNames]
         if len(output_names) == 0:
             self.statusbar.set('No output probes in statistical noise measurements')
             self.deiconify()

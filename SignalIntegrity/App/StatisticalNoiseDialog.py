@@ -338,15 +338,24 @@ class StatisticalNoiseDialog(tk.Toplevel):
         self.statistical_noise_analysis=statistical_noise_analysis
         self.totalwaveformTypesList=waveformTypes
         # ------
-        self.SelectionDoerList = [Doer(lambda x=s: self.onSelection(x)) for s in range(len(self.statistical_noise_analysis['output_names']))]
+        # Only the outputs designated for display (via each probe's 'include in
+        # noise' property) are shown in the plots.  Eye probes with the property
+        # turned off remain in the results dictionary (for the eye diagrams) but
+        # are omitted here.  displayIndexList maps each displayed selection back
+        # to its index in the full output_names / spectral density lists.
+        output_names=self.statistical_noise_analysis['output_names']
+        displayNames=self.statistical_noise_analysis.get('noise_display_output_names',output_names)
+        self.displayIndexList=[oi for oi in range(len(output_names)) if output_names[oi] in displayNames]
+        # ------
+        self.SelectionDoerList = [Doer(lambda x=s: self.onSelection(x)) for s in range(len(self.displayIndexList))]
         # ------
         # ------
         self.SelectionMenu.delete(5, tk.END)
-        for s in range(len(self.statistical_noise_analysis['output_names'])):
-            self.SelectionDoerList[s].AddCheckButtonMenuElement(self.SelectionMenu,label=self.statistical_noise_analysis['output_names'][s])
+        for s in range(len(self.displayIndexList)):
+            self.SelectionDoerList[s].AddCheckButtonMenuElement(self.SelectionMenu,label=output_names[self.displayIndexList[s]])
             self.SelectionDoerList[s].Set(True)
-        self.TheMenu.entryconfigure('Selection', state= tk.DISABLED if len(self.statistical_noise_analysis['output_names']) <= 1 else tk.ACTIVE)
-        self.NoiseMeasurementsDoer.Activate(len(self.statistical_noise_analysis['output_names']) > 0)
+        self.TheMenu.entryconfigure('Selection', state= tk.DISABLED if len(self.displayIndexList) <= 1 else tk.ACTIVE)
+        self.NoiseMeasurementsDoer.Activate(len(self.displayIndexList) > 0)
         # ------
         self.onSelection()
         if hasattr(self,'noiseMeasurementsDialog'):
@@ -379,10 +388,11 @@ class StatisticalNoiseDialog(tk.Toplevel):
         colors=matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
         for seli in range(len(self.SelectionDoerList)):
             if self.SelectionDoerList[seli].Bool():
-                self.waveformList.append(self.statistical_noise_analysis['output_noise_spectral_density_list'][seli])
-                self.waveformNamesList.append(self.statistical_noise_analysis['output_names'][seli])
-                self.waveformColorIndexList.append(colors[seli%len(colors)])
-                self.waveformTypesList.append(self.totalwaveformTypesList[seli] if self.totalwaveformTypesList != None else 'lines')
+                oi=self.displayIndexList[seli]
+                self.waveformList.append(self.statistical_noise_analysis['output_noise_spectral_density_list'][oi])
+                self.waveformNamesList.append(self.statistical_noise_analysis['output_names'][oi])
+                self.waveformColorIndexList.append(colors[oi%len(colors)])
+                self.waveformTypesList.append(self.totalwaveformTypesList[oi] if self.totalwaveformTypesList != None else 'lines')
 
         if len(self.waveformList) == 1:
             fl = si.fd.FrequencyList(self.waveformList[0].Frequencies())
