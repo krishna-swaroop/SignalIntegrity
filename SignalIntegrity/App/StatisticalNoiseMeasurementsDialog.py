@@ -20,10 +20,14 @@ StatisticalNoiseMeasurementsDialog.py
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import tkinter.font as tkfont
 import re
+import csv
 
-from SignalIntegrity.App.MenuSystemHelpers import StatusBar
+from SignalIntegrity.App.MenuSystemHelpers import Doer,StatusBar
+from SignalIntegrity.App.FilePicker import AskSaveAsFilename
+from SignalIntegrity.App.StatisticalNoisePreferencesDialog import StatisticalNoisePreferencesDialog
 from SignalIntegrity.Lib.ToSI import ToSI
 import SignalIntegrity.App.Project
 
@@ -39,6 +43,33 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         self.img = tk.PhotoImage(file=SignalIntegrity.App.IconsBaseDir + 'AppIcon2.gif')
         self.tk.call('wm', 'iconphoto', self._w, self.img)
         self.protocol('WM_DELETE_WINDOW', self.onClosing)
+
+        # the Doers - the holder of the commands, menu elements, and key bindings
+        # ------
+        self.SaveCsvDoer = Doer(self.onSaveCsv).AddHelpElement('Control-Help:Statistical-Noise-Save-CSV').AddToolTip('Save the measurements to a csv file')
+        # ------
+        self.HelpDoer = Doer(self.onHelp).AddHelpElement('Control-Help:Statistical-Noise-Open-Help-File').AddToolTip('Open the help system in a browser')
+        self.PreferencesDoer = Doer(self.onPreferences).AddHelpElement('Control-Help:Statistical-Noise-Preferences').AddToolTip('Edit statistical noise preferences')
+        self.ControlHelpDoer = Doer(self.onControlHelp).AddHelpElement('Control-Help:Statistical-Noise-Control-Help').AddToolTip('Get help on a control')
+        # ------
+        self.EscapeDoer = Doer(self.onEscape).AddKeyBindElement(self,'<Escape>').DisableHelp()
+
+        # The menu system
+        TheMenu = tk.Menu(self)
+        self.TheMenu = TheMenu
+        self.config(menu=TheMenu)
+        # ------
+        FileMenu = tk.Menu(self)
+        TheMenu.add_cascade(label='File', menu=FileMenu, underline=0)
+        self.SaveCsvDoer.AddMenuElement(FileMenu, label='Save to CSV', underline=0)
+        # ------
+        HelpMenu = tk.Menu(self)
+        TheMenu.add_cascade(label='Help', menu=HelpMenu, underline=0)
+        self.HelpDoer.AddMenuElement(HelpMenu, label='Open Help File', underline=0)
+        self.PreferencesDoer.AddMenuElement(HelpMenu, label='Preferences', underline=0)
+        self.ControlHelpDoer.AddMenuElement(HelpMenu, label='Control Help', underline=0)
+
+        self.measurements = None
 
         self.statusbar = StatusBar(self)
         self.statusbar.pack(side=tk.TOP, fill=tk.X, expand=tk.NO)
@@ -78,6 +109,53 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
     def destroy(self):
         tk.Toplevel.withdraw(self)
         tk.Toplevel.destroy(self)
+
+    def onHelp(self):
+        if Doer.helpKeys is None:
+            messagebox.showerror('Help System', 'Cannot find or open this help element')
+            return
+        Doer.helpKeys.Open('sec:Statistical-Noise-Dialog')
+
+    def onControlHelp(self):
+        Doer.inHelp = True
+        self.config(cursor='question_arrow')
+
+    def onEscape(self):
+        Doer.inHelp = False
+        self.config(cursor='left_ptr')
+
+    def onPreferences(self):
+        if not hasattr(self, 'preferencesDialog') or self.preferencesDialog is None or not self.preferencesDialog.winfo_exists():
+            self.preferencesDialog = StatisticalNoisePreferencesDialog(self, SignalIntegrity.App.Preferences)
+        self.preferencesDialog.lift()
+
+    def onSaveCsv(self):
+        filename = AskSaveAsFilename(parent=self,
+                                     filetypes=[('csv', '.csv')],
+                                     defaultextension='.csv',
+                                     initialfile='StatisticalNoiseMeasurements.csv')
+        if filename is None:
+            return
+        columns = self.measurementTree['columns']
+        if len(columns) == 0:
+            messagebox.showerror('Save to CSV', 'There are no measurements to save')
+            return
+        try:
+            with open(filename, 'w', newline='', encoding='utf-8') as csvFile:
+                writer = csv.writer(csvFile)
+                writer.writerow([self.measurementTree.heading(column, 'text') for column in columns])
+                for item in self.measurementTree.get_children(''):
+                    writer.writerow(list(self.measurementTree.item(item, 'values')))
+            self.statusbar.set('Saved measurements to ' + filename)
+        except Exception as e:
+            messagebox.showerror('Save to CSV', 'Could not save file: ' + str(e))
+
+    def UpdateMeasurementsView(self):
+        # re-render the table using the last measurements (e.g. after a
+        # preference change such as the display zero threshold).
+        if self.measurements is not None:
+            self.UpdateMeasurements(self.measurements)
+
 
     def _clearTable(self):
         self.measurementTree['columns'] = ()
@@ -122,14 +200,29 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         contributions = measurements.get('contributions', None)
         return contributions if isinstance(contributions, dict) else {}
 
-    def _contributorValue(self, measurements, output_name, contributor_name):
+    def _contributorValue(self, measurements, output_name, contributor_name, zeroThreshold=None, maximumSNR=None):
         contributions = self._contributionsDict(measurements)
         output_contrib = contributions.get(output_name, {})
         contributor = output_contrib.get(contributor_name, {})
-        rms = self._formatValue(contributor.get('rms', None), self._rmsUnits(measurements, output_name, 'rms'))
-        dbm = self._formatValue(contributor.get('dBm', None), 'dBm')
 
-        snr = self._formatValue(contributor.get('SNR', None), 'dB')
+        rms_value = contributor.get('rms', None)
+        dbm_value = contributor.get('dBm', None)
+        snr_value = contributor.get('SNR', None)
+
+        # Blank a contributor whose rms magnitude is below the zero threshold.
+        if (zeroThreshold is not None and zeroThreshold > 0
+                and rms_value is not None and abs(rms_value) < zeroThreshold):
+            return ''
+
+        rms = self._formatValue(rms_value, self._rmsUnits(measurements, output_name, 'rms'))
+        dbm = self._formatValue(dbm_value, 'dBm')
+
+        # Blank an unphysically high SNR.
+        if (maximumSNR is not None and maximumSNR > 0
+                and snr_value is not None and snr_value > maximumSNR):
+            snr = ''
+        else:
+            snr = self._formatValue(snr_value, 'dB')
 
         return f'{rms}, {dbm}, {snr}'
 
@@ -155,12 +248,18 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         values = [title] + ['' for _ in range(column_count - 1)]
         self.measurementTree.insert('', tk.END, values=values, tags=('group',))
 
-    def _insertMeasurementRow(self, label, output_names, extractor, units):
+    def _insertMeasurementRow(self, label, output_names, extractor, units, blankPredicate=None):
         # units may be a fixed string (e.g. 'dBm') or a callable(output_name)
         # returning the units for that output's column (used for rms quantities
         # whose units depend on whether the probe is a voltage or current probe).
+        # blankPredicate is an optional callable(output_name) returning True when
+        # the cell should be displayed with no value (e.g. below the zero
+        # threshold or above the maximum SNR).
         row = [label]
         for output_name in output_names:
+            if blankPredicate is not None and blankPredicate(output_name):
+                row.append('')
+                continue
             column_units = units(output_name) if callable(units) else units
             row.append(self._formatValue(extractor(output_name), column_units))
         self.measurementTree.insert('', tk.END, values=row)
@@ -212,6 +311,8 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
         self.withdraw()
         self._clearTable()
 
+        self.measurements = measurements
+
         if measurements is None:
             self.statusbar.set('No statistical noise measurements available')
             self.deiconify()
@@ -222,6 +323,28 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
             self.statusbar.set('No output probes in statistical noise measurements')
             self.deiconify()
             return
+
+        # Display thresholds from preferences: linear/rms magnitudes below the
+        # zero threshold are blanked, and SNRs above the maximum are blanked
+        # (an unphysically high SNR indicates essentially zero noise).
+        zeroThreshold = SignalIntegrity.App.Preferences['StatisticalNoise.ZeroThreshold']
+        maximumSNR = SignalIntegrity.App.Preferences['StatisticalNoise.MaximumSNR']
+
+        def below_threshold(value):
+            return (zeroThreshold is not None and zeroThreshold > 0
+                    and value is not None and abs(value) < zeroThreshold)
+
+        def noise_blank(out):
+            return below_threshold(self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms'))
+
+        def signal_blank(out):
+            return below_threshold(self._dictValue(measurements, out, 'signal_noise_spectral_density', 'rms'))
+
+        def snr_blank(out, snr_value):
+            if noise_blank(out):
+                return True
+            return (maximumSNR is not None and maximumSNR > 0
+                    and snr_value is not None and snr_value > maximumSNR)
 
         columns = ['Measurement'] + list(output_names)
         self.measurementTree['columns'] = columns
@@ -240,60 +363,70 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
             'Integrated signal power (rms)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'signal_noise_spectral_density', 'rms'),
-            lambda out: self._rmsUnits(measurements, out, 'rms'))
+            lambda out: self._rmsUnits(measurements, out, 'rms'),
+            blankPredicate=signal_blank)
         self._insertMeasurementRow(
             'Integrated signal power (dBm)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'signal_noise_spectral_density', 'dBm'),
-            'dBm')
+            'dBm',
+            blankPredicate=signal_blank)
 
         self._insertGroupRow('Noise Power', column_count)
         self._insertMeasurementRow(
             'Total noise (rms)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms'),
-            lambda out: self._rmsUnits(measurements, out, 'rms'))
+            lambda out: self._rmsUnits(measurements, out, 'rms'),
+            blankPredicate=noise_blank)
         self._insertMeasurementRow(
             'Total noise (dBm)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'dBm'),
-            'dBm')
+            'dBm',
+            blankPredicate=noise_blank)
 
         self._insertGroupRow('Signal-to-Noise Ratio', column_count)
         self._insertMeasurementRow(
             'SNR (dB)',
             output_names,
             lambda out: self._snrDb(measurements, out),
-            'dB')
+            'dB',
+            blankPredicate=lambda out: snr_blank(out, self._snrDb(measurements, out)))
         self._insertMeasurementRow(
             'Salz SNR (dB)',
             output_names,
             lambda out: self._salzSnrDb(measurements, out),
-            'dB')
+            'dB',
+            blankPredicate=lambda out: snr_blank(out, self._salzSnrDb(measurements, out)))
 
         self._insertGroupRow('Average Noise Density (Hz)', column_count)
         self._insertMeasurementRow(
             'Average noise density (rms/√Hz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms/sqrt(Hz)'),
-            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(Hz)'))
+            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(Hz)'),
+            blankPredicate=noise_blank)
         self._insertMeasurementRow(
             'Average noise density (dBm/Hz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'dBm/Hz'),
-            'dBm/Hz')
+            'dBm/Hz',
+            blankPredicate=noise_blank)
 
         self._insertGroupRow('Average Noise Density (GHz)', column_count)
         self._insertMeasurementRow(
             'Average noise density (rms/√GHz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'rms/sqrt(GHz)'),
-            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(GHz)'))
+            lambda out: self._rmsUnits(measurements, out, 'rms/sqrt(GHz)'),
+            blankPredicate=noise_blank)
         self._insertMeasurementRow(
             'Average noise density (dBm/GHz)',
             output_names,
             lambda out: self._dictValue(measurements, out, 'output_noise_spectral_density', 'dBm/GHz'),
-            'dBm/GHz')
+            'dBm/GHz',
+            blankPredicate=noise_blank)
 
         contributor_names = self._contributorNames(measurements)
         if len(contributor_names) > 0:
@@ -301,7 +434,8 @@ class StatisticalNoiseMeasurementsDialog(tk.Toplevel):
             for contributor_name in contributor_names:
                 row = [contributor_name]
                 for output_name in output_names:
-                    row.append(self._contributorValue(measurements, output_name, contributor_name))
+                    row.append(self._contributorValue(measurements, output_name, contributor_name,
+                                                       zeroThreshold, maximumSNR))
                 self.measurementTree.insert('', tk.END, values=row)
 
         self._autoSizeOutputColumns(output_names)

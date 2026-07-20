@@ -135,6 +135,16 @@ class Features(XMLConfiguration):
         self.Add(XMLPropertyDefaultBool('NetworkAnalyzerModel',False))
         self.Add(XMLPropertyDefaultBool('StatisticalNoise',False))
 
+class StatisticalNoise(XMLConfiguration):
+    def __init__(self):
+        XMLConfiguration.__init__(self,'StatisticalNoise')
+        # Values whose magnitude is below this threshold (rms/linear quantities)
+        # are blanked in the statistical noise measurements table.
+        self.Add(XMLPropertyDefaultFloat('ZeroThreshold',1e-15))
+        # Signal-to-noise ratios above this value (in dB) are considered
+        # unphysical (noise effectively zero) and are blanked in the table.
+        self.Add(XMLPropertyDefaultFloat('MaximumSNR',150.0))
+
 class PreferencesFile(ProjectFileBase):
     def __init__(self):
         ProjectFileBase.__init__(self)
@@ -148,6 +158,7 @@ class PreferencesFile(ProjectFileBase):
         self.SubDir(DeviceConfigurations())
         self.SubDir(Variables())
         self.SubDir(Features())
+        self.SubDir(StatisticalNoise())
     def HandleBackwardsCompatibility(self):
         self['Devices.EyeDiagram'].HandleBackwardsCompatibility()
     def ApplyPreferences(self):
