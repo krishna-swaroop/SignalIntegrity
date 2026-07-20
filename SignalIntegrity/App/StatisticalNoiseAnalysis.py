@@ -38,9 +38,19 @@ class StatisticalNoiseAnalysis(dict):
             outputWaveformLabels,sourceNames,transferMatrices = transferMatrices.Keep(
                 netlist.OutputNames(),         # outputs
                 netlist.SourceNames(),         # sources
-                netlist.OutputNames(),         # outputs to keep
+                netlist.NoiseOutputNames(),    # outputs to keep
                 netlist.NoiseSourceNames()     # sources to keep
                 )
+
+            # Align the ideal signal waveforms to the kept output labels (by
+            # name) so that the signal-power and SNR references line up with the
+            # outputs that were kept for the noise measurements.
+            keptOutputWaveforms = []
+            for output_name in outputWaveformLabels:
+                if output_name in output_waveform_names:
+                    keptOutputWaveforms.append(output_waveforms[output_waveform_names.index(output_name)])
+                else:
+                    keptOutputWaveforms.append(None)
 
             from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
             fl = EvenlySpacedFrequencyList(transferMatrices.f[-1], len(transferMatrices.f)-1)
@@ -78,7 +88,7 @@ class StatisticalNoiseAnalysis(dict):
             dict.__init__(self,
                           NoiseAnalysis(
                               output_names = outputWaveformLabels,
-                              output_waveforms = output_waveforms,
+                              output_waveforms = keptOutputWaveforms,
                               input_names = sourceNames,
                               transfer_matrices = transferMatrices,
                               input_noise_spectral_density = inputNoiseSpectralDensityList,

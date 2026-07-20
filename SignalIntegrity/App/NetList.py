@@ -33,6 +33,7 @@ class NetList(object):
         self.stimNames=[]
         self.definingStimList=[]
         self.noiseSourceNames=[]
+        self.noiseOutputNames=[]
         deviceList = schematic.deviceList
 
         wires_list = copy.deepcopy(SignalIntegrity.App.Project['Drawing.Schematic'].dict['Wires'])
@@ -262,6 +263,8 @@ class NetList(object):
                     self.textToShow.append(deviceList[deviceIndex].NetListLine() + ' ' + devicePinString)
                     ref = deviceList[deviceIndex]['ref'].GetValue()
                     self.outputNames.append(ref)
+                    if self._IncludeInNoise(deviceList[deviceIndex]):
+                        self.noiseOutputNames.append(ref)
                 for port in portList:
                     deviceIndex = port[0]
                     line=deviceList[deviceIndex].NetListLine() + ' ' + devicePinString
@@ -385,9 +388,13 @@ class NetList(object):
                 if connectIt:
                     if tokens[0] in ['currentoutput','differentialvoltageoutput']:
                         self.outputNames.append(tokens[1])
+                        if self._IncludeInNoise(probeDevice):
+                            self.noiseOutputNames.append(tokens[1])
                         endinglines.append('voltageoutput '+tokens[1]+' '+tokens[1]+' 3')
                     if tokens[0] == 'differentialeyeprobe':
                         self.outputNames.append(tokens[1])
+                        if self._IncludeInNoise(probeDevice):
+                            self.noiseOutputNames.append(tokens[1])
                         endinglines.append('eyeprobe '+tokens[1]+' '+tokens[1]+' 3')
                     if tokens[0] in ['eyewaveform','waveform']:
                         self.waveformNames.append(tokens[1])
@@ -446,6 +453,20 @@ class NetList(object):
         return self.textToShow
     def OutputNames(self):
         return self.outputNames
+    def _IncludeInNoise(self,device):
+        # Determines whether a probe's output should be included in the
+        # statistical noise measurements.  Eye probes carry no 'noise' property
+        # and are always included (they are only reached here when their state
+        # is on).  Regular probes are included when their 'noise' property is
+        # 'on'; probes from older project files that predate the property
+        # (device['noise'] is None) default to being included.
+        partname=device['partname'].GetValue()
+        if partname in ['EyeProbe','DifferentialEyeProbe','EyeWaveform']:
+            return True
+        noiseProperty=device['noise']
+        if noiseProperty is None:
+            return True
+        return noiseProperty.GetValue() == 'on'
     def SourceNames(self):
         return self.sourceNames
     def MeasureNames(self):
@@ -456,3 +477,5 @@ class NetList(object):
         return self.sourceNamesToShow
     def NoiseSourceNames(self):
         return self.noiseSourceNames
+    def NoiseOutputNames(self):
+        return self.noiseOutputNames
