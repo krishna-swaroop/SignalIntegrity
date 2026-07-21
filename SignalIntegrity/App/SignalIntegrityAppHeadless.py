@@ -396,11 +396,14 @@ class SignalIntegrityAppHeadless(object):
                 for wf in outputWaveformList[:len(outputWaveformLabels)]]+outputWaveformList[len(outputWaveformLabels):]
         outputWaveformLabels=outputWaveformLabels+otherWaveformLabels
 
-        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
-        sna = StatisticalNoiseAnalysis(self.Drawing.schematic,
-                                       transferMatrices,
-                                       outputWaveformList,
-                                       outputWaveformLabels)
+        try:
+            from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
+            sna = StatisticalNoiseAnalysis(self.Drawing.schematic,
+                                           transferMatrices,
+                                           outputWaveformList,
+                                           outputWaveformLabels)
+        except:
+            return Result('simulation',None)
 
         if not EyeDiagrams:
             return Result('simulation',{'source names':sourceNames,

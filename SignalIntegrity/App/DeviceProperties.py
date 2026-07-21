@@ -329,6 +329,19 @@ class DeviceProperties(tk.Frame):
             fileName = self.device.propertiesList[keywords.index('wffile')].GetValue()
             ext=str.lower(fileName).split('.')[-1]
             self.device.propertiesList[keywords.index('wfprojname')]['Hidden']=(ext != 'si')
+        # only show the 'include in noise measurements' property when the
+        # statistical noise feature is enabled in the preferences.  Guard against
+        # the preferences not being available (or not defining the feature, as is
+        # the case for apps that reuse this dialog), in which case the feature is
+        # treated as disabled.
+        import SignalIntegrity.App.Project
+        try:
+            statisticalNoiseEnabled = bool(SignalIntegrity.App.Preferences['Features.StatisticalNoise'])
+        except TypeError:
+            statisticalNoiseEnabled = False
+        for partProperty in self.device.propertiesList:
+            if partProperty['Keyword'] == 'noise':
+                partProperty['Hidden'] = not statisticalNoiseEnabled
         propertyListFrame = tk.Frame(self)
         propertyListFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         propertyListFrame.bind("<Return>", parent.ok)

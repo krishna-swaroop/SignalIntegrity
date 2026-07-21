@@ -244,7 +244,7 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         fd, fileName = tempfile.mkstemp(suffix='.json')
         try:
             with os.fdopen(fd,'w') as f:
-                f.write('{"x":[1.0,2.0,3.0],"y":[2.0e-9,3.0e-9,4.0e-9]}\n}\n')
+                f.write('{"noise":{"x":[1.0,2.0,3.0],"y":[2.0e-9,3.0e-9,4.0e-9]}}\n}\n')
             sd=si.fd.SpectralDensity(Keven=False).ReadFromJson(fileName)
             self.assertEqual(sd.Frequencies(),[1.0,2.0,3.0])
             self.assertEqual(sd.Values('V/sqrt(Hz)'),[2.0e-9,3.0e-9,4.0e-9])
@@ -260,8 +260,8 @@ class TestStatisticalNoiseTest(unittest.TestCase,
             sd.WriteToJson(fileName)
             with open(fileName,'r') as f:
                 data=json.load(f)
-            self.assertEqual(data['x'],[1.0,2.0,3.0])
-            self.assertEqual(data['y'],[2.0e-9,3.0e-9,4.0e-9])
+            self.assertEqual(data['noise']['x'],[1.0,2.0,3.0])
+            self.assertEqual(data['noise']['y'],[2.0e-9,3.0e-9,4.0e-9])
         finally:
             os.remove(fileName)
 
@@ -323,8 +323,8 @@ class TestStatisticalNoiseTest(unittest.TestCase,
             original.WriteToFile(fileName)
             with open(fileName,'r') as f:
                 data=json.load(f)
-            self.assertEqual(data['x'],[1.0,2.0,3.0])
-            self.assertEqual(data['y'],[2.0e-9,3.0e-9,4.0e-9])
+            self.assertEqual(data['noise']['x'],[1.0,2.0,3.0])
+            self.assertEqual(data['noise']['y'],[2.0e-9,3.0e-9,4.0e-9])
         finally:
             os.remove(fileName)
 

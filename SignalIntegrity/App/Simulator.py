@@ -258,12 +258,16 @@ class Simulator(object):
         self.UpdateWaveforms(outputWaveformList, outputWaveformLabels)
         self.parent.root.update()
 
-        from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
-        sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,
-                                       self.transferMatrices,
-                                       outputWaveformList,
-                                       outputWaveformLabels
-                                       )
+        try:
+            from SignalIntegrity.App.StatisticalNoiseAnalysis import StatisticalNoiseAnalysis
+            sna = StatisticalNoiseAnalysis(self.parent.Drawing.schematic,
+                                           self.transferMatrices,
+                                           outputWaveformList,
+                                           outputWaveformLabels
+                                           )
+        except:
+            messagebox.showerror('Simulator','Noise analysis failed')
+            return
 
         # gather up the eye probes and create a dialog for each one
         eyeDiagramDict=[]

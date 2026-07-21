@@ -118,8 +118,11 @@ class SpectralDensity(FrequencyDomain):
         @param fileName string name of file to read
         @return self
         @remark
-        The JSON data is assumed to contain frequency in Hz and spectral density
-        in V/sqrt(Hz), typically as arrays keyed by 'x' and 'y'.
+        The JSON data must decode to a dictionary that contains a 'noise' (or,
+        alternatively, 'wave') key at the root level.  That key holds a
+        dictionary with the frequency in Hz and spectral density in V/sqrt(Hz),
+        typically as arrays keyed by 'x' and 'y'.  Any other keys present at the
+        root level are ignored, so additional metadata in the file is tolerated.
         """
         with open(fileName,'rU' if sys.version_info.major < 3 else 'r') as f:
             text=f.read()
@@ -133,15 +136,27 @@ class SpectralDensity(FrequencyDomain):
         if not isinstance(data,dict):
             raise ValueError('spectral density json must decode to a dictionary')
 
-        if 'x' in data and 'y' in data:
-            frequencies=data['x']
-            density=data['y']
-        elif 'frequency' in data and 'density' in data:
-            frequencies=data['frequency']
-            density=data['density']
-        elif 'frequencies' in data and 'densities' in data:
-            frequencies=data['frequencies']
-            density=data['densities']
+        if 'noise' in data:
+            section=data['noise']
+        elif 'wave' in data:
+            section=data['wave']
+        else:
+            raise ValueError(
+                "spectral density json must contain a 'noise' or 'wave' key")
+
+        if not isinstance(section,dict):
+            raise ValueError(
+                "spectral density json 'noise'/'wave' entry must be a dictionary")
+
+        if 'x' in section and 'y' in section:
+            frequencies=section['x']
+            density=section['y']
+        elif 'frequency' in section and 'density' in section:
+            frequencies=section['frequency']
+            density=section['density']
+        elif 'frequencies' in section and 'densities' in section:
+            frequencies=section['frequencies']
+            density=section['densities']
         else:
             raise ValueError('spectral density json must contain x/y arrays')
 
@@ -181,11 +196,13 @@ class SpectralDensity(FrequencyDomain):
         @param fileName string name of file to write
         @return self
         @remark
-        The JSON data contains frequency in Hz in 'x' and spectral density in
+        The JSON data contains a 'noise' key at the root whose value is a
+        dictionary with frequency in Hz in 'x' and spectral density in
         V/sqrt(Hz) in 'y'.
         """
         with open(fileName,'w') as f:
-            json.dump({'x':self.Frequencies(),'y':self.Values('V/sqrt(Hz)')},f,indent=4)
+            json.dump({'noise':{'x':self.Frequencies(),
+                                'y':self.Values('V/sqrt(Hz)')}},f,indent=4)
         return self
     def WriteToFile(self,fileName):
         """writes a spectral density to a file
