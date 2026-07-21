@@ -1,0 +1,1 @@
+mklink /j ".\SignalIntegrity\App\Help" "..\SignalIntegrityPages\SignalIntegrity\App\Help"

@@ -1,0 +1,1 @@
+rd .\SignalIntegrity\App\Help

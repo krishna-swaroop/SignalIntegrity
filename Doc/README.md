@@ -98,4 +98,27 @@ Which uses the local [doxypy.bat](https://github.com/Nubis-Communications/Signal
 
 In order to render any equations in the documentation, you must have [GhostScript](https://www.ghostscript.com/download/gsdnld.html) installed.
 
+## Building the Help System (User Manual and Context Help)
+Separately from the Doxygen API reference above, the application ships a user
+manual and context-sensitive help. This is built with
+[MkDocs](https://www.mkdocs.org/) from Markdown sources, replacing the former
+LyX + eLyXer workflow.
+
+The sources and build tooling live in `SignalIntegrity/App/Help` (on the
+`gh-pages` branch, i.e. the `SignalIntegrityPages` clone):
+
+    pip install mkdocs
+    cd SignalIntegrity/App/Help
+    python convert_help.py     # Help.lyx -> docs/ Markdown (needs lyx + pandoc; only when content changes)
+    ./build.sh                 # or build.bat on Windows: mkdocs build + gen_helpkeys.py
+
+`build.*` produces `Help/site/` plus `Help/site/helpkeys`. The application reads
+`helpkeys` at runtime (`SignalIntegrity/App/BuildHelpSystem.py`) and opens
+`Help/site/<page>.html#<label>` for a given help label, either from the online
+URL (`OnlineHelp.URL` preference) or from `file://<InstallDir>` when offline.
+
+See `SignalIntegrity/App/Help/README.md` for details, including the offline
+Linux directory-mapping workflow and the frozen legacy `Help.html.LyXconv/`
+compatibility copy retained for older application versions.
+
 Currently package documentation is modified only the branch gh-pages.  In other words, you should have another repository checked out on the gh-pages branch, generate this documentation, copy it to the gh-pages repository directory and check it in on gh-pages.
