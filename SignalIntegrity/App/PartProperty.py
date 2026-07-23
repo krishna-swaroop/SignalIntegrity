@@ -508,8 +508,10 @@ class PartPropertyEyeOnOff(PartProperty):
 class PartPropertyIncludeInNoise(PartProperty):
     # Determines whether a probe's output is included in the statistical noise
     # measurements (kept in the transfer parameters, shown in the spectral
-    # density plots, and listed in the noise measurements).  Eye probes do not
-    # carry this property - they are always included when their state is on.
+    # density plots, and listed in the noise measurements).  Eye probes also
+    # carry this property, but for them it only controls whether the probe
+    # appears in the statistical noise dialog - the total integrated output
+    # noise is always applied to the eye diagram as its external noise.
     validEntries=['on','off']
     def __init__(self,state='on'):
         PartProperty.__init__(self,'noise',type='enum',keyword='noise',description='include in noise measurements',value=state,visible=False,keywordVisible=True)
