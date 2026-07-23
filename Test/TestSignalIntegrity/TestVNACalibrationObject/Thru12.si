@@ -1,12 +1,13 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>20000000000.0</EndFrequency>
 		<FrequencyPoints>1000</FrequencyPoints>
 		<UserSampleRate>40000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>503x246+238+81</Geometry>
+			<Geometry>503x246+130+130</Geometry>
 			<Grid>16</Grid>
 			<Originx>4</Originx>
 			<Originy>0</Originy>
@@ -72,6 +73,12 @@
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>False</KeywordVisible>
 							<Value>VNAModel.si</Value>
@@ -128,8 +135,7 @@
 			</Wires>
 		</Schematic>
 	</Drawing>
-	<PostProcessing>
-		<Lines>
-		</Lines>
-	</PostProcessing>
+	<Equations>
+		<AutoDebug>True</AutoDebug>
+	</Equations>
 </Project>

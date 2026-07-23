@@ -1,12 +1,13 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>5000000.0</EndFrequency>
 		<FrequencyPoints>50000</FrequencyPoints>
 		<UserSampleRate>10000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>711x363+27+56</Geometry>
+			<Geometry>711x363+338+338</Geometry>
 			<Grid>16.0</Grid>
 			<Originx>0</Originx>
 			<Originy>4</Originy>
@@ -207,6 +208,18 @@
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>

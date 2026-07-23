@@ -1,12 +1,13 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>20000000000.0</EndFrequency>
 		<FrequencyPoints>2000</FrequencyPoints>
 		<UserSampleRate>40000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>861x371+52+52</Geometry>
+			<Geometry>861x371+260+260</Geometry>
 			<Grid>16.0</Grid>
 			<Originx>-2</Originx>
 			<Originy>22</Originy>
@@ -183,6 +184,18 @@
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -373,8 +386,8 @@
 						<Alignment>
 							<AutoAlign>True</AutoAlign>
 							<BERForAlignment>-3</BERForAlignment>
-							<BitsPerSymbol>2</BitsPerSymbol>
 							<Horizontal>Middle</Horizontal>
+							<Levels>4</Levels>
 							<Mode>Vertical</Mode>
 							<Vertical>MaxMin</Vertical>
 						</Alignment>
@@ -387,6 +400,7 @@
 							</Contours>
 							<EyeHeight>True</EyeHeight>
 							<EyeWidth>True</EyeWidth>
+							<LabelMeanLevels>False</LabelMeanLevels>
 							<LevelExtents>False</LevelExtents>
 							<MeanLevels>True</MeanLevels>
 						</Annotation>
@@ -395,6 +409,10 @@
 							<Measure>True</Measure>
 							<MinPointsForFit>6</MinPointsForFit>
 						</Bathtub>
+						<ClockRecovery>
+							<Recover>False</Recover>
+							<TrimLeftRight>20</TrimLeftRight>
+						</ClockRecovery>
 						<Color>#c6ff2c</Color>
 						<Columns>400</Columns>
 						<Decision>
@@ -451,6 +469,24 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>eyestate</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>gain</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>1.0</Value>
@@ -494,8 +530,8 @@
 						<Alignment>
 							<AutoAlign>True</AutoAlign>
 							<BERForAlignment>-3</BERForAlignment>
-							<BitsPerSymbol>2</BitsPerSymbol>
 							<Horizontal>Middle</Horizontal>
+							<Levels>4</Levels>
 							<Mode>Horizontal</Mode>
 							<Vertical>MaxMin</Vertical>
 						</Alignment>
@@ -508,6 +544,7 @@
 							</Contours>
 							<EyeHeight>True</EyeHeight>
 							<EyeWidth>True</EyeWidth>
+							<LabelMeanLevels>False</LabelMeanLevels>
 							<LevelExtents>False</LevelExtents>
 							<MeanLevels>True</MeanLevels>
 						</Annotation>
@@ -516,6 +553,10 @@
 							<Measure>True</Measure>
 							<MinPointsForFit>6</MinPointsForFit>
 						</Bathtub>
+						<ClockRecovery>
+							<Recover>False</Recover>
+							<TrimLeftRight>20</TrimLeftRight>
+						</ClockRecovery>
 						<Color>#ff00f6</Color>
 						<Columns>400</Columns>
 						<Decision>
@@ -569,6 +610,24 @@
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>eyestate</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ac_coupled</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>false</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>

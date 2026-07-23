@@ -221,6 +221,20 @@ class SignalIntegrityAppHeadless(object):
         else:
             return True
 
+    def AllowParallelization(self):
+        # Every project - whether it is the top-level solve or a sub-project in a hierarchy -
+        # honors its own AllowParallelization calculation property.  The parent's value is never
+        # passed down into a sub-project: AllowParallelization is deliberately excluded from
+        # CalculationProperties.Dictionary() (see ProjectFile.py), which is the mechanism used to
+        # push the parent's calculation properties into sub-projects.  This way a sub-project's
+        # own AllowParallelization property is preserved and used for its own solve.
+        #
+        # Parallelization is only permitted when BOTH the global preference and the per-project
+        # calculation property allow it.  Disabling the preference acts as a hard override that
+        # prevents any solve from running in parallel, regardless of the project property.
+        return bool(SignalIntegrity.App.Preferences['Calculation.AllowParallelization']) \
+            and bool(SignalIntegrity.App.Project['CalculationProperties.AllowParallelization'])
+
     def CalculateSParameters(self,callback=None):
         import SignalIntegrity.Lib as si
         if not hasattr(self.Drawing,'canCalculate'):
@@ -247,7 +261,8 @@ class SignalIntegrityAppHeadless(object):
                 SignalIntegrity.App.Project['CalculationProperties'].FrequencyList(),
                 cacheFileName=cacheFileName,
                 efl=efl,
-                Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+                Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],
+                allowParallel=self.AllowParallelization())
         if not callback == None:
             spnp.InstallCallback(callback)
         spnp.AddLines(netListText)
@@ -281,7 +296,7 @@ class SignalIntegrityAppHeadless(object):
         # waveforms (i.e. eye waveforms or waveforms), then let it run through and fail.  If it can't generate transfer
         # parameters and there are eye waveforms, just skip over the transfer parameter generation.
         if TransferMatricesOnly or self.Drawing.canGenerateTransferMatrices or len(self.Drawing.schematic.OtherWaveforms()) == 0:
-            snp=si.p.SimulatorNumericParser(fd,cacheFileName=cacheFileName,Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+            snp=si.p.SimulatorNumericParser(fd,cacheFileName=cacheFileName,Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],allowParallel=self.AllowParallelization())
             if not callback == None:
                 snp.InstallCallback(callback)
             snp.AddLines(netListText)
@@ -467,7 +482,8 @@ class SignalIntegrityAppHeadless(object):
         snp=si.p.VirtualProbeNumericParser(
             SignalIntegrity.App.Project['CalculationProperties'].FrequencyList(),
             cacheFileName=cacheFileName,
-            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],
+            allowParallel=self.AllowParallelization())
         if not callback == None:
             snp.InstallCallback(callback)
         snp.AddLines(netListText)
@@ -607,7 +623,8 @@ class SignalIntegrityAppHeadless(object):
         dnp=si.p.DeembedderNumericParser(
             SignalIntegrity.App.Project['CalculationProperties'].FrequencyList(),
             cacheFileName=cacheFileName,
-            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],
+            allowParallel=self.AllowParallelization())
         if not callback == None:
             dnp.InstallCallback(callback)
         dnp.AddLines(netListText)

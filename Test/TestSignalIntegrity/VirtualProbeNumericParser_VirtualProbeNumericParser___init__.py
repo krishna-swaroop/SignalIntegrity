@@ -1,18 +1,19 @@
 class VirtualProbeNumericParser(VirtualProbeParser,CallBacker,LinesCache):
-    def __init__(self, f=None, args=None, callback=None, cacheFileName=None, Z0=50.):
+    def __init__(self, f=None, args=None, callback=None, cacheFileName=None, Z0=50.,
+                 allowParallel=False):
         VirtualProbeParser.__init__(self, f, args, Z0=Z0)
         self.transferMatrices = None
         self.m_tm=None
+        self.allowParallel = allowParallel
     def TransferMatrices(self):
         self.SystemDescription()
         self.m_sd.CheckConnections()
         spc=self.m_spc
-        result=[]
-        for n in range(len(self.m_f)):
-            for d in range(len(self.m_spc)):
-                if not spc[d][0] is None:
-                    self.m_sd.AssignSParameters(spc[d][0],spc[d][1][n])
-            tm=VirtualProbeNumeric(self.m_sd).TransferMatrix()
-            result.append(tm)
+        callback=None
+        result=Solve(
+            'virtualprobe',self.m_sd,spc,len(self.m_f),self.m_Z0,
+            callback=callback,
+            abortException=SignalIntegrityExceptionVirtualProbe('calculation aborted'),
+            allowParallel=self.allowParallel)
         self.transferMatrices=TransferMatrices(self.m_f,result)
         return self.transferMatrices

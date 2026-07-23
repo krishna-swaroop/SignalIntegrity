@@ -1,12 +1,13 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>20000000000.0</EndFrequency>
 		<FrequencyPoints>1000</FrequencyPoints>
 		<UserSampleRate>40000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>752x454+73+102</Geometry>
+			<Geometry>752x454+338+338</Geometry>
 			<Grid>16</Grid>
 			<Originx>-2</Originx>
 			<Originy>7</Originy>
@@ -276,6 +277,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Short1.si</Value>
@@ -292,6 +299,12 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>1</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -312,6 +325,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Open1.si</Value>
@@ -328,6 +347,12 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>1</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -348,6 +373,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Load1.si</Value>
@@ -364,6 +395,12 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>1</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -384,6 +421,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Short2.si</Value>
@@ -400,6 +443,12 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>2</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -420,6 +469,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Open2.si</Value>
@@ -436,6 +491,12 @@
 							<KeywordVisible>False</KeywordVisible>
 							<Value>2</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
 						</PartProperty>
 					</PartProperties>
 				</Device>
@@ -456,6 +517,12 @@
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
 							<Keyword>file</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>Load2.si</Value>
@@ -473,6 +540,12 @@
 							<Value>2</Value>
 							<Visible>True</Visible>
 						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
+						</PartProperty>
 					</PartProperties>
 				</Device>
 				<Device>
@@ -489,6 +562,12 @@
 							<Keyword>ports</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>false</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -521,15 +600,18 @@
 							<Value>SOLT</Value>
 							<Visible>True</Visible>
 						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value></Value>
+							<Visible>False</Visible>
+						</PartProperty>
 					</PartProperties>
 				</Device>
 			</Devices>
-			<Wires>
-			</Wires>
 		</Schematic>
 	</Drawing>
-	<PostProcessing>
-		<Lines>
-		</Lines>
-	</PostProcessing>
+	<Equations>
+		<AutoDebug>True</AutoDebug>
+	</Equations>
 </Project>

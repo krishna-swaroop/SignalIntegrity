@@ -1,7 +1,6 @@
 """
  s-parameters of netlists
 """
-
 # Copyright (c) 2021 Nubis Communications, Inc.
 # Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
 # All rights reserved worldwide.
@@ -19,8 +18,8 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
 
-from SignalIntegrity.Lib.SystemDescriptions.SystemSParametersNumeric import SystemSParametersNumeric
 from SignalIntegrity.Lib.Parsers.SystemDescriptionParser import SystemDescriptionParser
+from SignalIntegrity.Lib.Parsers.ParallelCalculations import Solve
 from SignalIntegrity.Lib.Parsers.SParametersParser import SParametersParser
 from SignalIntegrity.Lib.SParameters import SParameters
 from SignalIntegrity.Lib.Exception import SignalIntegrityExceptionSParameters
@@ -31,7 +30,7 @@ from SignalIntegrity.Lib.ImpedanceProfile.PeeledLaunches import PeeledLaunches
 class SystemSParametersNumericParser(SystemDescriptionParser,CallBacker,LinesCache):
     """generates system s-parameters from a netlist"""
     def __init__(self,f=None,args=None,callback=None,cacheFileName=None,efl=None,
-                 Z0=50.):
+                 Z0=50.,allowParallel=False):
         """constructor  
         frequencies may be provided at construction time (or not for symbolic solutions).
         @param f (optional) list of frequencies
@@ -41,12 +40,16 @@ class SystemSParametersNumericParser(SystemDescriptionParser,CallBacker,LinesCac
         @param efl (optional) instance of class FrequencyList containing the evenly space frequency list
         to use for resampling in cases where time-domain transformations are required
         @param Z0 float (optional, defaults to 50.) reference impedance for the calculation
+        @param allowParallel bool (optional, defaults to False) whether the per-frequency
+        solve may be distributed across processor cores.  When False the calculation runs
+        serially; when True it may run in parallel if the cost model deems it worthwhile.
         @remark Arguments are provided on a line as pairs of names and values separated by a space.
         The optional callback is used as described in the class CallBacker.
         """
         SystemDescriptionParser.__init__(self,f,args,Z0=Z0)
         self.sf = None
         self.efl = efl
+        self.allowParallel = allowParallel
         # pragma: silent exclude
         CallBacker.__init__(self,callback)
         LinesCache.__init__(self,'SParameters',cacheFileName)
@@ -71,19 +74,17 @@ class SystemSParametersNumericParser(SystemDescriptionParser,CallBacker,LinesCac
         self.SystemDescription()
         self.m_sd.CheckConnections()
         spc=self.m_spc
-        result = []
-        sspn=SystemSParametersNumeric(self.m_sd)
-        for n in range(len(self.m_f)):
-            for d in range(len(spc)):
-                if not spc[d][0] is None:
-                    self.m_sd.AssignSParameters(spc[d][0],spc[d][1][n])
-            result.append(sspn.SParameters(solvetype=solvetype))
-            # pragma: silent exclude
-            if self.HasACallBack():
-                progress=(n+1)/len(self.m_f)*100.0
-                if not self.CallBack(progress):
-                    raise SignalIntegrityExceptionSParameters('calculation aborted')
-            # pragma: include
+        callback=None
+        # pragma: silent exclude
+        if self.HasACallBack():
+            callback=lambda progress: self.CallBack(progress)
+        # pragma: include
+        result=Solve(
+            'systemsparameters',self.m_sd,spc,len(self.m_f),self.m_Z0,
+            callback=callback,
+            abortException=SignalIntegrityExceptionSParameters('calculation aborted'),
+            solvetype=solvetype,
+            allowParallel=self.allowParallel)
         self.sf = SParameters(self.m_f, result,self.m_Z0)
         # pragma: silent exclude
         if hasattr(self, 'delayDict'):

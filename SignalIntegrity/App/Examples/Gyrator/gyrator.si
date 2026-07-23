@@ -1,17 +1,17 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>1000.0</EndFrequency>
 		<FrequencyPoints>2000</FrequencyPoints>
 		<LogarithmicEndFrequency>100.0</LogarithmicEndFrequency>
 		<LogarithmicPointsPerDecade>1000</LogarithmicPointsPerDecade>
 		<LogarithmicStartFrequency>0.0001</LogarithmicStartFrequency>
-		<NumIterations>10</NumIterations>
 		<UnderlyingType>Linear</UnderlyingType>
 		<UserSampleRate>2000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>835x422+208+208</Geometry>
+			<Geometry>903x466+234+234</Geometry>
 			<Grid>16</Grid>
 			<Originx>-6</Originx>
 			<Originy>5</Originy>

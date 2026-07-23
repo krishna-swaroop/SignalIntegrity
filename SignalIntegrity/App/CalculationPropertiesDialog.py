@@ -18,7 +18,7 @@ CalculationPropertiesDialog.py
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>
 
-from SignalIntegrity.App.CalculationPropertiesProject import PropertiesDialog,CalculationPropertySI,CalculationProperty,CalculationPropertyChoices
+from SignalIntegrity.App.CalculationPropertiesProject import PropertiesDialog,CalculationPropertySI,CalculationProperty,CalculationPropertyChoices,CalculationPropertyTrueFalseButton
 from SignalIntegrity.Lib.ToSI import nextHigher12458
 import SignalIntegrity.App.Project
 import SignalIntegrity.App.Preferences
@@ -54,6 +54,11 @@ class CalculationPropertiesDialog(PropertiesDialog):
         self.ReferenceImpedanceFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         if SignalIntegrity.App.Preferences['Calculation.Non50OhmSolutions'] or self.project['ReferenceImpedance'] != 50.:
             self.referenceImpedance=CalculationPropertySI(self.ReferenceImpedanceFrame,'Reference Impedance',None,None,self.project,'ReferenceImpedance','ohm')
+        self.ParallelizationFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
+        self.ParallelizationFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        if SignalIntegrity.App.Preferences['Calculation.AllowParallelization'] or self.project['AllowParallelization']:
+            self.allowParallelization=CalculationPropertyTrueFalseButton(self.ParallelizationFrame,'Allow Parallelization',None,None,self.project,'AllowParallelization',
+                tooltip='Allow per-frequency calculations to run across multiple processor cores.\nOnly beneficial for large problems; a cost model still decides per-solve whether to parallelize.')
         PropertiesDialog.bind(self,'<Return>',self.ok)
         PropertiesDialog.bind(self,'<Escape>',self.cancel)
         PropertiesDialog.protocol(self,"WM_DELETE_WINDOW", self.onClosing)
@@ -136,6 +141,10 @@ class CalculationPropertiesDialog(PropertiesDialog):
         self.ReferenceImpedanceFrame.pack_forget()
         if showReferenceImpedance:
             self.ReferenceImpedanceFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        showParallelization = SignalIntegrity.App.Preferences['Calculation.AllowParallelization'] or self.project['AllowParallelization']
+        self.ParallelizationFrame.pack_forget()
+        if showParallelization:
+            self.ParallelizationFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
 
     def onClosing(self):
         self.ok(None)

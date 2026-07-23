@@ -1,12 +1,13 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>20000000000.0</EndFrequency>
 		<FrequencyPoints>1000</FrequencyPoints>
 		<UserSampleRate>40000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>514x276+2038+147</Geometry>
+			<Geometry>514x276+338+338</Geometry>
 			<Grid>16</Grid>
 			<Originx>7</Originx>
 			<Originy>6</Originy>

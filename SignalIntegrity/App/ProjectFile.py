@@ -168,6 +168,7 @@ class CalculationPropertiesBase(XMLConfiguration):
             self.Add(XMLPropertyDefaultFloat('LogarithmicStartFrequency',self.defaultLogarithmicStartFrequency))
             self.Add(XMLPropertyDefaultFloat('LogarithmicEndFrequency',self.defaultLogarithmicEndFrequency))
             self.Add(XMLPropertyDefaultInt('LogarithmicPointsPerDecade',self.defaultLogarithmicPointsPerDecade))
+            self.Add(XMLPropertyDefaultBool('AllowParallelization',False))
             self.CalculateOthersFromBaseInformation()
     def InitFromXML(self,element):
         XMLConfiguration.InitFromXML(self,element)
@@ -213,6 +214,10 @@ class CalculationPropertiesBase(XMLConfiguration):
                                                  'LogarithmicEndFrequency',
                                                  'LogarithmicPointsPerDecade']})
         calc_dict.update({'ReferenceImpedance':self['ReferenceImpedance']})
+        # Note: 'AllowParallelization' is deliberately NOT included here.  This dictionary is
+        # merged into a sub-project's arguments to pass the parent's calculation properties
+        # down into the sub-project.  Parallelization must remain a per-project decision, so the
+        # parent's AllowParallelization value is never allowed to override the sub-project's own.
         return calc_dict
     def IsEvenlySpaced(self):
         return (self['UnderlyingType'] == 'Linear')
@@ -237,6 +242,7 @@ class CalculationPropertiesBase(XMLConfiguration):
             self.dict['LogarithmicEndFrequency'].dict['write'] = not is_default_linear
             self.dict['LogarithmicPointsPerDecade'].dict['write'] = not is_default_linear
             self.dict['ReferenceImpedance'].dict['write'] = self['ReferenceImpedance'] != 50.
+            self.dict['AllowParallelization'].dict['write'] = bool(self['AllowParallelization'])
         return XMLConfiguration.OutputXML(self,indent)
 
     def SetImpulseResponseLength(self,ImpulseResponseLength):

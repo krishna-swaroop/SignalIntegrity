@@ -39,7 +39,7 @@ install_requires=['setuptools>=58.2.0','pip>=20.2.4','numpy>=1.13.0','matplotlib
 pathToIcons='SignalIntegrity/App/icons/png'
 pathToMoreIcons=pathToIcons+'/16x16/actions'
 pathToImages='SignalIntegrity/Images'
-pathToHelp='https://nubis-communications.github.io/SignalIntegrity/SignalIntegrity/App/Help/Help.html.LyXconv/Help.html'
+pathToHelp='https://nubis-communications.github.io/SignalIntegrity/SignalIntegrity/App/Help/site/index.html'
 with open(os.path.join(base_dir, "README.md"), "r") as f:
     readmeFile=f.read()
 

@@ -638,7 +638,7 @@ class TestPI(unittest.TestCase,si.test.SourcesTesterHelper,si.test.ResponseTeste
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         si.td.wf.Waveform.adaptionStrategy='Linear'
         fileNameBase= '_'.join(self.id().split('.')[-3:])
-        snp=si.p.SimulatorNumericParser(si.fd.EvenlySpacedFrequencyList(5e6,10000),cacheFileName=fileNameBase).AddLines([
+        snp=si.p.SimulatorNumericParser(si.fd.EvenlySpacedFrequencyList(5e6,10000),cacheFileName=fileNameBase,allowParallel=True).AddLines([
             'device L1 2 L 0.00022',
             'device C1 1 C 4.7e-06',
             'device R1 1 R 5.0',
@@ -807,7 +807,7 @@ class TestPI(unittest.TestCase,si.test.SourcesTesterHelper,si.test.ResponseTeste
     def testVRMParasitics(self):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         fileNameBase= '_'.join(self.id().split('.')[-3:])
-        snp=si.p.SimulatorNumericParser(si.fd.EvenlySpacedFrequencyList(5e6,10000),cacheFileName=fileNameBase).AddLines([
+        snp=si.p.SimulatorNumericParser(si.fd.EvenlySpacedFrequencyList(5e6,10000),cacheFileName=fileNameBase,allowParallel=True).AddLines([
             'device L1 2 L 0.00022',
             'device C1 1 C 4.7e-06',
             'device R1 1 R 5.0',

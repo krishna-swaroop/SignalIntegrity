@@ -6,12 +6,33 @@ Scan the SignalIntegrity App source for help keys referenced by devices
 (AddHelpElement('Control-Help:...') and similar), then report which of those
 keys do NOT exist in the built help system (helpkeys file).
 """
+
+# Copyright (c) 2021 Nubis Communications, Inc.
+# Copyright (c) 2018-2020 Teledyne LeCroy, Inc.
+# All rights reserved worldwide.
+#
+# This file is part of SignalIntegrity.
+#
+# SignalIntegrity is free software: You can redistribute it and/or modify it under the terms
+# of the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>
+
 import os
 import re
 
-APP_DIR = os.path.join(os.path.dirname(__file__), 'SignalIntegrity', 'App')
+# This utility lives in <repo>/Test/Utilities, so the repository root is two
+# directories up.  SignalIntegrityPages is a sibling of the repository root.
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+APP_DIR = os.path.join(REPO_ROOT, 'SignalIntegrity', 'App')
 HELPKEYS = os.path.join(
-    os.path.dirname(__file__), '..', 'SignalIntegrityPages',
+    REPO_ROOT, '..', 'SignalIntegrityPages',
     'SignalIntegrity', 'App', 'Help', 'site', 'helpkeys')
 
 # Patterns that register a help key in the source.

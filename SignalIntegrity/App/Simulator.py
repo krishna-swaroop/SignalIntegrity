@@ -104,7 +104,7 @@ class Simulator(object):
             cacheFileName=self.parent.fileparts.FileNameTitle()
             SignalIntegrity.App.Preferences['Cache'].ApplyPreferences()
         SignalIntegrity.App.Preferences['Calculation'].ApplyPreferences()
-        snp=si.p.SimulatorNumericParser(fd,cacheFileName=cacheFileName,Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+        snp=si.p.SimulatorNumericParser(fd,cacheFileName=cacheFileName,Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],allowParallel=self.parent.AllowParallelization())
         snp.AddLines(netListText)
         # if the schematic can generate transfer parameters, let it run, otherwise, if it can't and there are no other
         # waveforms (i.e. eye waveforms or waveforms), then let it run through and fail.  If it can't generate transfer

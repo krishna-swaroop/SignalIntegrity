@@ -873,6 +873,13 @@ class SignalIntegrityApp(tk.Frame):
         else:
             return True
 
+    def AllowParallelization(self):
+        # Parallelization is only permitted when BOTH the global preference and the per-project
+        # calculation property allow it.  Disabling the preference acts as a hard override that
+        # prevents any solve from running in parallel, regardless of the project property.
+        return bool(SignalIntegrity.App.Preferences['Calculation.AllowParallelization']) \
+            and bool(SignalIntegrity.App.Project['CalculationProperties.AllowParallelization'])
+
     def CalculateSParameters(self,netList=None):
         if netList==None:
             self.Drawing.stateMachine.Nothing()
@@ -889,7 +896,8 @@ class SignalIntegrityApp(tk.Frame):
             SignalIntegrity.App.Project['CalculationProperties'].FrequencyList(),
             cacheFileName=cacheFileName,
             efl=efl,
-            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+            Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],
+            allowParallel=self.AllowParallelization())
         spnp.AddLines(netList)
         progressDialog = ProgressDialog(self,"Calculating S-parameters",spnp,spnp.SParameters,granularity=1.0)
         try:
@@ -1068,7 +1076,8 @@ class SignalIntegrityApp(tk.Frame):
         dnp=si.p.DeembedderNumericParser(
                 SignalIntegrity.App.Project['CalculationProperties'].FrequencyList(),
                 cacheFileName=cacheFileName,
-                Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'])
+                Z0=SignalIntegrity.App.Project['CalculationProperties.ReferenceImpedance'],
+                allowParallel=self.AllowParallelization())
         dnp.AddLines(netList)
 
         progressDialog = ProgressDialog(self,"Calculating De-embedded S-parameters",dnp,dnp.Deembed,granularity=1.0)
