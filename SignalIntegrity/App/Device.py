@@ -1817,12 +1817,13 @@ class DeviceVoltageStatisticalNoiseSource(Device):
                         ],
                         partPicture,
                         configuration=VoltageStatisticalNoiseConfiguration())
-    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None, output_types=None):
         return self.configuration.SpectralDensity(
             SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
             SignalIntegrity.App.Project['CalculationProperties']['FrequencyPoints'],
             output_waveforms=output_waveforms,
-            output_waveform_names=output_waveform_names)
+            output_waveform_names=output_waveform_names,
+            output_types=output_types)
 
 class DeviceVoltageStatisticalNoiseSourceProject(Device):
     def __init__(self,propertiesList,partPicture):
@@ -1838,7 +1839,7 @@ class DeviceVoltageStatisticalNoiseSourceProject(Device):
             PartPropertyWaveformType('statistical'),
             PartPropertyWaveformProjectName(''),
             PartPropertyLanes(1.)]+propertiesList,partPicture)
-    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None, output_types=None):
         from SignalIntegrity.App.SignalIntegrityAppHeadless import ProjectNoise
         args=SignalIntegrity.App.Project['Variables'].Dictionary(self.variablesList)
         if self['calcprop'].GetValue() == 'true':
@@ -1860,12 +1861,13 @@ class DeviceCurrentStatisticalNoiseSource(Device):
                         ],
                         partPicture,
                         configuration=CurrentStatisticalNoiseConfiguration())
-    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None, output_types=None):
         return self.configuration.SpectralDensity(
             SignalIntegrity.App.Project['CalculationProperties']['EndFrequency'],
             SignalIntegrity.App.Project['CalculationProperties']['FrequencyPoints'],
             output_waveforms=output_waveforms,
-            output_waveform_names=output_waveform_names)
+            output_waveform_names=output_waveform_names,
+            output_types=output_types)
 
 class DeviceCurrentStatisticalNoiseSourceProject(Device):
     def __init__(self,propertiesList,partPicture):
@@ -1881,7 +1883,7 @@ class DeviceCurrentStatisticalNoiseSourceProject(Device):
             PartPropertyWaveformType('statistical'),
             PartPropertyWaveformProjectName(''),
             PartPropertyLanes(1.)]+propertiesList,partPicture)
-    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, output_waveforms=None, output_waveform_names=None, output_types=None):
         from SignalIntegrity.App.SignalIntegrityAppHeadless import ProjectNoise
         args=SignalIntegrity.App.Project['Variables'].Dictionary(self.variablesList)
         if self['calcprop'].GetValue() == 'true':

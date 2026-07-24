@@ -28,8 +28,9 @@ import SignalIntegrity.App.Project
 from SignalIntegrity.App.Files import FileParts
 
 class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
-    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Crosstalk (From Probe)','Crosstalk')]
+    NoiseTypeChoices=[('White Noise','WhiteNoise'),('Spectral Density File','SpectralDensityFile'),('Waveform File','WaveformFile'),('Crosstalk (From Probe)','Crosstalk'),('Shot Noise','ShotNoise')]
     WhiteNoiseTypeChoices=[('dBm/Hz','dBm/Hz'),('A/sqrt(Hz)','A/sqrt(Hz)'),('A^2/GHz','A^2/GHz'),('Arms','Arms')]
+    ShotNoiseCurrentSourceChoices=[('Mean','Mean'),('Time-Varying Current','TimeVarying')]
     def __init__(self,project,parent):
         PropertiesDialog.__init__(self,parent,project,parent.parent,'Current Statistical Noise Properties')
         self.transient(parent)
@@ -44,6 +45,8 @@ class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.CrosstalkFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
         self.CrosstalkFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+        self.ShotNoiseFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
+        self.ShotNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.Enable=CalculationPropertyTrueFalseButton(self.GeneralFrame,'Enable Noise',self.onUpdateFromChanges,None,self.project,'Enable',tooltip='Enable noise generation for this device')
         self.NoiseType=CalculationPropertyChoices(self.GeneralFrame,'Noise Type',self.onUpdateFromChanges,None,self.NoiseTypeChoices,self.project,'Type',tooltip="Allowed values: 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', or 'Crosstalk'.")
         self.Lanes=CalculationProperty(self.GeneralFrame,'Lanes',self.onUpdateFromChanges,None,self.project,'Lanes',tooltip='number of lanes of noise for this source')
@@ -62,6 +65,10 @@ class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
         self.WaveformFilePerLaneLabel.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         self.WaveformFileName=CalculationPropertyFileName(self.WaveformFileFrame,'Waveform File',self.onUpdateFromChanges,None,fp,self.project,'WaveformFile.FileName',tooltip='Path to the waveform file describing the noise')
         self.CrosstalkProbeName=CalculationProperty(self.CrosstalkFrame,'Probe Name',self.onUpdateFromChanges,None,self.project,'Crosstalk.ProbeName',tooltip='Output probe name to use as the crosstalk noise waveform source.')
+        self.ShotNoiseCurrentSource=CalculationPropertyChoices(self.ShotNoiseFrame,'Current Source',self.onUpdateFromChanges,None,self.ShotNoiseCurrentSourceChoices,self.project,'ShotNoise.CurrentSource',tooltip='Mean or time-varying current used to build the shot-noise spectral density.')
+        self.ShotNoiseMeanCurrent=CalculationPropertySI(self.ShotNoiseFrame,'Mean (steady-state) Current',self.onUpdateFromChanges,None,self.project,'ShotNoise.MeanCurrent','A',round=3,tooltip='Mean (steady-state) current in amperes.  For time-varying mode this is recomputed as the equivalent steady-state current after analysis.')
+        self.ShotNoiseProbeName=CalculationProperty(self.ShotNoiseFrame,'Probe Name',self.onUpdateFromChanges,None,self.project,'ShotNoise.ProbeName',tooltip='Current output probe name whose time-varying current shapes the shot-noise spectral density.')
+        self.ShotNoiseBandwidth=CalculationPropertySI(self.ShotNoiseFrame,'Noise Bandwidth',self.onUpdateFromChanges,None,self.project,'ShotNoise.NoiseBandwidth','Hz',tooltip='Noise bandwidth in Hz used to integrate the shot-noise spectral density.')
         self.SaveToPreferencesFrame=tk.Frame(self.propertyListFrame,relief=tk.RIDGE, borderwidth=5)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesButton = tk.Button(self.SaveToPreferencesFrame,text='Save Properties to Global Preferences',command=self.onSaveToPreferences,width=CalculationProperty.labelWidth)
@@ -76,10 +83,12 @@ class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
         enable=self.project['Enable']
         noiseType=self.project['Type']
         whiteNoiseType=self.project['WhiteNoise.WhiteNoiseType']
+        shotNoiseCurrentSource=self.project['ShotNoise.CurrentSource']
         self.WhiteNoiseFrame.pack_forget()
         self.SpectralDensityFileFrame.pack_forget()
         self.WaveformFileFrame.pack_forget()
         self.CrosstalkFrame.pack_forget()
+        self.ShotNoiseFrame.pack_forget()
         self.SaveToPreferencesFrame.pack_forget()
         self.NoiseType.Show(enable)
         self.Lanes.Show(enable)
@@ -92,6 +101,8 @@ class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
                 self.WaveformFileFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
             elif noiseType=='Crosstalk':
                 self.CrosstalkFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
+            elif noiseType=='ShotNoise':
+                self.ShotNoiseFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         self.SaveToPreferencesFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
         showWhiteNoiseControls = enable and noiseType=='WhiteNoise'
         self.WhiteNoiseType.Show(showWhiteNoiseControls)
@@ -100,6 +111,11 @@ class CurrentStatisticalNoisePropertiesDialog(PropertiesDialog):
         self.ASquaredPerGHz.Show(showWhiteNoiseControls and whiteNoiseType=='A^2/GHz')
         self.ARms.Show(showWhiteNoiseControls and whiteNoiseType=='Arms')
         self.NoiseBandwidth.Show(showWhiteNoiseControls)
+        showShotNoiseControls = enable and noiseType=='ShotNoise'
+        self.ShotNoiseCurrentSource.Show(showShotNoiseControls)
+        self.ShotNoiseMeanCurrent.Show(showShotNoiseControls)
+        self.ShotNoiseProbeName.Show(showShotNoiseControls and shotNoiseCurrentSource=='TimeVarying')
+        self.ShotNoiseBandwidth.Show(showShotNoiseControls)
     def onSaveToPreferences(self):
         self.parent.device.configuration.SaveToPreferences()
 

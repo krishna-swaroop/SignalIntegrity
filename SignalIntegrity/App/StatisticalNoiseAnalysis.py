@@ -69,6 +69,20 @@ class StatisticalNoiseAnalysis(dict):
                             output_types[output_name] = 'current'
                         break
 
+            # A full probe-type map keyed by every available output waveform name
+            # (not just the kept labels) so that shot-noise sources can validate
+            # that a referenced probe is actually a current probe.
+            probe_types = {}
+            for output_name in output_waveform_names:
+                probe_types[output_name] = 'voltage'
+                for device in schematic.deviceList:
+                    if device['ref'] is None:
+                        continue
+                    if device['ref'].GetValue() == output_name:
+                        if device['partname'].GetValue() == 'CurrentOutput':
+                            probe_types[output_name] = 'current'
+                        break
+
             input_types = {}
             inputNoiseSpectralDensityList = []
             for noise_source_ref in netlist.NoiseSourceNames():
@@ -79,7 +93,8 @@ class StatisticalNoiseAnalysis(dict):
                             input_types[noise_source_ref] = 'current' if device['partname'].GetValue().startswith('Current') else 'voltage'
                             sd = device.SpectralDensity(
                                 output_waveforms=output_waveforms,
-                                output_waveform_names=output_waveform_names).Resample(fl)
+                                output_waveform_names=output_waveform_names,
+                                output_types=probe_types).Resample(fl)
                             inputNoiseSpectralDensityList.append(sd)
                             break
 

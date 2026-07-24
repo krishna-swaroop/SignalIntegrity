@@ -206,6 +206,84 @@ class CurrentWhiteNoiseConfiguration(XMLConfiguration):
             fl,
             [0.0 if (f == 0.0 or f > noiseBandwidth) else noiseDensity for f in fl])
 
+class ShotNoiseConfiguration(XMLConfiguration):
+    """Shot noise spectral density for a current noise source.
+
+    Shot noise has a (white) power spectral density S_i(f) = 2*q*I amperes^2/Hz,
+    where q is the electron charge and I is the current.  The equivalent
+    amplitude spectral density is rho(f) = sqrt(2*q*I) in A/sqrt(Hz).
+
+    Two ways of building the density are supported, selected by 'CurrentSource':
+    - 'Mean' : a flat (white) density sqrt(2*q*I) built from the entered
+      'MeanCurrent' (the steady-state current).
+    - 'TimeVarying' : a colored/shaped density derived from a referenced current
+      output probe waveform.  The white shot-noise level of the waveform's mean
+      current is shaped by the waveform's own (normalized) spectrum, then the
+      equivalent steady-state current that would produce the same total rms over
+      the noise bandwidth is written back into 'MeanCurrent'.
+    """
+    def __init__(self, parent=None):
+        super().__init__('ShotNoise')
+        self.parent = parent
+        self.Add(XMLPropertyDefaultString('CurrentSource','Mean')) # 'Mean' (entered steady-state current) or 'TimeVarying' (from a current probe waveform).
+        self.Add(XMLPropertyDefaultFloat('MeanCurrent',0.0))       # Mean (steady-state) current in amperes.
+        self.Add(XMLPropertyDefaultString('ProbeName',''))         # Current output probe name used for the time-varying current.
+        self.Add(XMLPropertyDefaultFloat('NoiseBandwidth',0.0))    # Noise bandwidth in Hz used to integrate the shot-noise density.
+
+    def SpectralDensity(self, EndFrequency, FrequencyPoints,
+                        output_waveforms=None, output_waveform_names=None, output_types=None):
+        import scipy.constants as const
+        from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
+        from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
+        q = const.e
+        fl = EvenlySpacedFrequencyList(EndFrequency, FrequencyPoints)
+        noiseBandwidth = self['NoiseBandwidth']
+        currentSource = self['CurrentSource']
+        probe_name = self['ProbeName']
+
+        useTimeVarying = (currentSource == 'TimeVarying'
+                          and probe_name is not None and probe_name != '')
+
+        if useTimeVarying:
+            # An explicitly named probe must exist and must be a current probe.
+            if output_waveform_names is None or probe_name not in output_waveform_names:
+                raise ValueError(
+                    "shot noise current probe '%s' was not found among the output probes"%probe_name)
+            if output_types is not None and output_types.get(probe_name,'voltage') != 'current':
+                raise ValueError(
+                    "shot noise probe '%s' is not a current probe (its units must be amperes)"%probe_name)
+            waveform = output_waveforms[output_waveform_names.index(probe_name)]
+            values = waveform.Values()
+            meanCurrent = abs(sum(values)/len(values)) if len(values) > 0 else 0.0
+            # The current waveform's own amplitude spectrum provides the shape.
+            currentShape = waveform.SpectralDensity(fl).Values()
+            inBandShape = [v for f,v in zip(fl,currentShape)
+                           if f != 0.0 and f <= noiseBandwidth]
+            refLevel = max(inBandShape) if len(inBandShape) > 0 else 0.0
+            whiteLevel = math.sqrt(2.0*q*meanCurrent)
+            if refLevel <= 0.0:
+                density = [0.0 if (f == 0.0 or f > noiseBandwidth) else whiteLevel
+                           for f in fl]
+            else:
+                density = [0.0 if (f == 0.0 or f > noiseBandwidth)
+                           else whiteLevel*(shape/refLevel)
+                           for f,shape in zip(fl,currentShape)]
+            shotSD = SpectralDensity(fl, density)
+            # Write back the equivalent steady-state current that would produce
+            # this total rms as a flat white shot-noise density over the band.
+            rms = shotSD.TotalRMS()
+            if noiseBandwidth > 0:
+                self['MeanCurrent'] = rms*rms/(2.0*q*noiseBandwidth)
+            return shotSD
+
+        # 'Mean' mode (or an empty/None probe name): flat shot-noise density from
+        # the entered steady-state current.
+        meanCurrent = abs(self['MeanCurrent'])
+        whiteLevel = math.sqrt(2.0*q*meanCurrent)
+        return SpectralDensity(
+            fl,
+            [0.0 if (f == 0.0 or f > noiseBandwidth) else whiteLevel for f in fl])
+
 class SpectralDensityFileConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('SpectralDensityFile')
@@ -253,7 +331,7 @@ class VoltageNoiseConfiguration(XMLConfiguration):
         self.SubDir(NoiseWaveformFileConfiguration())
         self.SubDir(CrosstalkNoiseFromProbeConfiguration())
         self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
-    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None, output_types=None):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         import math
@@ -283,13 +361,14 @@ class CurrentNoiseConfiguration(XMLConfiguration):
     def __init__(self):
         super().__init__('CurrentNoise')
         self.Add(XMLPropertyDefaultBool('Enable',False))
-        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', or 'Crosstalk'
+        self.Add(XMLPropertyDefaultString('Type','WhiteNoise')) # 'WhiteNoise', 'SpectralDensityFile', 'WaveformFile', 'Crosstalk', or 'ShotNoise'
         self.SubDir(CurrentWhiteNoiseConfiguration())
         self.SubDir(SpectralDensityFileConfiguration())
         self.SubDir(NoiseWaveformFileConfiguration())
         self.SubDir(CrosstalkNoiseFromProbeConfiguration())
+        self.SubDir(ShotNoiseConfiguration(parent=self))
         self.Add(XMLPropertyDefaultFloat('Lanes',1.0))
-    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None):
+    def SpectralDensity(self, EndFrequency, FrequencyPoints, output_waveforms=None, output_waveform_names=None, output_types=None):
         from SignalIntegrity.Lib.FrequencyDomain.SpectralDensity import SpectralDensity
         from SignalIntegrity.Lib.FrequencyDomain.FrequencyList import EvenlySpacedFrequencyList
         import math
@@ -310,4 +389,11 @@ class CurrentNoiseConfiguration(XMLConfiguration):
                 FrequencyPoints,
                 output_waveforms=output_waveforms,
                 output_waveform_names=output_waveform_names)*math.sqrt(lanes)
+        if noiseType == 'ShotNoise':
+            return self['ShotNoise'].SpectralDensity(
+                EndFrequency,
+                FrequencyPoints,
+                output_waveforms=output_waveforms,
+                output_waveform_names=output_waveform_names,
+                output_types=output_types)*math.sqrt(lanes)
         raise ValueError(f'Unknown noise type: {noiseType}')

@@ -571,6 +571,142 @@ class TestStatisticalNoiseTest(unittest.TestCase,
         sd = cfg.SpectralDensity(50e9, 5)
         self.assertEqual(sd.Values('V/sqrt(Hz)'), [0.0] * 6)
 
+    def testShotNoiseMeanMode(self):
+        """Mean mode builds a flat sqrt(2*q*I) density zeroed at DC and above the
+        noise bandwidth."""
+        import scipy.constants as const
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import ShotNoiseConfiguration
+
+        q = const.e
+        cfg = ShotNoiseConfiguration()
+        cfg['CurrentSource'] = 'Mean'
+        cfg['MeanCurrent'] = 1e-3
+        cfg['NoiseBandwidth'] = 35e9
+
+        expected_rho = math.sqrt(2.0 * q * 1e-3)
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(len(rho_values), 6)
+        self.assertEqual(rho_values[0], 0.0)          # f = 0
+        self.assertAlmostEqual(rho_values[1], expected_rho, places=18)  # 10 GHz
+        self.assertAlmostEqual(rho_values[2], expected_rho, places=18)  # 20 GHz
+        self.assertAlmostEqual(rho_values[3], expected_rho, places=18)  # 30 GHz
+        self.assertEqual(rho_values[4], 0.0)          # 40 GHz > 35 GHz
+        self.assertEqual(rho_values[5], 0.0)          # 50 GHz > 35 GHz
+
+    def testShotNoiseMeanModeEmptyProbeFallsBack(self):
+        """Time-varying mode with an empty probe name falls back to the entered
+        mean current instead of failing."""
+        import scipy.constants as const
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import ShotNoiseConfiguration
+
+        q = const.e
+        cfg = ShotNoiseConfiguration()
+        cfg['CurrentSource'] = 'TimeVarying'
+        cfg['ProbeName'] = ''
+        cfg['MeanCurrent'] = 2e-3
+        cfg['NoiseBandwidth'] = 35e9
+
+        expected_rho = math.sqrt(2.0 * q * 2e-3)
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho, places=18)
+        self.assertAlmostEqual(rho_values[3], expected_rho, places=18)
+        self.assertEqual(rho_values[4], 0.0)
+
+    def testShotNoiseTimeVaryingBackfillsCurrent(self):
+        """Time-varying mode builds a shaped density from a current probe waveform
+        and writes back the equivalent steady-state current."""
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import ShotNoiseConfiguration
+        from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
+        from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
+
+        N = 400
+        sampleRate = 100e9
+        td = TimeDescriptor(0.0, N, sampleRate)
+        f0 = 5e9
+        values = [1e-3 + 2e-4 * math.sin(2.0 * math.pi * f0 * n / sampleRate) for n in range(N)]
+        wf = Waveform(td, values)
+
+        cfg = ShotNoiseConfiguration()
+        cfg['CurrentSource'] = 'TimeVarying'
+        cfg['ProbeName'] = 'IO1'
+        cfg['MeanCurrent'] = 0.0
+        cfg['NoiseBandwidth'] = 40e9
+
+        sd = cfg.SpectralDensity(
+            40e9, 40,
+            output_waveforms=[wf],
+            output_waveform_names=['IO1'],
+            output_types={'IO1': 'current'})
+
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)                 # DC zeroed
+        self.assertTrue(all(v >= 0.0 for v in rho_values))   # density non-negative
+        self.assertTrue(sd.TotalRMS() > 0.0)                 # non-trivial noise
+        # The equivalent steady-state current is written back and is positive.
+        self.assertTrue(cfg['MeanCurrent'] > 0.0)
+
+    def testShotNoiseTimeVaryingMissingProbeFails(self):
+        """A non-empty probe name that is not present hard-fails."""
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import ShotNoiseConfiguration
+
+        cfg = ShotNoiseConfiguration()
+        cfg['CurrentSource'] = 'TimeVarying'
+        cfg['ProbeName'] = 'IO_missing'
+        cfg['NoiseBandwidth'] = 40e9
+
+        with self.assertRaises(ValueError):
+            cfg.SpectralDensity(
+                40e9, 40,
+                output_waveforms=[],
+                output_waveform_names=[],
+                output_types={})
+
+    def testShotNoiseTimeVaryingWrongProbeTypeFails(self):
+        """A named probe that is not a current probe hard-fails."""
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import ShotNoiseConfiguration
+        from SignalIntegrity.Lib.TimeDomain.Waveform.Waveform import Waveform
+        from SignalIntegrity.Lib.TimeDomain.Waveform.TimeDescriptor import TimeDescriptor
+
+        td = TimeDescriptor(0.0, 100, 100e9)
+        wf = Waveform(td, [1e-3 for _ in range(100)])
+
+        cfg = ShotNoiseConfiguration()
+        cfg['CurrentSource'] = 'TimeVarying'
+        cfg['ProbeName'] = 'VO1'
+        cfg['NoiseBandwidth'] = 40e9
+
+        with self.assertRaises(ValueError):
+            cfg.SpectralDensity(
+                40e9, 40,
+                output_waveforms=[wf],
+                output_waveform_names=['VO1'],
+                output_types={'VO1': 'voltage'})
+
+    def testCurrentNoiseConfigurationShotNoiseLanes(self):
+        """The ShotNoise dispatch scales the density by sqrt(lanes)."""
+        import scipy.constants as const
+        from SignalIntegrity.App.StatisticalNoisePreferencesFile import CurrentNoiseConfiguration
+
+        q = const.e
+        cfg = CurrentNoiseConfiguration()
+        cfg['Enable'] = True
+        cfg['Type'] = 'ShotNoise'
+        cfg['Lanes'] = 4.0
+        cfg['ShotNoise.CurrentSource'] = 'Mean'
+        cfg['ShotNoise.MeanCurrent'] = 1e-3
+        cfg['ShotNoise.NoiseBandwidth'] = 30e9
+
+        expected_rho = math.sqrt(2.0 * q * 1e-3) * 2.0  # sqrt(4 lanes) = 2
+        sd = cfg.SpectralDensity(50e9, 5)
+        rho_values = sd.Values('V/sqrt(Hz)')
+        self.assertEqual(rho_values[0], 0.0)
+        self.assertAlmostEqual(rho_values[1], expected_rho, places=18)
+        self.assertAlmostEqual(rho_values[2], expected_rho, places=18)
+        self.assertEqual(rho_values[4], 0.0)
+
     def testSalzSNR(self):
         """Test script for SalzSNRdB noise floor filtering"""
 
