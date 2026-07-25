@@ -1,15 +1,16 @@
 <Project>
 	<CalculationProperties>
+		<AllowParallelization>True</AllowParallelization>
 		<EndFrequency>160000000000.0</EndFrequency>
 		<FrequencyPoints>1600</FrequencyPoints>
 		<UserSampleRate>3400000000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>1030x378+130+130</Geometry>
+			<Geometry>1327x407+104+104</Geometry>
 			<Grid>14.0</Grid>
-			<Originx>-12</Originx>
-			<Originy>-7</Originy>
+			<Originx>-3</Originx>
+			<Originy>-6</Originy>
 		</DrawingProperties>
 		<Schematic>
 			<Devices>
@@ -20,7 +21,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(55, 14)</Origin>
+						<Origin>(67, 14)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -50,11 +51,17 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(63, 14)</Origin>
+						<Origin>(75, 14)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
 							<Visible>False</Visible>
@@ -98,7 +105,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>90</Orientation>
-						<Origin>(68, 19)</Origin>
+						<Origin>(80, 19)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -128,7 +135,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(55, 18)</Origin>
+						<Origin>(67, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -158,11 +165,17 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(63, 18)</Origin>
+						<Origin>(75, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
 							<Visible>False</Visible>
@@ -206,7 +219,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(64, 24)</Origin>
+						<Origin>(76, 24)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -248,7 +261,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>180</Orientation>
-						<Origin>(71, 25)</Origin>
+						<Origin>(83, 25)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -272,7 +285,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(34, 18)</Origin>
+						<Origin>(46, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -321,7 +334,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(45, 18)</Origin>
+						<Origin>(57, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -352,12 +365,12 @@
 					<Variables>
 						<Items>
 							<Variable>
-								<Description>Baud Rate</Description>
-								<Name>br</Name>
+								<Description>receiver 3 dB bandwidth</Description>
+								<Name>f_r</Name>
 								<ReadOnly>False</ReadOnly>
 								<Type>float</Type>
-								<Units>Baud</Units>
-								<Value>=f_b</Value>
+								<Units>Hz</Units>
+								<Value>=f_r</Value>
 								<Visible>True</Visible>
 							</Variable>
 						</Items>
@@ -370,11 +383,17 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(73, 25)</Origin>
+						<Origin>(85, 25)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>on</Value>
 							<Visible>False</Visible>
@@ -418,7 +437,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(73, 14)</Origin>
+						<Origin>(85, 14)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -491,7 +510,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(18, 23)</Origin>
+						<Origin>(19, 23)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -557,7 +576,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(23, 18)</Origin>
+						<Origin>(24, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -571,6 +590,12 @@
 							<KeywordVisible>True</KeywordVisible>
 							<Value>COM_SincPulse.si</Value>
 							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>element_state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>=bwf_element_state</Value>
+							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
 							<Keyword>ports</Keyword>
@@ -600,19 +625,89 @@
 					</Variables>
 				</Device>
 				<Device>
+					<ClassName>DeviceFile</ClassName>
+					<PartPicture>
+						<Index>0</Index>
+						<MirroredHorizontally>False</MirroredHorizontally>
+						<MirroredVertically>False</MirroredVertically>
+						<Orientation>0</Orientation>
+						<Origin>(35, 18)</Origin>
+					</PartPicture>
+					<PartProperties>
+						<PartProperty>
+							<Keyword>calcprop</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>true</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>file</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>COM_Tukey.si</Value>
+							<Visible>True</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>element_state</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>=tukey_element_state</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ports</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>2</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>ref</Keyword>
+							<KeywordVisible>False</KeywordVisible>
+							<Value>D9</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+					</PartProperties>
+					<Variables>
+						<Items>
+							<Variable>
+								<Description>Baud Rate</Description>
+								<Name>f_b</Name>
+								<ReadOnly>False</ReadOnly>
+								<Type>float</Type>
+								<Units>Baud</Units>
+								<Value>=f_b</Value>
+								<Visible>True</Visible>
+							</Variable>
+							<Variable>
+								<Description>receiver 3 dB bandwidth</Description>
+								<Name>f_r</Name>
+								<ReadOnly>False</ReadOnly>
+								<Type>float</Type>
+								<Units>Hz</Units>
+								<Value>=f_r</Value>
+								<Visible>True</Visible>
+							</Variable>
+						</Items>
+					</Variables>
+				</Device>
+				<Device>
 					<ClassName>DeviceOutput</ClassName>
 					<PartPicture>
 						<Index>0</Index>
 						<MirroredHorizontally>True</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(19, 18)</Origin>
+						<Origin>(20, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>off</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -654,13 +749,19 @@
 						<MirroredHorizontally>True</MirroredHorizontally>
 						<MirroredVertically>True</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(34, 18)</Origin>
+						<Origin>(44, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>off</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -702,13 +803,19 @@
 						<MirroredHorizontally>True</MirroredHorizontally>
 						<MirroredVertically>True</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(45, 18)</Origin>
+						<Origin>(57, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>off</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -750,13 +857,19 @@
 						<MirroredHorizontally>True</MirroredHorizontally>
 						<MirroredVertically>True</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(53, 18)</Origin>
+						<Origin>(65, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
 							<Keyword>state</Keyword>
 							<KeywordVisible>True</KeywordVisible>
 							<Value>off</Value>
+							<Visible>False</Visible>
+						</PartProperty>
+						<PartProperty>
+							<Keyword>noise</Keyword>
+							<KeywordVisible>True</KeywordVisible>
+							<Value>on</Value>
 							<Visible>False</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -796,119 +909,33 @@
 				<Wire>
 					<Vertices>
 						<Vertex>
-							<Coord>(59, 15)</Coord>
+							<Coord>(71, 15)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(61, 15)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(63, 19)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(69, 19)</Coord>
+							<Coord>(73, 15)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
 				<Wire>
 					<Vertices>
 						<Vertex>
-							<Coord>(55, 15)</Coord>
+							<Coord>(75, 19)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(53, 15)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(53, 19)</Coord>
+							<Coord>(81, 19)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
 				<Wire>
 					<Vertices>
 						<Vertex>
-							<Coord>(61, 15)</Coord>
+							<Coord>(67, 15)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(61, 25)</Coord>
+							<Coord>(65, 15)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(64, 25)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(64, 27)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(59, 27)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(59, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(61, 15)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(63, 15)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(59, 19)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(63, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(55, 19)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(53, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(53, 19)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(49, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(45, 19)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(38, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(73, 26)</Coord>
-						</Vertex>
-						<Vertex>
-							<Coord>(69, 26)</Coord>
+							<Coord>(65, 19)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
@@ -918,37 +945,143 @@
 							<Coord>(73, 15)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(63, 15)</Coord>
+							<Coord>(73, 25)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(76, 25)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
 				<Wire>
 					<Vertices>
 						<Vertex>
-							<Coord>(34, 19)</Coord>
+							<Coord>(76, 27)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(27, 19)</Coord>
-						</Vertex>
-					</Vertices>
-				</Wire>
-				<Wire>
-					<Vertices>
-						<Vertex>
-							<Coord>(23, 19)</Coord>
+							<Coord>(71, 27)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(19, 19)</Coord>
+							<Coord>(71, 19)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
 				<Wire>
 					<Vertices>
 						<Vertex>
-							<Coord>(19, 19)</Coord>
+							<Coord>(73, 15)</Coord>
 						</Vertex>
 						<Vertex>
-							<Coord>(19, 23)</Coord>
+							<Coord>(75, 15)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(71, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(75, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(67, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(65, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(65, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(61, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(57, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(50, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(85, 26)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(81, 26)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(85, 15)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(75, 15)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(46, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(44, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(35, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(28, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(24, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(20, 19)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(20, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(20, 23)</Coord>
+						</Vertex>
+					</Vertices>
+				</Wire>
+				<Wire>
+					<Vertices>
+						<Vertex>
+							<Coord>(44, 19)</Coord>
+						</Vertex>
+						<Vertex>
+							<Coord>(39, 19)</Coord>
 						</Vertex>
 					</Vertices>
 				</Wire>
@@ -960,6 +1093,36 @@
 		<Lines>
 			<EquationLine>
 				<Line>T_b=1/f_b</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>if tukey_window == 'True':</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>    bwf_element_state='thru_wires'</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>    tukey_element_state='None'</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>elif tukey_window == 'False':</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>    bwf_element_state='None'</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>    tukey_element_state='thru_wires'</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>else:</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>    raise ValueError(&quot;tukey_window must be 'True' or 'False'&quot;)</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
 			</EquationLine>
 			<EquationLine>
 				<Line>import SignalIntegrity.Lib as si</Line>
@@ -1039,6 +1202,39 @@
 			<EquationLine>
 				<Line></Line>
 			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
+			<EquationLine>
+				<Line></Line>
+			</EquationLine>
 		</Lines>
 	</Equations>
 	<Variables>
@@ -1107,6 +1303,24 @@
 				<Visible>True</Visible>
 			</Variable>
 			<Variable>
+				<Description>receiver bandwidth as a fraction of the Baud rate</Description>
+				<Name>f_r</Name>
+				<ReadOnly>False</ReadOnly>
+				<Type>float</Type>
+				<Units>Hz</Units>
+				<Value>61625000000.0</Value>
+				<Visible>True</Visible>
+			</Variable>
+			<Variable>
+				<Description>apply a Tukey window to the receiver filter (True or False)</Description>
+				<Name>tukey_window</Name>
+				<ReadOnly>False</ReadOnly>
+				<Type>string</Type>
+				<Units></Units>
+				<Value>False</Value>
+				<Visible>True</Visible>
+			</Variable>
+			<Variable>
 				<Description>Sample Rate (S/s)</Description>
 				<Name>Fs</Name>
 				<ReadOnly>True</ReadOnly>
@@ -1150,6 +1364,24 @@
 				<Units>s</Units>
 				<Value>2.5059375e-08</Value>
 				<Visible>False</Visible>
+			</Variable>
+			<Variable>
+				<Description>bwf element state</Description>
+				<Name>bwf_element_state</Name>
+				<ReadOnly>True</ReadOnly>
+				<Type>string</Type>
+				<Units></Units>
+				<Value>error</Value>
+				<Visible>True</Visible>
+			</Variable>
+			<Variable>
+				<Description>tukey element state</Description>
+				<Name>tukey_element_state</Name>
+				<ReadOnly>True</ReadOnly>
+				<Type>string</Type>
+				<Units></Units>
+				<Value>error</Value>
+				<Visible>True</Visible>
 			</Variable>
 		</Items>
 	</Variables>

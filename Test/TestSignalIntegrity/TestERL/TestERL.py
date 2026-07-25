@@ -428,7 +428,18 @@ class TestERLTest(unittest.TestCase,
         project_file_source = os.path.abspath(os.path.join('../../../SignalIntegrity/Utilities/ERL/Projects/',project_file)).replace('\\','/')
         project_file_dest = os.path.join(os.path.dirname(__file__),project_file).replace('\\','/')
         shutil.copy(project_file_source,project_file_dest)
-        project_args={'br':FromSI('56 GBaud','Baud'),'EndFrequency':FromSI('280 GHz','Hz'),'FrequencyPoints':3357}
+        project_args={'f_r':FromSI('32.48 GHz','Hz'),'EndFrequency':FromSI('280 GHz','Hz'),'FrequencyPoints':3357}
+        try:
+            self.SParameterResultsChecker(project_file,args=project_args)
+        finally:
+            os.remove(project_file_dest)
+    def testCOMTukey(self):
+        import shutil
+        project_file = 'COM_Tukey.si'
+        project_file_source = os.path.abspath(os.path.join('../../../SignalIntegrity/Utilities/ERL/Projects/',project_file)).replace('\\','/')
+        project_file_dest = os.path.join(os.path.dirname(__file__),project_file).replace('\\','/')
+        shutil.copy(project_file_source,project_file_dest)
+        project_args={'f_b':FromSI('106.25 GBaud','Baud'),'f_r':FromSI('61.625 GHz','Hz'),'EndFrequency':FromSI('280 GHz','Hz'),'FrequencyPoints':3357}
         try:
             self.SParameterResultsChecker(project_file,args=project_args)
         finally:
@@ -455,6 +466,7 @@ class TestERLTest(unittest.TestCase,
         shutil.copy(os.path.join(os.path.dirname(project_file_source),'COM_Hr.si'),os.path.join(os.path.dirname(project_file_dest),'COM_Hr.si'))
         shutil.copy(os.path.join(os.path.dirname(project_file_source),'COM_Ht.si'),os.path.join(os.path.dirname(project_file_dest),'COM_Ht.si'))
         shutil.copy(os.path.join(os.path.dirname(project_file_source),'COM_SincPulse.si'),os.path.join(os.path.dirname(project_file_dest),'COM_SincPulse.si'))
+        shutil.copy(os.path.join(os.path.dirname(project_file_source),'COM_Tukey.si'),os.path.join(os.path.dirname(project_file_dest),'COM_Tukey.si'))
         shutil.copy(os.path.join(os.path.dirname(project_file_source),'ERL_S11.si'),os.path.join(os.path.dirname(project_file_dest),'ERL_S11.si'))
         file_name='sparam_res.s4p'
         file_name=os.path.join(os.path.dirname(__file__),file_name)
@@ -471,6 +483,7 @@ class TestERLTest(unittest.TestCase,
             os.remove(os.path.join(os.path.dirname(project_file_dest),'COM_Hr.si'))
             os.remove(os.path.join(os.path.dirname(project_file_dest),'COM_Ht.si'))
             os.remove(os.path.join(os.path.dirname(project_file_dest),'COM_SincPulse.si'))
+            os.remove(os.path.join(os.path.dirname(project_file_dest),'COM_Tukey.si'))
             os.remove(os.path.join(os.path.dirname(project_file_dest),'ERL_S11.si'))
     def testERL_S11_Error(self):
         erl_filter=si.td.wf.Waveform(si.td.wf.TimeDescriptor(7.529411764705808e-12,19,106250000000.0),

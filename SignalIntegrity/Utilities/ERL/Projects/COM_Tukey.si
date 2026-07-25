@@ -1,16 +1,15 @@
 <Project>
 	<CalculationProperties>
-		<EndFrequency>224000000000.0</EndFrequency>
-		<FrequencyPoints>2240</FrequencyPoints>
-		<ReferenceImpedance>48.0</ReferenceImpedance>
-		<UserSampleRate>448000000000.0</UserSampleRate>
+		<EndFrequency>160000000000.0</EndFrequency>
+		<FrequencyPoints>1600</FrequencyPoints>
+		<UserSampleRate>1062500000000.0</UserSampleRate>
 	</CalculationProperties>
 	<Drawing>
 		<DrawingProperties>
-			<Geometry>568x216+553+-1015</Geometry>
-			<Grid>14</Grid>
-			<Originx>41</Originx>
-			<Originy>4</Originy>
+			<Geometry>567x170+28+30</Geometry>
+			<Grid>14.0</Grid>
+			<Originx>-28</Originx>
+			<Originy>-13</Originy>
 		</DrawingProperties>
 		<Schematic>
 			<Devices>
@@ -21,7 +20,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(-23, 2)</Origin>
+						<Origin>(46, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -33,7 +32,7 @@
 						<PartProperty>
 							<Keyword>eq</Keyword>
 							<KeywordVisible>False</KeywordVisible>
-							<Value>=rx_filter</Value>
+							<Value>=laplace_eq</Value>
 							<Visible>True</Visible>
 						</PartProperty>
 						<PartProperty>
@@ -51,7 +50,7 @@
 						<MirroredHorizontally>False</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(-26, 2)</Origin>
+						<Origin>(43, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -81,7 +80,7 @@
 						<MirroredHorizontally>True</MirroredHorizontally>
 						<MirroredVertically>False</MirroredVertically>
 						<Orientation>0</Orientation>
-						<Origin>(-22, 2)</Origin>
+						<Origin>(47, 18)</Origin>
 					</PartPicture>
 					<PartProperties>
 						<PartProperty>
@@ -111,7 +110,10 @@
 		<AutoDebug>True</AutoDebug>
 		<Lines>
 			<EquationLine>
-				<Line>rx_filter=f'1/(1-3.414*(f/{f_r})**2+(f/{f_r})**4+1j*2.613*(f/{f_r}-(f/{f_r})**3))'</Line>
+				<Line>f_per=2*(f_b-f_r)</Line>
+			</EquationLine>
+			<EquationLine>
+				<Line>laplace_eq = f'(1. if f &lt;= {f_r} else (0.5*(1-np.cos(2*pi*(f-{f_b})/{f_per})) if f &lt;= {f_b} else 0.))'</Line>
 			</EquationLine>
 			<EquationLine>
 				<Line></Line>
@@ -124,22 +126,40 @@
 	<Variables>
 		<Items>
 			<Variable>
+				<Description>Baud Rate</Description>
+				<Name>f_b</Name>
+				<ReadOnly>False</ReadOnly>
+				<Type>float</Type>
+				<Units>Baud</Units>
+				<Value>106250000000.0</Value>
+				<Visible>True</Visible>
+			</Variable>
+			<Variable>
 				<Description>receiver 3 dB bandwidth</Description>
 				<Name>f_r</Name>
 				<ReadOnly>False</ReadOnly>
 				<Type>float</Type>
 				<Units>Hz</Units>
-				<Value>64959999999.99999</Value>
+				<Value>61625000000.0</Value>
 				<Visible>True</Visible>
 			</Variable>
 			<Variable>
+				<Description>taper period</Description>
+				<Name>f_per</Name>
+				<ReadOnly>True</ReadOnly>
+				<Type>float</Type>
+				<Units>Hz</Units>
+				<Value>89250000000.0</Value>
+				<Visible>False</Visible>
+			</Variable>
+			<Variable>
 				<Description>laplace domain equation</Description>
-				<Name>rx_filter</Name>
+				<Name>laplace_eq</Name>
 				<ReadOnly>True</ReadOnly>
 				<Type>string</Type>
 				<Units>None</Units>
-				<Value>1/(1-3.414*(f/64959999999.99999)**2+(f/64959999999.99999)**4+1j*2.613*(f/64959999999.99999-(f/64959999999.99999)**3))</Value>
-				<Visible>False</Visible>
+				<Value>(1. if f &lt;= 61625000000.0 else (0.5*(1-np.cos(2*pi*(f-106250000000.0)/89250000000.0)) if f &lt;= 106250000000.0 else 0.))</Value>
+				<Visible>True</Visible>
 			</Variable>
 		</Items>
 	</Variables>

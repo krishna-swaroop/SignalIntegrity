@@ -45,6 +45,8 @@ def ERL(filename,args,debug=False,verbose=False):
     | DER_0        | --   | yes         | target detector error ratio                                         |
     | bps          | --   | no 1        | bits per symbol (1=NRZ, 2=PAM-4)                                    |
     | phi          | --   | no 32       | number of sample phases in ptdr (essentially an upsample factor     |
+    | f_r          | --   | no 0.58     | receiver bandwidth as a fraction of the Baud rate                   |
+    | tukey_window | --   | no False    | apply a Tukey window to the receiver filter                         |
     """
     class ERL_Exception(si.SignalIntegrityException):
         def __init__(self,message):
@@ -74,6 +76,8 @@ def ERL(filename,args,debug=False,verbose=False):
     DER_0 = args['DER_0']
     bps = 1 if 'bps' not in args else int(args['bps'])
     phi = 32 if 'phi' not in args else int(args['phi'])
+    f_r = 0.58 if 'f_r' not in args else float(args['f_r'])
+    tukey_window = False if 'tukey_window' not in args else str(args['tukey_window']).strip().lower() in ('true','1','yes')
 
     if debug or verbose:
         print(f"filename = {filename}")
@@ -89,6 +93,8 @@ def ERL(filename,args,debug=False,verbose=False):
         print(f"DER_0 = {ToSI(DER_0,None)}")
         print(f"bps = {ToSI(bps,None)}")
         print(f"phi = {ToSI(phi,None)}")
+        print(f"f_r = {ToSI(f_r,None)}")
+        print(f"tukey_window = {str(tukey_window)}")
         print(f"verbose = {str(verbose)}")
         print(f"debug = {str(debug)}")
 
@@ -98,7 +104,9 @@ def ERL(filename,args,debug=False,verbose=False):
             'f_b':f_b,
             'T_r':T_r,
             'N':N,
-            'phi':phi
+            'phi':phi,
+            'f_r':f_r*f_b,
+            'tukey_window':str(tukey_window)
             }
 
     if debug: # pragma: no cover
@@ -343,6 +351,9 @@ specified unitless (like 1e-6).')
 1 is NRZ (default), 2 is PAM-4.')
     parser.add_argument('-phi',type=str, default='32',help='sample phases in ptdr (essentially upsample factor)\n\
 defaults to 32')
+    parser.add_argument('-f_r',type=str, default='0.58',help='receiver bandwidth as a fraction of the Baud rate\n\
+specified unitless (like 0.58), defaults to 0.58.')
+    parser.add_argument('-tw','--tukey_window',action='store_true',help='apply a Tukey window to the receiver filter')
 
     args, unknown = parser.parse_known_args()
 
@@ -445,6 +456,15 @@ defaults to 32')
             raise(AttributeError)
     except (AttributeError,TypeError):
         Error('error: phi must be specified')
+
+    try:
+        argsDict['f_r']=FromSI(args.f_r,'')
+        if argsDict['f_r'] == None:
+            raise(AttributeError)
+    except (AttributeError,TypeError):
+        Error('error: f_r must be specified')
+
+    argsDict['tukey_window']=args.tukey_window
 
     runProfiler=args.profile
 
