@@ -296,8 +296,6 @@ class Calibration(object):
     def _CalculateTransferThruErrorTerms(self):
         """calculates the transfer thru error terms EL and ET for each port combination and frequency not
         already covered by an actual thru calibration.
-        @param measurements list of list of calibration measurements where each column corresponds to
-        a driven port and each row corresponds to a measured port.
         """
         if Calibration.FillInTransferThru:
             for n in range(len(self.f)): self[n].TransferThruCalibration()

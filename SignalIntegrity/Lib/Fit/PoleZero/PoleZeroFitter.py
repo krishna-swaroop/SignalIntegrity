@@ -53,6 +53,23 @@ class PoleZeroLevMar(LevMar):
         @param fr instance of class FrequencyResponse to fit to.
         @param num_zero_pairs int number of zero pairs.
         @param num_pole_pairs in number of pole pairs.
+        @param guess (optional, defaults to None) initial guess for the fit parameters.
+        @param max_delay (optional, defaults to None) maximum allowed delay.
+        @param min_delay (optional, defaults to 0) minimum allowed delay.
+        @param max_Q (optional, defaults to 5.) maximum allowed Q of the pole/zero pairs.
+        @param initial_delay (optional, defaults to 0) initial delay estimate.
+        @param LHP_zeros (optional, defaults to True) whether zeros are constrained to the left half plane.
+        @param real_zeros (optional, defaults to False) whether zeros are constrained to be real.
+        @param fit_type (optional, defaults to 'magnitude') type of fit ('magnitude' or 'complex').
+        @param max_iterations (optional, defaults to 100000) maximum number of iterations.
+        @param mse_unchanging_threshold (optional, defaults to 1e-6) threshold on the change in mean-squared error used to stop iterating.
+        @param initial_lambda (optional, defaults to None) initial Levenberg-Marquardt lambda.
+        @param lambda_multiplier (optional, defaults to None) multiplier applied to lambda between iterations.
+        @param max_frequency_multiplier (optional, defaults to 5) multiplier on the maximum frequency used in the fit.
+        @param tolerance (optional, defaults to None) convergence tolerance.
+        @param fix_delay (optional, defaults to False) whether the delay is held fixed during the fit.
+        @param fix_gain (optional, defaults to False) whether the gain is held fixed during the fit.
+        @param callback (optional, defaults to None) callback function invoked during iteration.
         """
         self.num_zero_pairs=num_zero_pairs
         self.num_pole_pairs=num_pole_pairs

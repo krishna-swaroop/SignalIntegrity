@@ -30,7 +30,6 @@ class ClockWaveform(SerialDataWaveform):
         @param clockfrequency float rate of clock in Hz
         @param amplitude, risetime, delay, tdOrFs all pertain to the derived SerialDataWaveform class
         @see SerialDataWaveform
-        @return self, a waveform.
         @note this uses the serial data waveform class with bitrate specified as half the clock frequency
         and a bitrate of twice the clockfreqeuncy.
         """

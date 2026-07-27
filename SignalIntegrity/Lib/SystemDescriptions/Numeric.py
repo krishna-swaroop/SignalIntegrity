@@ -45,7 +45,7 @@ class Numeric(object):
         @param Left optional matrix that appears to the left of \f$\mathbf{A}^\dagger\f$
         @param Right optional matrix that appears to the right of \f$\mathbf{A}^\dagger\f$
         @param Mul (optional) whether to provide the result \f$\mathbf{L}\cdot\mathbf{A}^\dagger\cdot\mathbf{R}\f$.
-        Otherwise, by default, \$A^\dagger\f$ is returned.
+        Otherwise, by default, \f$A^\dagger\f$ is returned.
         @return matrix \f$\mathbf{A}^\dagger\f$
         @throw LinAlgError if matrix cannot be inverted
         @remark All matrices supplied can be either list of list or numpy matrix, but

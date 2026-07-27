@@ -1,0 +1,1 @@
+rd .\Doc\xhtml

@@ -189,7 +189,6 @@ class PRBS13QWaveform(MultiLevelWaveform):
         """constructor
         @param baudrate, amplitude, risetime, delay, td all pertain to the derived SerialDataWaveform class
         @see SerialDataWaveform
-        @return self, a waveform.
         @note the pseudo-random bits are grouped for each symbol.
         """        
         MultiLevelWaveform.__init__(self,self.pattern,baudrate,

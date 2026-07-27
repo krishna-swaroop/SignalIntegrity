@@ -31,10 +31,9 @@ class StandardsDefPRBSWaveform(Waveform):
     """a standards defined waveform loaded from a text file with a given rise time and amplitude"""
     def __init__(self, file_path, baudrate, amplitude=1.0,risetime=0.,delay=0.,td=None):
         """constructor
-        @param file_path, Path object pointing to the text file (provided by std. comittee) which defines the waveform. Assumes text file is one symbol per row, -1 to 1 scale
+        @param file_path Path object pointing to the text file (provided by std. comittee) which defines the waveform. Assumes text file is one symbol per row, -1 to 1 scale
         @param baudrate, amplitude, risetime, delay, td all pertain to the derived SerialDataWaveform class
         @see SerialDataWaveform
-        @return self, a waveform.
         @note the pseudo-random bits are grouped for each symbol.
         """
         symbols=int(math.ceil(td.Duration()*baudrate))

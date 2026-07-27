@@ -34,7 +34,6 @@ class TLineTwoPortCOM(SParameters):
         @param Zc float differential mode characterisitic impedance in units of ohms
         @param d float length in units mm 
         @param Z0 (optional) float or complex reference impedance Z0 (defaults to 50 ohms).
-        @return the s-parameter matrix of a COM defined two-port transmission line  
         """
         self.gamma_0=gamma_0;   self.a_1=a_1; self.a_2=a_2
         self.tau=tau;   self.Zc=Zc;     self.d=d

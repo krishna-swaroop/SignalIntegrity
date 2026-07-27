@@ -475,7 +475,6 @@ class DeviceParser():
         The callback function is used to pass down into s-parameter files that are actually
         SignalIntegrity projects so that progress can be tracked and the UI thread can be kept
         updated.
-        @return None
         @throw SignalIntegrityExceptionDeviceParser if the device cannot be created.
         @see SignalIntegrity.Parsers.SystemDescriptionParser
         """

@@ -24,7 +24,7 @@ from SignalIntegrity.Lib.Parsers.ParserArgs import ParserArgs
 from SignalIntegrity.Lib.Devices import Tee
 
 class SystemDescriptionParser(ParserFile,ParserArgs):
-    """Parses netlists and produces system descriptions..
+    """Parses netlists and produces system descriptions.
     These are instances of class SystemDescription.  
     This class provides a mechanism for producing system descriptions from netlists
     rather than by scripting the adding of devices, ports, device connections, etc.
@@ -92,6 +92,7 @@ class SystemDescriptionParser(ParserFile,ParserArgs):
         - 'device' - addition of devices.
         - 'connect' - handles device connections.
         - 'port' - adds system ports for s-parameter calculation.
+        @param line string netlist line to process.
         @param exclusionList list of strings representing commands to exclude.  These are either
         commands that are removed from the functionality (i.e. it would not be write to add a system
         port in a simulation), or commands that are withheld until further processing at a later time

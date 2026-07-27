@@ -34,7 +34,6 @@ class LevelsMultiLevelWaveform(Waveform):
         @see SerialDataWaveform
         @param levels integer (defaults to 2) are the number of levels (i.e. the PAM of the waveform).
         @param symbols integer (defaults to 1) are the number of symbols to be used for encoding
-        @return self, a waveform.
         @throw SignalIntegrityWaveform exception is raised if the polynomial number cannot be found
         @see PseudoRandomPolynomial
         @note the pseudo-random bits are grouped for each symbol.

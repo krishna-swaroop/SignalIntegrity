@@ -32,7 +32,6 @@ class PseudoRandomWaveform(SerialDataWaveform):
         @param polynomial integer polynomial number
         @param bitrate, amplitude, risetime, delay, tdOrFs all pertain to the derived SerialDataWaveform class
         @see SerialDataWaveform
-        @return self, a waveform.
         @throw SignalIntegrityWaveform exception is raised if the polynomial number cannot be found
         @see PseudoRandomPolynomial
         """

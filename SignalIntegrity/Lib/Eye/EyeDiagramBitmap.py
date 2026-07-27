@@ -1350,9 +1350,9 @@ class EyeDiagramBitmap(CallBacker,ResultsCache):
         Best values are 20 % or lower.
         @param InvertImage bool, defaults to True.  Non-inverted images are shades of black on the color specified.  Inverted images are shades of
         the color specified on black.
-        @param Color string, defaults to #ffffff, hexadecimal code where each of the three bytes represents the 0-255 value of R, G, and B, for the
-        eye diagram.  '#ffffff' is white.  '#000000' is black.
-        @param AnnotationColor string, defaults to #000000, hexadecimal code where each of the three bytes represents the 0-255 value of R, G, and B,
+        @param Color string, defaults to \#ffffff, hexadecimal code where each of the three bytes represents the 0-255 value of R, G, and B, for the
+        eye diagram.  '\#ffffff' is white.  '\#000000' is black.
+        @param AnnotationColor string, defaults to \#000000, hexadecimal code where each of the three bytes represents the 0-255 value of R, G, and B,
         for the annotations.
         @param ScaleX float, defaults to 100, scaling of the x axis of the image after construction.
         @param ScaleY float, defaults to 100, scaling of the y axis of the image after construction. 

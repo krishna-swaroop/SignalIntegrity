@@ -196,7 +196,6 @@ class GenericFrequencyList(FrequencyList):
     def __init__(self,fl):
         """Constructor
         @param fl list of frequencies.
-        @return self.
         @remark
         Initializes the frequency list with a list of frequencies.
 

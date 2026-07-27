@@ -39,7 +39,6 @@ class SerialDataWaveform(Waveform):
         the descriptor is generated for one pattern length with a sample rate of 10x the bitrate.  Otherwise, if a float
         is specified, then a time descriptor for one pattern length is generated with the sample rate specified.  Otherwise
         the time descriptor specified is used.
-        @return self, a waveform.
         @throw SignalIntegrityExceptionWaveform exception is raised if the risetime exceeds 59% of the unit interval as this causes
         the calculation to fail.
         @todo the failure for a given risetime is due to the simplicity of the algorithm which should be improved at some point.

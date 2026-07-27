@@ -28,8 +28,8 @@ class RaisedCosineRisetimeFilter(FFE):
     """
     def __init__(self,f,rt,is1090=True,Z0=50.):
         """constructor
+        @param f list of float frequencies
         @param rt float risetime desired.
-        @param Fs float sample rate
         @param is1090 boolean (optional, defaults to True) whether 10-90 risetime
         is specified.  Otherwise 20-80 risetime is used.
         @param Z0 float (optional, defaults to 50) reference impedance

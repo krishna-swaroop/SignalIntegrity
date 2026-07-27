@@ -26,7 +26,8 @@ class Result(dict):
     """
     def __init__(self,result_type,result_dict={}):
         """initializes the result dictionary
-        @param dict results dictionary
+        @param result_type string the type of result being stored
+        @param result_dict (optional) dictionary of results
         """
         if result_type not in ['simulation',
                         'virtual probe',

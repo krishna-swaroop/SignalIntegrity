@@ -34,7 +34,6 @@ class MultiLevelWaveform(Waveform):
         @see SerialDataWaveform
         @param bitsPerSymbol integer (defaults to 1) are the number of bits per symbol and determines the number
         of levels in the waveform.  bitsPerSymbol = 1, means NRZ, 2 means PAM-4, 3 means PAM-8 etc.
-        @return self, a waveform.
         @throw SignalIntegrityWaveform exception is raised if the polynomial number cannot be found
         @see PseudoRandomPolynomial
         @note the pseudo-random bits are grouped for each symbol.
