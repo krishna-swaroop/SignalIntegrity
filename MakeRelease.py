@@ -20,6 +20,7 @@ MakeRelease.py
 # If not, see <https://www.gnu.org/licenses/>
 
 import os
+import sys
 import shutil
 import zipfile
 
@@ -86,10 +87,14 @@ for input,output in zip(filteredFileList,destFileList):
     zipf.write(output,os.path.join('SignalIntegrity-'+__version__,os.path.relpath(input, root)))
 zipf.close()
 os.chdir(os.path.abspath(os.path.join(root,'../SignalIntegrity-'+__version__)))
-result = os.system('python3 setup.py bdist_wheel')
+# use the same interpreter that is running this script (on Windows 'python3'
+# often resolves to the Microsoft Store alias stub, which is not a real interpreter)
+result = os.system('"'+sys.executable+'" setup.py bdist_wheel')
+if result != 0:
+    sys.exit('wheel build failed (exit code '+str(result)+') - aborting before upload')
 #### comment in the next two lines to upload
-# print('use "__token__" as the user name, and the APIToken as the password.')
-# os.system('twine upload dist/*')
+print('use "__token__" as the user name, and the APIToken as the password.')
+os.system('twine upload dist/*')
 
 #### below is for testing, but I don't think this really works anymore -- I'm not sure
 #os.system('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
