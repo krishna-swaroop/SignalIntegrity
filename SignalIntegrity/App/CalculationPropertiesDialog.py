@@ -56,7 +56,7 @@ class CalculationPropertiesDialog(PropertiesDialog):
             self.referenceImpedance=CalculationPropertySI(self.ReferenceImpedanceFrame,'Reference Impedance',None,None,self.project,'ReferenceImpedance','ohm')
         self.ParallelizationFrame=tk.Frame(self.propertyListFrame, relief=tk.RIDGE, borderwidth=5)
         self.ParallelizationFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        if SignalIntegrity.App.Preferences['Calculation.AllowParallelization'] and self.project['AllowParallelization']:
+        if SignalIntegrity.App.Preferences['Calculation.AllowParallelization']:
             self.allowParallelization=CalculationPropertyTrueFalseButton(self.ParallelizationFrame,'Allow Parallelization',None,None,self.project,'AllowParallelization',
                 tooltip='Allow per-frequency calculations to run across multiple processor cores.\nOnly beneficial for large problems; a cost model still decides per-solve whether to parallelize.')
         PropertiesDialog.bind(self,'<Return>',self.ok)
@@ -141,7 +141,7 @@ class CalculationPropertiesDialog(PropertiesDialog):
         self.ReferenceImpedanceFrame.pack_forget()
         if showReferenceImpedance:
             self.ReferenceImpedanceFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
-        showParallelization = SignalIntegrity.App.Preferences['Calculation.AllowParallelization'] and self.project['AllowParallelization']
+        showParallelization = SignalIntegrity.App.Preferences['Calculation.AllowParallelization']
         self.ParallelizationFrame.pack_forget()
         if showParallelization:
             self.ParallelizationFrame.pack(side=tk.TOP,fill=tk.X,expand=tk.NO)
